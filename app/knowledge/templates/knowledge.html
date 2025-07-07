@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge - Inside</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom right, #f5f5f7, #eaeaec);
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto py-10 px-4">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">Knowledge</h1>
+      {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id == 7 %}
+        <button id="btn-open-modal" class="bg-[#fab522] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#e5a800] transition">+ Documento</button>
+      {% endif %}
+    </div>
+
+    <!-- Filtro -->
+    <div class="mb-8">
+      <label for="filter-categoria" class="block text-gray-600 font-medium mb-1">Filtrar por categoría:</label>
+      <select id="filter-categoria" class="w-full md:w-64 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#fab522]">
+        <option value="Todas" selected>Todas</option>
+        {% for cat in ['Operaciones', 'Consultoría', 'Proyectos', 'Administración', 'Recursos Humanos', 'Desarrollo', 'Comercial'] %}
+        <option value="{{ cat }}">{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Cards documentos -->
+    <div id="document-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+      {% for doc in documentos %}
+      <div data-categoria="{{ doc.categoria }}" class="glass rounded-2xl p-5 shadow-md relative">
+        <div class="flex items-center mb-3">
+          <div class="w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-sm" style="background-color:#fab522">
+            {% if doc.tipo == 'Registro' %}R{% elif doc.tipo == 'Procedimiento' %}P{% elif doc.tipo == 'Reglamento' %}G{% elif doc.tipo == 'Política' %}PL{% else %}D{% endif %}
+          </div>
+          <div class="ml-3">
+            <h2 class="text-lg font-semibold text-gray-800 truncate" title="{{ doc.filename }}">{{ doc.nombre }}</h2>
+            <p class="text-sm text-gray-500">{{ doc.tipo }} – {{ doc.categoria }}</p>
+          </div>
+        </div>
+        <div class="text-sm text-gray-400 mb-3">{{ doc.fecha_carga.strftime('%d/%m/%Y') }}</div>
+        <div class="flex justify-between items-center">
+          <a href="{{ doc.download_url() }}" target="_blank" class="text-[#fab522] font-medium hover:underline">Descargar</a>
+          {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id == 7 %}
+          <button type="button" data-docid="{{ doc.id }}" class="delete-btn text-red-500 hover:text-red-700">
+            Eliminar
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <p class="text-gray-400 italic col-span-full text-center py-12">No hay documentos disponibles.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+    <div class="bg-white p-8 rounded-2xl w-full max-w-lg shadow-xl relative fade-in">
+      <button id="modal-close" class="absolute top-4 right-4 text-2xl text-gray-400 hover:text-red-500">&times;</button>
+      <h2 class="text-2xl font-semibold mb-6">Agregar Documento</h2>
+      <form id="upload-form" method="POST" enctype="multipart/form-data" class="space-y-4">
+        {{ form.hidden_tag() }}
+        <div>
+          {{ form.nombre.label(class="block text-gray-700 font-medium") }}
+          {{ form.nombre(class="w-full border rounded-lg px-4 py-2 mt-1") }}
+        </div>
+        <div>
+          {{ form.tipo.label(class="block text-gray-700 font-medium") }}
+          {{ form.tipo(class="w-full border rounded-lg px-4 py-2 mt-1") }}
+        </div>
+        <div>
+          {{ form.categoria.label(class="block text-gray-700 font-medium") }}
+          {{ form.categoria(class="w-full border rounded-lg px-4 py-2 mt-1") }}
+        </div>
+        <div>
+          {{ form.archivo.label(class="block text-gray-700 font-medium") }}
+          {{ form.archivo(class="w-full border rounded-lg px-4 py-2 mt-1") }}
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" id="modal-cancel" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
+          {{ form.submit(class="px-4 py-2 bg-[#fab522] text-white rounded-lg hover:bg-[#e5a800]") }}
+        </div>
+      </form>
+    </div>
+  </div>
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('modal');
+      const openBtn = document.getElementById('btn-open-modal');
+      const closeBtn = document.getElementById('modal-close');
+      const cancelBtn = document.getElementById('modal-cancel');
+      const form = document.getElementById('upload-form');
+
+      function openModal() {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        form.reset();
+      }
+
+      openBtn?.addEventListener('click', openModal);
+      closeBtn?.addEventListener('click', closeModal);
+      cancelBtn?.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+      const filter = document.getElementById('filter-categoria');
+      const cards = document.querySelectorAll('[data-categoria]');
+      filter.addEventListener('change', () => {
+        const val = filter.value;
+        cards.forEach(card => {
+          card.style.display = val === 'Todas' || card.dataset.categoria === val ? 'block' : 'none';
+        });
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (confirm('¿Deseas eliminar este documento?')) {
+            const id = btn.dataset.docid;
+            fetch(`{{ url_for('knowledge.delete_document', document_id=0)[:-1] }}${id}`, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+              credentials: 'same-origin'
+            }).then(res => res.ok ? location.reload() : alert('Error al eliminar.'));
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+{% endblock %}
+{% endblock %}

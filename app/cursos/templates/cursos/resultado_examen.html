@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-4xl">
+
+  <h1 class="text-3xl font-bold mb-6">Examen: {{ examen.titulo }}</h1>
+
+  <form method="POST" action="{{ url_for('cursos.enviar_resultado_examen', examen_id=examen.id) }}" class="space-y-8">
+    {{ form.hidden_tag() }}
+
+    {% for pregunta in examen.preguntas %}
+    <div class="border rounded-lg p-4">
+      <p class="font-semibold mb-2">{{ loop.index }}. {{ pregunta.texto }}</p>
+
+      {% if pregunta.tipo == 'opcion_multiple' %}
+      {% set opciones = pregunta.opciones.split('\n') %}
+      {% for opcion in opciones %}
+      <label class="block mb-1 cursor-pointer">
+        <input
+          type="radio"
+          name="respuesta_{{ pregunta.id }}"
+          value="{{ opcion.strip() }}"
+          required
+          class="mr-2"
+        >
+        {{ opcion.strip() }}
+      </label>
+      {% endfor %}
+
+      {% elif pregunta.tipo == 'verdadero_falso' %}
+      <label class="block mb-1 cursor-pointer">
+        <input type="radio" name="respuesta_{{ pregunta.id }}" value="Verdadero" required class="mr-2">
+        Verdadero
+      </label>
+      <label class="block mb-1 cursor-pointer">
+        <input type="radio" name="respuesta_{{ pregunta.id }}" value="Falso" required class="mr-2">
+        Falso
+      </label>
+
+      {% elif pregunta.tipo == 'abierta' %}
+      <textarea
+        name="respuesta_{{ pregunta.id }}"
+        rows="4"
+        required
+        class="w-full border border-gray-300 rounded px-3 py-2 resize-y"
+      ></textarea>
+
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="text-right">
+      <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded">
+        Enviar respuestas
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

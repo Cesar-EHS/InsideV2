@@ -1,0 +1,23 @@
+<!-- Chat Widget Flotante -->
+<div id="chat-widget" class="fixed bottom-6 right-6 z-50 w-80 max-w-full bg-white/90 glassmorphism rounded-2xl shadow-2xl border border-inside-blue/10 flex flex-col" style="display:none;">
+  <div class="flex items-center justify-between px-4 py-2 bg-inside-blue rounded-t-2xl">
+    <span class="text-white font-bold font-sfpro">Chat institucional</span>
+    <button id="chat-close" class="text-white text-xl font-bold hover:text-inside-yellow transition">&times;</button>
+  </div>
+  <div class="flex flex-row h-96">
+    <div id="chat-users" class="w-24 bg-inside-gray border-r border-inside-blue/10 overflow-y-auto flex flex-col">
+      <!-- Usuarios -->
+    </div>
+    <div class="flex-1 flex flex-col">
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+      <div class="p-2 border-t border-inside-blue/10 flex gap-2 items-center bg-white/80">
+        <input id="chat-input" type="text" class="flex-1 rounded-xl border border-inside-blue/20 px-3 py-2 font-sfpro focus:ring-2 focus:ring-inside-yellow focus:outline-none" placeholder="Escribe un mensaje...">
+        <button id="chat-send" class="bg-inside-yellow text-inside-blue font-bold px-3 py-2 rounded-xl shadow hover:bg-inside-blue hover:text-white transition">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Botón flotante -->
+<button id="chat-fab" class="fixed bottom-6 right-6 z-50 bg-inside-blue text-white rounded-full w-14 h-14 flex items-center justify-center shadow-2xl hover:bg-inside-yellow hover:text-inside-blue transition text-3xl">
+  <span>💬</span>
+</button>

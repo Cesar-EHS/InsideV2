@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil - Inside{% endblock %}
+{% block content %}
+<div class="max-w-5xl w-full mx-auto px-2 sm:px-6 py-8">
+<div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-8">
+<div class="flex items-center gap-6 mb-8">
+    <img src="{{ url_for('static', filename=user.foto or 'default_user.png') }}" alt="Foto de perfil" class="w-24 h-24 rounded-full border-4 border-yellow-400 shadow" />
+    <div>
+    <h2 class="text-2xl font-bold text-gray-800">{{ user.nombre }} {{ user.apellido_paterno }} {{ user.apellido_materno }}</h2>
+    <p class="text-gray-500">{{ user.email }}</p>
+    <p class="text-gray-500 text-sm">CURP: {{ user.curp }}</p>
+    </div>
+</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div>
+      <h3 class="font-semibold text-lg mb-2 text-yellow-600">Logros</h3>
+      <!-- Aquí se mostrarán los logros del usuario -->
+      <div class="bg-yellow-50 rounded p-4 text-gray-700">Próximamente: tus logros destacados.</div>
+    </div>
+    <div>
+      <h3 class="font-semibold text-lg mb-2 text-yellow-600">Constancias</h3>
+      <!-- Aquí se mostrarán las constancias del usuario -->
+      <div class="bg-yellow-50 rounded p-4 text-gray-700">Próximamente: tus constancias de capacitación.</div>
+    </div>
+  </div>
+  <div class="mt-8">
+    <h3 class="font-semibold text-lg mb-2 text-yellow-600">Organigrama</h3>
+    <!-- Aquí se mostrará el organigrama del usuario -->
+    <div class="bg-yellow-50 rounded p-4 text-gray-700">Próximamente: tu posición en el organigrama.</div>
+  </div>
+</div>
+</div>
+{% endblock %}

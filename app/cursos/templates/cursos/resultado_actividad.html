@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-lg">
+
+  <h1 class="text-3xl font-bold mb-6">Actividad: {{ actividad.titulo }}</h1>
+
+  <p class="mb-6 text-gray-700 whitespace-pre-line">{{ actividad.descripcion or '' }}</p>
+
+  <form method="POST" action="{{ url_for('cursos.enviar_resultado_actividad', actividad_id=actividad.id) }}" enctype="multipart/form-data" class="space-y-6">
+    {{ form.hidden_tag() }}
+
+    <div>
+      <label class="block font-semibold mb-1" for="archivo_entrega">Archivo de entrega (opcional)</label>
+      <input type="file" id="archivo_entrega" name="archivo" class="w-full border border-gray-300 rounded px-3 py-2" />
+    </div>
+
+    <div>
+      <label class="block font-semibold mb-1" for="texto_entrega">Comentario / Respuesta (opcional)</label>
+      <textarea id="texto_entrega" name="comentario" rows="5" class="w-full border border-gray-300 rounded px-3 py-2 resize-y"></textarea>
+    </div>
+
+    <div class="text-right">
+      <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded">
+        Enviar actividad
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

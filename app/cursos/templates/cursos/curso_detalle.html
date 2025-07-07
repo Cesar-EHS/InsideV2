@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-4xl space-y-6">
+
+  <h1 class="text-4xl font-bold text-gray-800 mb-2">{{ curso.nombre }}</h1>
+
+  <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div class="text-gray-600 space-y-1">
+      <img src="{{ url_for('static', filename=curso.imagen if curso.imagen else 'cursos/img/default-curso.png') }}" alt="Imagen curso" class="w-48 h-32 object-cover rounded mb-4">
+      <p><strong>Categoría:</strong> {{ curso.categoria }}</p>
+      <p><strong>Modalidad:</strong> {{ curso.modalidad }}</p>
+      <p><strong>Objetivo:</strong> {{ curso.objetivo }}</p>
+      <p><strong>Área temática:</strong> {{ curso.area_tematica }}</p>
+      <p><strong>Duración:</strong> {{ curso.duracion }}</p>
+      <p><strong>Tipo de agente capacitador:</strong> {{ curso.tipo_agente }}</p>
+      <p><strong>Fecha creación:</strong> {{ curso.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+    </div>
+    {% if current_user.id == curso.creador_id %}
+    <div>
+      <a href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}" 
+         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">Editar</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Barra de progreso visual -->
+  {% set insc = curso.inscripciones | selectattr('usuario_id', 'equalto', current_user.id) | list | first %}
+  {% set avance = insc.avance if insc else 0 %}
+  <div class="my-6">
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-base font-medium text-blue-700">Progreso del curso</span>
+      <span class="text-sm font-semibold text-blue-700">{{ avance }}%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-4">
+      <progress class="w-full h-4 bg-gradient-to-r from-blue-500 to-green-400 rounded-full" value="{{ avance }}" max="100"></progress>
+    </div>
+    {% if avance == 100 %}
+      <div class="mt-2 text-green-600 font-semibold flex items-center gap-2"><svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>¡Curso completado!</div>
+    {% endif %}
+  </div>
+
+  <!-- Tabs visuales -->
+  <div>
+    <ul class="flex border-b mb-6" id="tabs">
+      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold active" href="#tab-materiales">Materiales</a></li>
+      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold" href="#tab-actividades">Actividades</a></li>
+      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold" href="#tab-examenes">Exámenes</a></li>
+      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold" href="#tab-progreso">Progreso</a></li>
+    </ul>
+    <div id="tab-materiales" class="tab-content">
+      <h2 class="text-2xl font-semibold mb-4">Materiales</h2>
+      {% if curso.materiales %}
+        <ul class="space-y-2">
+          {% for mat in curso.materiales %}
+            <li class="flex items-center gap-3 bg-gray-50 rounded p-3">
+              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>{{ mat.nombre }}</span>
+              <a href="{{ url_for('static', filename='uploads/' ~ mat.archivo) }}" class="ml-auto bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" download>Descargar</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-500 italic">No hay materiales disponibles.</p>
+      {% endif %}
+    </div>
+    <div id="tab-actividades" class="tab-content hidden">
+      <h2 class="text-2xl font-semibold mb-4">Actividades</h2>
+      {% if current_user.id == curso.creador_id %}
+        <a href="{{ url_for('cursos.agregar_actividad', curso_id=curso.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow mb-4 inline-block">Agregar Actividad</a>
+      {% endif %}
+      {% if curso.actividades %}
+        <ul class="list-disc list-inside space-y-2">
+          {% for actividad in curso.actividades %}
+            <li class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
+                onclick="window.location.href='{{ url_for('cursos.editar_actividad', actividad_id=actividad.id) }}'">
+              <strong>{{ actividad.titulo }}</strong><br>
+              <span class="text-gray-600 text-sm">{{ actividad.descripcion or 'Sin descripción' }}</span>
+              {% if actividad.entrega %}
+                <span class="ml-2 text-green-600 font-semibold">Entregado</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-500 italic">No hay actividades disponibles.</p>
+      {% endif %}
+    </div>
+    <div id="tab-examenes" class="tab-content hidden">
+      <h2 class="text-2xl font-semibold mb-4">Exámenes</h2>
+      {% if current_user.id == curso.creador_id %}
+        <a href="{{ url_for('cursos.agregar_examen', curso_id=curso.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow mb-4 inline-block">Agregar Examen</a>
+      {% endif %}
+      {% if curso.examenes %}
+        <ul class="list-disc list-inside space-y-2">
+          {% for examen in curso.examenes %}
+            <li class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
+                onclick="window.location.href='{{ url_for('cursos.editar_examen', examen_id=examen.id) }}'">
+              <strong>{{ examen.titulo }}</strong><br>
+              <span class="text-gray-600 text-sm">{{ examen.descripcion or 'Sin descripción' }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-500 italic">No hay exámenes disponibles.</p>
+      {% endif %}
+    </div>
+    <div id="tab-progreso" class="tab-content hidden">
+      <h2 class="text-2xl font-semibold mb-4">Progreso y Resultados</h2>
+      {% if insc %}
+        <div class="mb-4">
+          <h3 class="font-bold text-lg mb-2">Exámenes</h3>
+          {% if insc.examenes_realizados %}
+            <ul class="divide-y">
+              {% for res in insc.examenes_realizados %}
+                <li class="py-2 flex items-center">
+                  <span class="font-semibold">{{ res.examen.titulo }}</span>
+                  <span class="ml-auto">Calificación: <span class="font-mono">{{ res.calificacion if res.calificacion is not none else 'Pendiente' }}</span></span>
+                  <span class="ml-4 text-xs text-gray-500">{{ res.fecha_realizado.strftime('%d/%m/%Y') }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-gray-500 italic">No has realizado exámenes aún.</p>
+          {% endif %}
+        </div>
+        <div class="mb-4">
+          <h3 class="font-bold text-lg mb-2">Actividades</h3>
+          {% if insc.actividades_realizadas %}
+            <ul class="divide-y">
+              {% for res in insc.actividades_realizadas %}
+                <li class="py-2 flex items-center">
+                  <span class="font-semibold">{{ res.actividad.titulo }}</span>
+                  <span class="ml-auto">Calificación: <span class="font-mono">{{ res.calificacion if res.calificacion is not none else 'Pendiente' }}</span></span>
+                  {% if res.retroalimentacion %}
+                    <span class="ml-4 text-xs text-green-600">{{ res.retroalimentacion }}</span>
+                  {% endif %}
+                  <span class="ml-4 text-xs text-gray-500">{{ res.fecha_entregado.strftime('%d/%m/%Y') if res.fecha_entregado else '' }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-gray-500 italic">No has entregado actividades aún.</p>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="text-gray-500 italic">No hay progreso registrado.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+<script>
+  // Tabs simples con JS vanilla
+  document.addEventListener('DOMContentLoaded', function() {
+    var links = document.querySelectorAll('.tab-link');
+    var tabs = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', function(e) {
+        e.preventDefault();
+        for (var j = 0; j < links.length; j++) { links[j].classList.remove('active'); }
+        for (var k = 0; k < tabs.length; k++) { tabs[k].classList.add('hidden'); }
+        this.classList.add('active');
+        var tabId = this.getAttribute('href');
+        var tab = document.querySelector(tabId);
+        if (tab) { tab.classList.remove('hidden'); }
+      });
+    }
+    // Mostrar el primer tab por defecto
+    if (tabs.length > 0) {
+      tabs[0].classList.remove('hidden');
+    }
+  });
+</script>
+{% endblock %}

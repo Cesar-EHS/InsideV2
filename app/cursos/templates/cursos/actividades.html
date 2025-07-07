@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-4xl space-y-6">
+
+  <h1 class="text-3xl font-bold mb-6">Actividades - {{ curso.nombre }}</h1>
+
+  {% if current_user.id == curso.creador_id %}
+  <div class="mb-4 text-right">
+    <a href="{{ url_for('cursos.agregar_actividad', curso_id=curso.id) }}" 
+       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">
+       + Agregar Actividad
+    </a>
+  </div>
+  {% endif %}
+
+  {% if curso.actividades %}
+  <ul class="space-y-4">
+    {% for actividad in curso.actividades %}
+    <li class="border rounded-lg p-4 hover:shadow-md">
+      <h2 class="text-xl font-semibold">{{ actividad.titulo }}</h2>
+      <p class="text-gray-600">{{ actividad.descripcion or 'Sin descripción' }}</p>
+      <p class="text-sm text-gray-500">Creado el {{ actividad.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+
+      {% if actividad.video_url %}
+      <div class="mt-4">
+        <iframe class="w-full h-64 rounded" src="{{ actividad.video_url | replace('watch?v=', 'embed/') }}" frameborder="0" allowfullscreen></iframe>
+      </div>
+      {% endif %}
+
+      {% if actividad.entrega %}
+      <div class="mt-4 text-green-600 font-semibold">Entregado</div>
+      {% else %}
+      <div class="mt-4 text-red-600 font-semibold">Pendiente de entrega</div>
+      {% endif %}
+
+      <div class="mt-4 flex gap-4">
+        <a href="{{ url_for('cursos.editar_actividad', actividad_id=actividad.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Editar</a>
+        {% if not actividad.entrega %}
+        <a href="{{ url_for('cursos.entregar_actividad', actividad_id=actividad.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">Entregar</a>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-gray-500 italic">No hay actividades creadas para este curso.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

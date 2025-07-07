@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-xl">
+
+  <h1 class="text-3xl font-bold mb-6">Editar Curso</h1>
+
+  <form method="POST" action="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}" enctype="multipart/form-data" class="space-y-6">
+    {{ form.hidden_tag() }}
+    <!-- ...existing code... -->
+    <div>
+      {{ form.imagen.label(class="block font-semibold mb-1") }}
+      {{ form.imagen(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.imagen.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.imagen.errors[0] }}</p>
+      {% endif %}
+      {% if curso.imagen %}
+        <img src="{{ url_for('static', filename=curso.imagen) }}" alt="Imagen actual" class="mt-2 w-32 h-20 object-cover rounded">
+      {% endif %}
+    </div>
+    <!-- ...existing code... -->
+  </form>
+
+</div>
+{% endblock %}

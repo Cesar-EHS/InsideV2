@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-xl">
+
+  <h1 class="text-3xl font-bold mb-6">Agregar Nuevo Curso</h1>
+
+  <form method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-6">
+    {{ form.hidden_tag() }}
+
+    <div>
+      {{ form.categoria.label(class="block font-semibold mb-1") }}
+      {{ form.categoria(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.categoria.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.categoria.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.modalidad.label(class="block font-semibold mb-1") }}
+      {{ form.modalidad(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.modalidad.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.objetivo.label(class="block font-semibold mb-1") }}
+      {{ form.objetivo(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.objetivo.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.objetivo.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.nombre.label(class="block font-semibold mb-1") }}
+      {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.nombre.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.contenido.label(class="block font-semibold mb-1") }}
+      {{ form.contenido(class="w-full border border-gray-300 rounded px-3 py-2 h-32 resize-y") }}
+      {% if form.contenido.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.contenido.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.area_tematica.label(class="block font-semibold mb-1") }}
+      {{ form.area_tematica(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.area_tematica.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.area_tematica.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.duracion.label(class="block font-semibold mb-1") }}
+      {{ form.duracion(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.duracion.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.tipo_agente.label(class="block font-semibold mb-1") }}
+      {{ form.tipo_agente(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.tipo_agente.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.tipo_agente.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div>
+      {{ form.imagen.label(class="block font-semibold mb-1") }}
+      {{ form.imagen(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {% if form.imagen.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.imagen.errors[0] }}</p>
+      {% endif %}
+    </div>
+
+    <div class="text-right">
+      {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded") }}
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

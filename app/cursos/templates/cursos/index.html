@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto p-6">
+  <h1 class="text-4xl font-bold mb-6">Mis Cursos</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for curso in cursos %}
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <img src="{{ url_for('static', filename=curso.imagen if curso.imagen else 'cursos/img/default-curso.png') }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover">
+      <div class="p-4">
+        <h2 class="text-xl font-semibold">{{ curso.nombre }}</h2>
+        <p class="text-gray-600 text-sm">{{ curso.descripcion or 'Sin descripción' }}</p>
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium text-blue-700">Progreso</span>
+            <span class="text-sm font-semibold text-blue-700">{{ curso.progreso }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ curso.progreso }}%;"></div>
+          </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Ver Curso</a>
+          {% if current_user.id == curso.creador_id %}
+          <a href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Editar</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

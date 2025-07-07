@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="min-h-screen bg-white py-10 px-2 sm:px-8 lg:px-32 font-poppins">
+  <header class="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6 sm:mb-0 tracking-tight flex items-center gap-2">
+      Mis Logros
+    </h1>
+    {% if current_user.puesto_trabajo_id in [2, 5, 7, 8, 23, 24] %}
+    <button
+      type="button"
+      id="btn-add-logro"
+      class="inline-flex items-center px-6 py-2 bg-yellow-400 hover:bg-yellow-500 focus:ring-yellow-300 focus:ring-offset-2 focus:outline-none focus:ring-2 rounded-xl shadow text-white font-semibold text-base transition transform hover:scale-105 gap-2"
+      aria-label="Agregar logro"
+    >
+      Agregar Logro
+    </button>
+    {% endif %}
+  </header>
+
+  <!-- Mensajes Flash Dinámicos -->
+  <div id="flashMessages" class="mb-8 max-w-3xl mx-auto space-y-3"></div>
+
+  <!-- Lista de logros -->
+  <section class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto" id="logrosList">
+    {% if logros|length == 0 %}
+      <p class="col-span-full text-center text-gray-400 text-lg mt-20 select-none animate-fadeInUp">
+        No hay logros registrados aún.
+      </p>
+    {% else %}
+      {% for logro in logros %}
+      <article class="bg-white rounded-2xl shadow hover:shadow-lg transition-shadow duration-300 p-0 flex flex-col border border-gray-100 hover:border-yellow-300 relative group animate-fadeInUp">
+        {% if logro.imagen %}
+        <figure class="rounded-t-2xl overflow-hidden border-b border-gray-100">
+          <img
+            src="{{ url_for('uploads', filename=logro.imagen) }}"
+            alt="Imagen del logro {{ logro.titulo }}"
+            class="w-full object-cover h-40 group-hover:scale-105 transition-transform duration-300 bg-gray-50"
+            loading="lazy"
+          />
+        </figure>
+        {% endif %}
+        <div class="p-5 flex flex-col flex-grow">
+          <header class="flex items-start justify-between mb-2">
+            <h2 class="text-lg font-semibold text-gray-900 truncate max-w-[80%] flex items-center gap-2">
+              {{ logro.titulo }}
+            </h2>
+            {% if logro.creador_id == current_user.id or current_user.puesto_trabajo_id in [2, 5, 7, 8, 23, 24] %}
+            <button
+              class="text-red-400 hover:text-red-600 focus:outline-none transition bg-white/70 rounded-full p-1 shadow-sm"
+              aria-label="Eliminar logro {{ logro.titulo }}"
+              data-logro-id="{{ logro.id }}"
+              onclick="confirmDeleteLogro(this)"
+              title="Eliminar logro"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            {% endif %}
+          </header>
+          <p class="text-gray-700 flex-grow whitespace-pre-line leading-relaxed mb-2 text-sm">{{ logro.descripcion }}</p>
+          <footer class="mt-auto flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <span class="italic select-none tracking-wide">
+                {% if logro.fecha_inicio %}
+                  <span class="font-semibold text-yellow-600">Inicio:</span> {{ logro.fecha_inicio.strftime('%d/%m/%Y') }}
+                {% else %}
+                  <span class="font-semibold text-yellow-600">Inicio:</span> No especificada
+                {% endif %}
+              </span>
+              {% set evidencia_aprobada = logro.evidencias.filter_by(estatus='Aprobado').first() %}
+              {% if evidencia_aprobada %}
+                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Concretado</span>
+              {% else %}
+                <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">Pendiente</span>
+              {% endif %}
+            </div>
+            <div class="flex flex-wrap gap-2 mt-1">
+              {% for evidencia in logro.evidencias %}
+                <span class="px-2 py-1 rounded text-xs font-semibold shadow-sm
+                  {% if evidencia.estatus == 'Aprobado' %}bg-green-100 text-green-700
+                  {% elif evidencia.estatus == 'Denegado' %}bg-red-100 text-red-700
+                  {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                  Evidencia: <a href="{{ url_for('uploads', filename=evidencia.archivo) }}" target="_blank" class="underline hover:text-yellow-600">Ver</a> ({{ evidencia.estatus }})
+                  {% if logro.creador_id == current_user.id %}
+                    {% if evidencia.estatus == 'Pendiente' %}
+                      <form method="POST" action="{{ url_for('logros.aprobar_evidencia', evidencia_id=evidencia.id) }}" style="display:inline">
+                        <button type="submit" class="ml-2 text-green-600 hover:underline">Aprobar</button>
+                      </form>
+                      <form method="POST" action="{{ url_for('logros.denegar_evidencia', evidencia_id=evidencia.id) }}" style="display:inline">
+                        <button type="submit" class="ml-2 text-red-600 hover:underline">Denegar</button>
+                      </form>
+                    {% endif %}
+                  {% endif %}
+                </span>
+              {% endfor %}
+              {% set ya_subio = logro.evidencias.filter_by(usuario_id=current_user.id).first() %}
+              {% if not ya_subio and not logro.fecha_vencida %}
+                <button class="px-2 py-1 rounded bg-yellow-100 text-yellow-900 font-bold text-xs hover:bg-yellow-200 transition border border-yellow-200" onclick="openEvidenciaModal('{{ logro.id }}')">Anexar evidencia</button>
+              {% endif %}
+            </div>
+          </footer>
+        </div>
+      </article>
+      {% endfor %}
+    {% endif %}
+  </section>
+
+  <!-- Modal para agregar logro -->
+  {% if current_user.puesto_trabajo_id in [2, 5, 7, 8, 23, 24] %}
+  <div id="modalAddLogro" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative border-4 border-yellow-200 animate-fadeInUp">
+      <h3 class="text-3xl font-extrabold mb-8 text-yellow-700 tracking-wide flex items-center gap-2">
+        Agregar Nuevo Logro
+      </h3>
+      <form
+        id="formAddLogro"
+        method="POST"
+        enctype="multipart/form-data"
+        action="{{ url_for('logros.nuevo_logro') }}"
+        class="space-y-6"
+        novalidate
+      >
+        {{ form.hidden_tag() }}
+        {% for field, errors in form.errors.items() %}
+          <div class="text-red-600 text-sm">{{ form[field].label.text }}: {{ errors[0] }}</div>
+        {% endfor %}
+        <div>
+          <label for="titulo" class="block mb-2 text-sm font-medium text-yellow-700">Título</label>
+          {{ form.titulo(class_="block w-full rounded-lg border border-yellow-300 p-3 text-gray-900 placeholder-gray-400 focus:border-yellow-500 focus:ring-yellow-500 focus:outline-none shadow-sm bg-yellow-50") }}
+          <p id="errorTitulo" class="mt-1 text-sm text-red-600 hidden"></p>
+        </div>
+        <div>
+          <label for="descripcion" class="block mb-2 text-sm font-medium text-yellow-700">Descripción</label>
+          {{ form.descripcion(class_="block w-full rounded-lg border border-yellow-300 p-3 text-gray-900 placeholder-gray-400 focus:border-yellow-500 focus:ring-yellow-500 focus:outline-none shadow-sm bg-yellow-50", rows="5") }}
+          <p id="errorDescripcion" class="mt-1 text-sm text-red-600 hidden"></p>
+        </div>
+        <div>
+          <label for="imagen" class="block mb-2 text-sm font-medium text-yellow-700">Imagen (opcional)</label>
+          {{ form.imagen(class_="block w-full text-gray-700 bg-yellow-50 border border-yellow-300 rounded-lg p-2") }}
+          <p id="errorImagen" class="mt-1 text-sm text-red-600 hidden"></p>
+        </div>
+        <div class="flex gap-4">
+          <div class="w-1/2">
+            <label for="fecha_inicio" class="block mb-2 text-sm font-medium text-yellow-700">Fecha Inicio</label>
+            {{ form.fecha_inicio(class_="block w-full rounded-lg border border-yellow-300 p-3 text-gray-900 placeholder-gray-400 focus:border-yellow-500 focus:ring-yellow-500 focus:outline-none shadow-sm bg-yellow-50") }}
+            <p id="errorFechaInicio" class="mt-1 text-sm text-red-600 hidden"></p>
+          </div>
+          <div class="w-1/2">
+            <label for="fecha_fin" class="block mb-2 text-sm font-medium text-yellow-700">Fecha Fin</label>
+            {{ form.fecha_fin(class_="block w-full rounded-lg border border-yellow-300 p-3 text-gray-900 placeholder-gray-400 focus:border-yellow-500 focus:ring-yellow-500 focus:outline-none shadow-sm bg-yellow-50") }}
+            <p id="errorFechaFin" class="mt-1 text-sm text-red-600 hidden"></p>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-4 pt-6 border-t border-yellow-100">
+          <button
+            type="button"
+            id="btnCancelAddLogro"
+            class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition"
+            aria-label="Cancelar"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="px-7 py-3 rounded-lg bg-yellow-500 text-white font-bold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition shadow-lg"
+            aria-label="Guardar logro"
+          >
+            Guardar
+          </button>
+        </div>
+      </form>
+      <button
+        type="button"
+        id="btnCloseAddLogro"
+        class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 focus:outline-none"
+        aria-label="Cerrar modal"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Modal de confirmación eliminación -->
+  <div id="modalConfirmDelete" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border-4 border-red-200 animate-fadeInUp">
+      <h3 class="text-2xl font-extrabold mb-6 text-red-700 tracking-wide">¿Confirmas eliminar este logro?</h3>
+      <div class="flex justify-center space-x-6">
+        <button
+          type="button"
+          id="btnCancelDelete"
+          class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          id="btnConfirmDelete"
+          class="px-7 py-3 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition shadow-lg"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para anexar evidencia -->
+  <div id="modalEvidencia" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative border-4 border-blue-200 animate-fadeInUp">
+      <h3 class="text-2xl font-extrabold mb-6 text-blue-700 tracking-wide">Anexar Evidencia</h3>
+      <form id="formEvidencia" method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
+        <input type="hidden" name="logro_id" id="evidenciaLogroId" />
+        <div>
+          <label for="archivo" class="block mb-2 text-sm font-medium text-blue-700">Archivo (imagen o PDF)</label>
+          <input type="file" name="archivo" id="archivoEvidencia" class="block w-full rounded-lg border border-blue-300 p-3 text-gray-900 bg-blue-50" required />
+          <p id="errorArchivoEvidencia" class="mt-1 text-sm text-red-600 hidden"></p>
+        </div>
+        <div class="flex justify-end space-x-4 pt-6 border-t border-blue-100">
+          <button type="button" id="btnCancelEvidencia" class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition">Cancelar</button>
+          <button type="submit" class="px-7 py-3 rounded-lg bg-blue-500 text-white font-bold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition shadow-lg">Enviar</button>
+        </div>
+      </form>
+      <button type="button" id="btnCloseEvidencia" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 focus:outline-none" aria-label="Cerrar modal">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<style>
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp { animation: fadeInUp 0.5s cubic-bezier(.4,0,.2,1) both; }
+.animate-spin-slow { animation: spin 2.5s linear infinite; }
+
+.apple-shadow {
+  box-shadow: 0 4px 24px 0 #0000000a, 0 1.5px 6px 0 #fab52222;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Asegura que todos los modales estén cerrados al cargar la página
+  document.getElementById('modalAddLogro').classList.add('hidden');
+  document.getElementById('modalConfirmDelete').classList.add('hidden');
+  document.getElementById('modalEvidencia').classList.add('hidden');
+  document.body.style.overflow = '';
+
+  const modalAdd = document.getElementById('modalAddLogro');
+  const btnAdd = document.getElementById('btn-add-logro');
+  const btnCloseAdd = document.getElementById('btnCloseAddLogro');
+  const btnCancelAdd = document.getElementById('btnCancelAddLogro');
+  const formAdd = document.getElementById('formAddLogro');
+  const flashContainer = document.getElementById('flashMessages');
+
+  // Funciones para mostrar/ocultar errores de validación
+  function clearErrors() {
+    ['Titulo', 'Descripcion', 'Imagen', 'FechaInicio', 'FechaFin'].forEach(id => {
+      const el = document.getElementById('error' + id);
+      if(el) {
+        el.textContent = '';
+        el.classList.add('hidden');
+      }
+    });
+  }
+
+  function showFlashMessage(message, category='success') {
+    const div = document.createElement('div');
+    div.className = `rounded-lg px-5 py-4 text-white shadow-md ${category === 'success' ? 'bg-green-600' : category === 'danger' ? 'bg-red-600' : 'bg-yellow-600'}`;
+    div.textContent = message;
+    flashContainer.appendChild(div);
+    setTimeout(() => {
+      div.remove();
+    }, 5000);
+  }
+
+  const openModalAdd = () => {
+    modalAdd.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModalAdd = () => {
+    modalAdd.classList.add('hidden');
+    document.body.style.overflow = '';
+    formAdd.reset();
+    clearErrors();
+  };
+
+  btnAdd.addEventListener('click', openModalAdd);
+  btnCloseAdd.addEventListener('click', closeModalAdd);
+  btnCancelAdd.addEventListener('click', closeModalAdd);
+
+  // Manejo del envío AJAX
+  formAdd.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const formData = new FormData(formAdd);
+
+    try {
+      const response = await fetch(formAdd.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        showFlashMessage('Error en la comunicación con el servidor.', 'danger');
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Agregar nuevo logro al listado sin recargar
+        if(data.logro_html){
+          const logrosList = document.getElementById('logrosList');
+          // Insertar el nuevo logro al inicio
+          logrosList.insertAdjacentHTML('afterbegin', data.logro_html);
+
+          // Si el mensaje "No hay logros" está visible, eliminarlo
+          const emptyMsg = logrosList.querySelector('p[col-span-full]');
+          if(emptyMsg) emptyMsg.remove();
+        }
+
+        showFlashMessage('Logro agregado exitosamente.', 'success');
+        closeModalAdd();
+      } else {
+        // Mostrar errores de validación
+        for(const [field, errors] of Object.entries(data.errors || {})){
+          const errorElem = document.getElementById('error' + field.charAt(0).toUpperCase() + field.slice(1));
+          if(errorElem){
+            errorElem.textContent = errors.join(', ');
+            errorElem.classList.remove('hidden');
+          }
+        }
+        if(data.message){
+          showFlashMessage(data.message, 'danger');
+        }
+      }
+
+    } catch(err) {
+      showFlashMessage('Error inesperado. Intente nuevamente.', 'danger');
+      console.error(err);
+    }
+  });
+
+  // Confirmación eliminación
+  let logroIdToDelete = null;
+  const modalConfirmDelete = document.getElementById('modalConfirmDelete');
+  const btnCancelDelete = document.getElementById('btnCancelDelete');
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+
+  window.confirmDeleteLogro = function(button) {
+    logroIdToDelete = button.getAttribute('data-logro-id');
+    modalConfirmDelete.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  btnCancelDelete.addEventListener('click', () => {
+    modalConfirmDelete.classList.add('hidden');
+    document.body.style.overflow = '';
+    logroIdToDelete = null;
+  });
+
+  btnConfirmDelete.addEventListener('click', async () => {
+    if (logroIdToDelete) {
+      try {
+        const res = await fetch(`/logros/eliminar/${logroIdToDelete}`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+        });
+        if(res.ok) {
+          // Eliminar del DOM sin recargar
+          const logroElem = document.querySelector(`[data-logro-id="${logroIdToDelete}"]`);
+          if(logroElem) logroElem.remove();
+
+          showFlashMessage('Logro eliminado exitosamente.', 'success');
+          modalConfirmDelete.classList.add('hidden');
+          document.body.style.overflow = '';
+          logroIdToDelete = null;
+        } else {
+          showFlashMessage('Error al eliminar el logro.', 'danger');
+        }
+      } catch {
+        showFlashMessage('Error en la comunicación con el servidor.', 'danger');
+      }
+    }
+  });
+
+  // Modal para evidencia
+  const modalEvidencia = document.getElementById('modalEvidencia');
+  const btnCloseEvidencia = document.getElementById('btnCloseEvidencia');
+  const btnCancelEvidencia = document.getElementById('btnCancelEvidencia');
+  const formEvidencia = document.getElementById('formEvidencia');
+
+  window.openEvidenciaModal = function(logroId) {
+    document.getElementById('modalEvidencia').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('evidenciaLogroId').value = logroId;
+  }
+
+  function closeEvidenciaModal() {
+    document.getElementById('modalEvidencia').classList.add('hidden');
+    document.body.style.overflow = '';
+    document.getElementById('formEvidencia').reset();
+    document.getElementById('errorArchivoEvidencia').classList.add('hidden');
+  }
+
+  btnCloseEvidencia.onclick = closeEvidenciaModal;
+  btnCancelEvidencia.onclick = closeEvidenciaModal;
+
+  formEvidencia.onsubmit = async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const logroId = formData.get('logro_id');
+    try {
+      const response = await fetch(`/logros/evidencia/${logroId}`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: formData
+      });
+      if (!response.ok) {
+        document.getElementById('errorArchivoEvidencia').textContent = 'Error al subir evidencia.';
+        document.getElementById('errorArchivoEvidencia').classList.remove('hidden');
+        return;
+      }
+      location.reload();
+    } catch {
+      document.getElementById('errorArchivoEvidencia').textContent = 'Error inesperado.';
+      document.getElementById('errorArchivoEvidencia').classList.remove('hidden');
+    }
+  };
+});
+</script>
+{% endblock %}

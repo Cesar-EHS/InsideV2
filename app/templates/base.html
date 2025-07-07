@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Inside - Intranet{% endblock %}</title>
+  <link rel="icon" type="image/webp" href="{{ url_for('static', filename='logo_inside.png') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    :root {
+      --inside-yellow: #fab522;
+      --inside-dark: #232323;
+      --inside-gray: #5e5e5e;
+      --inside-light: #f8f8f8;
+      --inside-white: #fff;
+      --inside-shadow: 0 4px 24px 0 #0001;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--inside-light); color: var(--inside-dark); }
+    .header-icon {
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+      border-radius: 1.2rem;
+      box-shadow: 0 1px 4px #eaeaea44;
+      padding: 0.4rem 0.7rem;
+      margin: 0 0.1rem;
+      position: relative;
+      background: transparent;
+      outline: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-icon:hover {
+      background: #fffbe9;
+      color: var(--inside-yellow);
+      box-shadow: 0 2px 12px #fab52222;
+      transform: scale(1.08);
+    }
+    .header-icon svg {
+      display: block;
+      filter: drop-shadow(0 1px 2px #0001);
+    }
+    .user-menu-dropdown {
+      min-width: 11rem;
+      right: 0;
+      left: auto;
+      position: absolute;
+      z-index: 100;
+      margin-top: 0.5rem;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #f3f3f3;
+      border-radius: 1.2rem;
+      box-shadow: 0 8px 32px #fab52233;
+      overflow: hidden;
+      display: none;
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      animation: fadeIn 0.18s;
+    }
+    .user-menu-dropdown.show { display: block; }
+    .user-menu-dropdown a {
+      display: block;
+      padding: 1.1rem 2rem;
+      color: var(--inside-dark);
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+      border-radius: 0.8rem;
+    }
+    .user-menu-dropdown a:hover {
+      background: #fffbe9;
+      color: var(--inside-yellow);
+      transform: scale(1.04);
+    }
+    .user-menu-dropdown .text-red-600 { color: #e53e3e !important; }
+    .user-menu-dropdown .text-red-600:hover { color: #fff; background: #e53e3e !important; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .apple-shadow {
+      box-shadow: 0 4px 24px 0 #0000000a, 0 1.5px 6px 0 #fab52222;
+    }
+    @media (max-width: 900px) {
+      header { flex-wrap: wrap; padding: 0.5rem 0.5rem; }
+      .header-icon { padding: 0.3rem 0.5rem; }
+      .user-menu-dropdown { right: 0.5rem; }
+      main { padding-top: 4.5rem !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[var(--inside-light)]">
+  <header class="w-full bg-white apple-shadow flex items-center px-6 py-2 fixed top-0 left-0 z-50 rounded-b-2xl" style="box-shadow: var(--inside-shadow);">
+    <a href="/" class="flex items-center mr-6">
+      <img src="{{ url_for('static', filename='logo_inside.png') }}" alt="Inside" class="h-10 max-w-[160px] object-contain" style="border-radius: 0.7rem; box-shadow: none;" />
+    </a>
+    <form role="search" action="{{ url_for('search.search') }}" method="GET" class="flex-1 max-w-lg relative">
+      <input type="search" name="q" placeholder="Buscar..." aria-label="Buscar" value="{{ request.args.get('q', '') }}" class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[var(--inside-yellow)] focus:bg-white bg-gray-50 text-gray-700 shadow-sm" />
+      <svg class="absolute left-3 top-2.5 text-gray-400" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </form>
+    <nav class="flex items-center gap-1 ml-8">
+      {% set nav_items = [
+        {'endpoint': 'home.home', 'icon': 'icon-home', 'label': 'Inicio'},
+        {'endpoint': 'cursos.index', 'icon': 'icon-book-open', 'label': 'Crecehs'},
+        {'endpoint': 'logros.index', 'icon': 'icon-star', 'label': 'Ehsfuerzate'},
+        {'endpoint': 'tickets.index', 'icon': 'icon-lifebuoy', 'label': 'Ayuda'},
+        {'endpoint': 'knowledge.index', 'icon': 'icon-folder', 'label': 'Knowledge'}
+      ] %}
+      {% for item in nav_items %}
+        <a href="{{ url_for(item.endpoint) }}" class="header-icon {% if request.endpoint == item.endpoint %}active text-[var(--inside-yellow)]{% else %}text-[var(--inside-gray)]{% endif %}" tabindex="0">
+          <svg class="h-6 w-6" aria-hidden="true"><use xlink:href="#{{ item.icon }}" /></svg>
+          <span class="tooltip">{{ item.label }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="relative ml-6">
+      <button id="user-menu-btn" type="button" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-50 hover:bg-yellow-50 border border-gray-100 shadow-none transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--inside-yellow)]">
+        {% if current_user.foto %}
+          <img src="{{ url_for('auth.static', filename='fotos/' ~ current_user.foto) }}" alt="Foto de perfil" class="w-9 h-9 rounded-full object-cover" style="border: none; box-shadow: none; background: #f3f3f3;" />
+        {% else %}
+          <img src="{{ url_for('static', filename='default_user.png') }}" alt="Foto de perfil" class="w-9 h-9 rounded-full object-cover" style="border: none; box-shadow: none; background: #f3f3f3;" />
+        {% endif %}
+      </button>
+      <div id="user-menu-dropdown" class="user-menu-dropdown">
+        <a href="{{ url_for('perfil.perfil') }}">Mi perfil</a>
+        <div class="border-t border-yellow-100"></div>
+        <a href="{{ url_for('auth.logout') }}" class="text-red-600 font-bold">Cerrar sesión</a>
+      </div>
+    </div>
+  </header>
+  <main class="pt-20 px-2 sm:px-4 max-w-7xl mx-auto w-full">
+    {% block content %}{% endblock %}
+  </main>
+  <svg style="display: none;">
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3l-10-9-10 9h3v8z"/></symbol>
+    <symbol id="icon-book-open" viewBox="0 0 24 24"><path d="M12 20l-4-2-4 2V4l4-2 4 2 4-2 4 2v16l-4-2-4 2z"/></symbol>
+    <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></symbol>
+    <symbol id="icon-lifebuoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/></symbol>
+    <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 10h16"/></symbol>
+  </svg>
+  <script>
+    // User menu
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+    userMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userMenuDropdown.classList.toggle('show');
+    });
+    document.addEventListener('click', (e) => {
+      if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+        userMenuDropdown.classList.remove('show');
+      }
+    });
+  </script>
+  <script>
+  window.currentUserId = "{{ current_user.id }}";
+  </script>
+  {% include 'chat/chat_widget.html' %}
+  <script src="{{ url_for('static', filename='chat/js/chat.js') }}"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Chat Widget JS seguro
+  var chatWidget = document.getElementById('chat-widget');
+  var chatFab = document.getElementById('chat-fab');
+  var chatClose = document.getElementById('chat-close');
+  var chatUsers = document.getElementById('chat-users');
+  var chatMessages = document.getElementById('chat-messages');
+  var chatInput = document.getElementById('chat-input');
+  var chatSend = document.getElementById('chat-send');
+  var currentConversationId = null;
+  var currentUserId = null;
+
+  if(chatFab) chatFab.onclick = function() {
+    if(chatWidget) chatWidget.style.display = 'flex';
+    chatFab.style.display = 'none';
+    if(typeof loadUsers === 'function') loadUsers();
+  };
+  if(chatClose) chatClose.onclick = function() {
+    if(chatWidget) chatWidget.style.display = 'none';
+    chatFab.style.display = 'flex';
+  };
+  if(chatSend) chatSend.onclick = function() { sendMessage(); };
+  if(chatInput) chatInput.addEventListener('keydown', function(e){ if(e.key==='Enter'){ sendMessage(); }});
+
+  window.loadUsers = function() {
+    fetch('/chat/list_users').then(function(r){ return r.json(); }).then(function(users) {
+      if(!chatUsers) return;
+      chatUsers.innerHTML = '';
+      users.forEach(function(u) {
+        var btn = document.createElement('button');
+        btn.className = 'w-full flex flex-col items-center py-2 hover:bg-inside-yellow/30 transition';
+        btn.innerHTML = '<img src="'+(u.foto||'/static/img/user.png')+'" class="w-8 h-8 rounded-full mb-1"><span class="text-xs text-inside-blue font-sfpro">'+u.nombre+'</span>';
+        btn.onclick = function() { loadConversation(u.id); };
+        chatUsers.appendChild(btn);
+      });
+    });
+  };
+  window.loadConversation = function(userId) {
+    fetch('/chat/conversation/' + userId).then(function(r){ return r.json(); }).then(function(data) {
+      currentConversationId = data.conversation_id;
+      currentUserId = userId;
+      if(!chatMessages) return;
+      chatMessages.innerHTML = '';
+      data.messages.forEach(function(m) {
+        var div = document.createElement('div');
+        div.className = 'flex flex-col mb-1 ' + (m.sender_id === currentUserId ? 'items-end' : 'items-start');
+        div.innerHTML = '<div class="rounded-xl px-3 py-2 ' + (m.sender_id === currentUserId ? 'bg-inside-yellow text-inside-blue' : 'bg-inside-blue text-white') + ' max-w-xs font-sfpro">' + (m.content||'') + '</div><span class="text-xs text-gray-400 mt-1">' + m.timestamp + '</span>';
+        chatMessages.appendChild(div);
+      });
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  };
+  window.sendMessage = function() {
+    if(!chatInput.value.trim() || !currentConversationId) return;
+    var form = new FormData();
+    form.append('conversation_id', currentConversationId);
+    form.append('message', chatInput.value);
+    fetch('/chat/send', {method:'POST', body:form}).then(function(r){ return r.json(); }).then(function(resp) {
+      if(resp.status==='ok'){
+        loadConversation(currentUserId);
+        chatInput.value = '';
+      }
+    });
+  };
+});
+</script>
+</body>
+</html>

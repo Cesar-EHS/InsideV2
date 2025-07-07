@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-5xl w-full mx-auto px-2 sm:px-6 py-8">
+  <!-- Saludo personalizado -->
+  <section class="flex items-center justify-between mb-8">
+    <h1 id="saludo" data-nombre="{{ usuario.nombre }}" class="text-4xl font-bold text-gray-900 tracking-tight font-sfpro animate-fadein"></h1>
+  </section>
+  <div class="flex flex-col lg:flex-row gap-8">
+    <main class="flex-1">
+      <!-- Filtros minimalistas -->
+      <div x-data="{ open: false }" class="mb-4">
+        <button type="button" @click="open = !open" class="flex items-center gap-2 text-gray-500 hover:text-yellow-500 text-sm px-2 py-1 rounded-full border border-gray-200 bg-white/60 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-yellow-300" aria-expanded="false" aria-controls="filtros-form">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0013 13.414V19a1 1 0 01-1.447.894l-2-1A1 1 0 009 18v-4.586a1 1 0 00-.293-.707L2.293 6.707A1 1 0 012 6V4z"/></svg>
+          Filtros
+        </button>
+        <form id="filtros-form" x-show="open" x-transition.opacity x-transition.duration.250ms method="GET" action="{{ url_for('home.home') }}" class="flex flex-wrap gap-2 mt-2 p-3 rounded-xl border border-gray-100 bg-white/80 shadow-sm text-gray-700 text-sm items-center" style="display: none;" @click.away="open = false">
+          <label class="flex items-center gap-1">
+            Año:
+            <select name="filter_year" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-yellow-400">
+              <option value="">Todos</option>
+              {% for year in años_posts %}
+                <option value="{{ year }}" {% if filter_year == year %}selected{% endif %}>{{ year }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="flex items-center gap-1">
+            Mes:
+            <select name="filter_month" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-yellow-400">
+              <option value="">Todos</option>
+              {% for month in meses %}
+                <option value="{{ month }}" {% if filter_month == month %}selected{% endif %}>{{ month }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="flex items-center gap-1">
+            Publicado por:
+            <select name="filter_user" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-yellow-400">
+              <option value="">Todos</option>
+              {% for user in usuarios %}
+                <option value="{{ user.id }}" {% if filter_user|int == user.id %}selected{% endif %}>{{ user.nombre }} {{ user.apellido_paterno }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit" class="ml-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-4 py-1 rounded transition shadow focus:ring-2 focus:ring-yellow-300">Filtrar</button>
+        </form>
+      </div>
+      <!-- Fin filtros minimalistas -->
+      <!-- Nueva publicación -->
+      {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
+      <div class="flex items-center bg-white/70 backdrop-blur-md rounded-2xl shadow-xl shadow-gray-200/40 border border-gray-100 px-6 py-4 mb-6 gap-4 animate-fadein">
+        <img src="{{ url_for('auth.static', filename='fotos/' + usuario.foto) }}" alt="Foto de {{ usuario.nombre }}" class="w-10 h-10 rounded-full object-cover border border-yellow-200 shadow-md">
+        <button id="btn-abrir-modal-post" class="bg-gray-100/80 hover:bg-gray-200/80 text-gray-700 rounded-full px-5 py-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-yellow-400 transition font-medium" aria-label="¿Listo para publicar?" type="button">
+          ¿Listo para publicar, {{ usuario.nombre.split(' ')[0] }}?
+        </button>
+      </div>
+      {% endif %}
+      <!-- Publicaciones -->
+      {% if posts %}
+      <ul class="space-y-8">
+        {% for post in posts %}
+        <li class="bg-white/70 backdrop-blur-md rounded-2xl shadow-xl shadow-gray-200/40 border border-gray-100 p-8 relative group animate-fadein transition-all duration-300 hover:scale-[1.015]">
+          {% set puestos_permitidos = [2, 5, 7, 8, 23, 24] %}
+          {% if (post.user_id == current_user.id or current_user.is_admin) and current_user.puesto_trabajo and current_user.puesto_trabajo.id in puestos_permitidos %}
+          <button class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition text-red-600 hover:text-red-800 focus:outline-none font-normal text-sm leading-tight bg-white/80 rounded-full p-1 shadow" data-delete-url="{{ url_for('home.delete_post', post_id=post.id) }}" onclick="confirmarEliminarPublicacion(this.dataset.deleteUrl)" title="Eliminar publicación" aria-label="Eliminar publicación" type="button">❌</button>
+          {% endif %}
+          <article class="space-y-4">
+            <div class="flex items-center gap-4">
+              <img src="{{ post.user.foto_url }}" alt="Foto de {{ post.user.nombre }} {{ post.user.apellido_paterno }}" class="w-14 h-14 rounded-full object-cover border border-yellow-200 shadow-md">
+              <div>
+                <h2 class="text-gray-900 font-semibold text-lg font-sfpro">{{ post.user.nombre }} {{ post.user.apellido_paterno }}</h2>
+                <time class="text-gray-500 text-xs">{{ post.timestamp.strftime('%d/%m/%Y %H:%M') }}</time>
+              </div>
+            </div>
+            <p class="text-gray-800 whitespace-pre-wrap text-lg leading-relaxed">{{ post.content }}</p>
+            {% if post.image_filename %}
+            <img src="{{ url_for('home.static', filename='uploads/' + post.image_filename) }}" alt="Imagen adjunta" class="block mx-auto rounded-xl max-w-full max-h-72 object-contain shadow select-none border border-gray-200">
+            {% endif %}
+            <div class="flex items-center gap-6 text-gray-600 text-base">
+              {% set user_love = post.reactions|selectattr("user_id", "equalto", current_user.id)|selectattr("type", "equalto", "love")|list|length > 0 %}
+              <button class="flex items-center gap-1 {% if user_love %}text-red-600{% else %}hover:text-red-600{% endif %} focus:outline-none transition" data-post-id="{{ post.id }}" data-reaction="love" onclick="toggleReaction(this)" type="button">😍 <span id="love-count-{{ post.id }}">{{ post.reactions|selectattr('type', 'equalto', 'love')|list|length }}</span></button>
+              <button id="btn-comments-toggle-{{ post.id }}" onclick="toggleComments('{{ post.id }}')" class="hover:text-yellow-500 transition" aria-expanded="false" aria-controls="comments-section-{{ post.id }}" type="button">Comentarios ({{ post.comments.count() }})</button>
+            </div>
+            <section id="comments-section-{{ post.id }}" class="hidden mt-4 border-t border-gray-200 pt-4 space-y-4" aria-live="polite" tabindex="0">
+              <div class="space-y-2" id="comment-list-{{ post.id }}">
+                {% set comentarios = post.comments|sort(attribute='timestamp', reverse=True) %}
+                {% for comment in comentarios %}
+                <div id="comment-{{ comment.id }}" class="flex items-start gap-3 bg-white/90 rounded-xl shadow border border-gray-100 px-4 py-2 transition animate-fadein" data-visible="{{ 'true' if loop.index <= 5 else 'false' }}">
+                  <img src="{{ comment.user.foto_url if comment.user.foto_url else url_for('auth.static', filename='img/default_user.png') }}" alt="Foto de {{ comment.user.nombre }}" class="w-9 h-9 rounded-full object-cover border border-yellow-200">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-semibold text-gray-900 font-sfpro">{{ comment.user.nombre }} {{ comment.user.apellido_paterno }}</span>
+                      <span class="text-xs text-gray-400">{{ comment.timestamp.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </div>
+                    <p class="text-gray-800 whitespace-pre-wrap text-sm leading-normal mt-1">{{ comment.content }}</p>
+                  </div>
+                  {% if (comment.user_id == current_user.id or current_user.is_admin) %}
+                  <button class="ml-2 text-red-500 hover:text-red-700 focus:outline-none text-xs font-bold bg-transparent" data-delete-url="{{ url_for('home.delete_comment', comment_id=comment.id) }}" onclick="confirmarEliminarComentario(this.dataset.deleteUrl, '{{ comment.id }}')" title="Eliminar comentario" aria-label="Eliminar comentario" type="button">✕</button>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+              <form method="POST" action="{{ url_for('home.add_comment', post_id=post.id) }}" class="flex gap-2 mt-2 comment-form bg-white/80 rounded-xl shadow border border-gray-100 px-3 py-2 items-end" novalidate>
+                {{ form_post.csrf_token }}
+                <textarea name="comment_content" rows="1" required placeholder="Agrega un comentario..." class="flex-1 border-0 bg-transparent focus:ring-2 focus:ring-yellow-400 text-sm font-sfpro resize-none placeholder-gray-400"></textarea>
+                <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-4 py-1.5 rounded-lg shadow transition text-sm">Comentar</button>
+              </form>
+            </section>
+          </article>
+        </li>
+        {% endfor %}
+      </ul>
+      <nav class="flex justify-center mt-8" aria-label="Paginación de publicaciones">
+        <ul class="inline-flex items-center gap-1 rounded-xl bg-white/70 shadow p-2 border border-gray-100">
+          <li>
+            <a href="{{ url_for('home.home', page=1, filter_year=filter_year, filter_month=filter_month, filter_user=filter_user) }}" class="px-3 py-1 rounded-l-xl {{ 'bg-yellow-400 text-gray-900 font-bold' if pagination.page == 1 else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Primera página" tabindex="0">«</a>
+          </li>
+          <li>
+            <a href="{{ url_for('home.home', page=pagination.prev_num, filter_year=filter_year, filter_month=filter_month, filter_user=filter_user) }}" class="px-3 py-1 {{ 'opacity-40 pointer-events-none' if not pagination.has_prev else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Anterior" tabindex="0">‹</a>
+          </li>
+          {% for p in range(1, pagination.pages + 1) %}
+          <li>
+            <a href="{{ url_for('home.home', page=p, filter_year=filter_year, filter_month=filter_month, filter_user=filter_user) }}" class="px-3 py-1 rounded {{ 'bg-yellow-400 text-gray-900 font-bold' if pagination.page == p else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Página {{ p }}" tabindex="0">{{ p }}</a>
+          </li>
+          {% endfor %}
+          <li>
+            <a href="{{ url_for('home.home', page=pagination.next_num, filter_year=filter_year, filter_month=filter_month, filter_user=filter_user) }}" class="px-3 py-1 {{ 'opacity-40 pointer-events-none' if not pagination.has_next else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Siguiente" tabindex="0">›</a>
+          </li>
+          <li>
+            <a href="{{ url_for('home.home', page=pagination.pages, filter_year=filter_year, filter_month=filter_month, filter_user=filter_user) }}" class="px-3 py-1 rounded-r-xl {{ 'bg-yellow-400 text-gray-900 font-bold' if pagination.page == pagination.pages else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Última página" tabindex="0">»</a>
+          </li>
+        </ul>
+      </nav>
+      {% else %}
+      <p class="text-center text-gray-500 italic mt-6">No hay publicaciones disponibles.</p>
+      {% endif %}
+    </main>
+    <aside class="w-full max-w-xs xl:max-w-sm sticky top-6 self-start space-y-6 animate-fadein" role="complementary" aria-label="Eventos próximos">
+      <!-- NUEVA SECCIÓN DE EVENTOS -->
+      <div class="bg-white/70 glassmorphism rounded-3xl shadow-2xl border border-gray-100 p-6 flex flex-col items-center gap-4">
+        <header class="flex flex-col items-center mb-2 w-full">
+          <div class="flex justify-between items-center w-full mb-2">
+            {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
+            <button id="btn-nuevo-evento" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold p-2 rounded-xl shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all" type="button" aria-label="Agregar evento">Agregar Evento</button>
+            {% endif %}
+          </div>
+          <h2 class="text-xl font-semibold text-gray-800 font-sfpro tracking-tight animate-fadein">Próximos eventos</h2>
+        </header>
+        {% if eventos %}
+        <ul class="w-full flex flex-col gap-3 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-yellow-100 animate-fadein" tabindex="0" aria-live="polite">
+          {% for evento in eventos %}
+          <li class="relative bg-white/95 rounded-xl p-4 shadow border border-gray-100 flex flex-col gap-1 animate-fadein transition-all hover:scale-[1.01]" id="evento-{{ evento.id }}">
+            <div class="flex items-center gap-3 mb-1">
+              <div class="flex flex-col items-center justify-center bg-yellow-400 text-white font-extrabold rounded-lg w-12 h-12 select-none shadow">
+                {% set meses_es = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'] %}
+                <span class="uppercase text-xs tracking-wide leading-none">{{ meses_es[evento.fecha.month-1] }}</span>
+                <span class="text-lg leading-none">{{ evento.fecha.day }}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base font-semibold text-gray-900 font-sfpro truncate" title="{{ evento.titulo }}">{{ evento.titulo }}</h3>
+                {% if evento.hora %}
+                <span class="text-xs text-yellow-600 font-semibold block mt-1">🕒 {{ evento.hora.strftime('%H:%M') }}</span>
+                {% endif %}
+              </div>
+              {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
+              <button class="ml-2 text-red-500 hover:text-red-700 focus:outline-none text-xs font-bold bg-transparent" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" onclick="confirmarEliminarEvento(this.dataset.deleteUrl)" title="Eliminar evento" aria-label="Eliminar evento" type="button">✕</button>
+              {% endif %}
+            </div>
+            <p class="text-gray-700 text-sm whitespace-pre-wrap line-clamp-4">{{ evento.descripcion or 'Sin descripción' }}</p>
+            {% if evento.link_teams %}
+            <a href="{{ evento.link_teams }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-800 font-semibold text-xs transition-colors mt-1" aria-label="Unirse a Teams para evento {{ evento.titulo }}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" role="img" focusable="false"><path d="M4.5 4.5h15v15h-15z" fill="none" /><path d="M16 8l-4 4-4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            🖥️ Unirse Ahora
+            </a>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        <nav class="flex justify-center mt-4" aria-label="Paginación de eventos">
+          <ul class="inline-flex items-center gap-1 rounded-xl bg-white/70 shadow p-2 border border-gray-100">
+            <li>
+              <a href="{{ url_for('home.home', event_page=1) }}" class="px-3 py-1 rounded-l-xl {{ 'bg-yellow-400 text-gray-900 font-bold' if eventos_pagination.page == 1 else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Primera página de eventos" tabindex="0">«</a>
+            </li>
+            <li>
+              <a href="{{ url_for('home.home', event_page=eventos_pagination.prev_num) }}" class="px-3 py-1 {{ 'opacity-40 pointer-events-none' if not eventos_pagination.has_prev else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Anterior" tabindex="0">‹</a>
+            </li>
+            {% for p in range(1, eventos_pagination.pages + 1) %}
+            <li>
+              <a href="{{ url_for('home.home', event_page=p) }}" class="px-3 py-1 rounded {{ 'bg-yellow-400 text-gray-900 font-bold' if eventos_pagination.page == p else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Página de eventos {{ p }}" tabindex="0">{{ p }}</a>
+            </li>
+            {% endfor %}
+            <li>
+              <a href="{{ url_for('home.home', event_page=eventos_pagination.next_num) }}" class="px-3 py-1 {{ 'opacity-40 pointer-events-none' if not eventos_pagination.has_next else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Siguiente" tabindex="0">›</a>
+            </li>
+            <li>
+              <a href="{{ url_for('home.home', event_page=eventos_pagination.pages) }}" class="px-3 py-1 rounded-r-xl {{ 'bg-yellow-400 text-gray-900 font-bold' if eventos_pagination.page == eventos_pagination.pages else 'hover:bg-yellow-100 text-gray-700' }} transition" aria-label="Última página de eventos" tabindex="0">»</a>
+            </li>
+          </ul>
+        </nav>
+        {% else %}
+        <p class="text-center text-gray-500 italic text-base animate-fadein" tabindex="0">No hay eventos próximos.</p>
+        {% endif %}
+      </div>
+      <!-- Modal para agregar evento (solo admin) -->
+      {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
+      <div id="modal-evento" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative flex flex-col gap-4 animate-fadein">
+          <button id="btn-cerrar-modal-evento" type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none">&times;</button>
+          <h3 class="text-xl font-semibold mb-2">Nuevo evento</h3>
+          <form id="form-evento" method="POST" action="#" class="flex flex-col gap-3">
+            <input type="text" name="titulo" required placeholder="Título del evento" class="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-400 text-base" />
+            <textarea name="descripcion" rows="2" placeholder="Descripción" class="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-400 text-base"></textarea>
+            <input type="date" name="fecha" required class="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-400 text-base" />
+            <input type="time" name="hora" class="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-400 text-base" />
+            <input type="url" name="link_teams" placeholder="Enlace Teams (opcional)" class="border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-400 text-base" />
+            <div class="flex justify-end gap-2 mt-2">
+              <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-5 py-2 rounded transition">Agregar evento</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      <!-- FIN NUEVA SECCIÓN DE EVENTOS -->
+    </aside>
+  </div>
+</div>
+<!-- Modales -->
+<!-- Modal Nueva Publicación -->
+<div id="modal-post" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all" aria-hidden="true">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative flex flex-col gap-4 animate-fadein">
+    <button id="btn-cerrar-modal-post" type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none">&times;</button>
+    <h3 class="text-xl font-semibold mb-2">Nueva publicación</h3>
+    <form id="post-form-modal" method="POST" action="{{ url_for('home.create_post') }}" enctype="multipart/form-data" class="flex flex-col gap-3">
+      {{ form_post.csrf_token }}
+      <textarea name="content" rows="3" required placeholder="¿Qué quieres compartir?" class="border border-gray-300 rounded-md p-2 resize-none focus:ring-2 focus:ring-yellow-400 text-base"></textarea>
+      <input type="file" name="image" id="post-image" accept="image/*" class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100" />
+      <div id="preview-container" class="hidden mt-2"><img id="preview-image" src="" alt="Previsualización" class="max-h-40 rounded shadow mb-2"><button type="button" id="remove-image" class="text-xs text-red-500 hover:underline">Quitar imagen</button></div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-5 py-2 rounded transition">Publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Fin Modales -->
+{% block scripts %}
+<script src="{{ url_for('home.static', filename='js/home.js') }}"></script>
+<style>
+  .glassmorphism {
+    background: rgba(255,255,255,0.65);
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.10);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .font-sfpro {
+    font-family: 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: -0.01em;
+  }
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+  .animate-fadein {
+    animation: fadein 0.7s cubic-bezier(.4,0,.2,1);
+  }
+  /* Comentarios mejorados */
+  .comment-form textarea:focus {
+    background: rgba(255,255,200,0.10);
+    outline: none;
+  }
+  .comment-form button {
+    box-shadow: 0 2px 8px 0 rgba(255, 221, 51, 0.10);
+  }
+</style>
+{% endblock %}
+{% endblock %}

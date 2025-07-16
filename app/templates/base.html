@@ -105,9 +105,9 @@
       {% set nav_items = [
         {'endpoint': 'home.home', 'icon': 'icon-home', 'label': 'Inicio'},
         {'endpoint': 'cursos.index', 'icon': 'icon-book-open', 'label': 'Crecehs'},
-        {'endpoint': 'logros.index', 'icon': 'icon-star', 'label': 'Ehsfuerzate'},
-        {'endpoint': 'tickets.index', 'icon': 'icon-lifebuoy', 'label': 'Ayuda'},
-        {'endpoint': 'knowledge.index', 'icon': 'icon-folder', 'label': 'Knowledge'}
+        {'endpoint': 'logros.index', 'icon': 'icon-star', 'label': 'Logros'},
+        {'endpoint': 'tickets.index', 'icon': 'icon-lifebuoy', 'label': 'Soporte'},
+        {'endpoint': 'knowledge.index', 'icon': 'icon-folder', 'label': 'Recursos'}
       ] %}
       {% for item in nav_items %}
         <a href="{{ url_for(item.endpoint) }}" class="header-icon {% if request.endpoint == item.endpoint %}active text-[var(--inside-yellow)]{% else %}text-[var(--inside-gray)]{% endif %}" tabindex="0">

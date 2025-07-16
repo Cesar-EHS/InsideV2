@@ -29,7 +29,10 @@
 
   <div id="tab-cursos" class="tab-content hidden">
     <h2 class="text-2xl font-semibold mb-4">Cursos</h2>
-    <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg mb-4" data-modal-target="#modalAgregarCurso">+ Agregar Curso</button>
+    <a href="{{ url_for('cursos.agregar_curso') }}"
+   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg mb-4 inline-block text-center">
+    + Agregar Curso
+    </a>
     <ul class="space-y-4">
       <!-- Aquí se listarán los cursos dinámicamente -->
       <li class="border rounded-lg p-4 hover:shadow-md">
@@ -58,10 +61,11 @@
     </div>
   </div>
 
+  <!-- Modal de Agregar Curso -->
   <div id="modalAgregarCurso" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
     <div class="bg-white rounded-lg shadow-lg p-6 w-1/3">
       <h2 class="text-xl font-bold mb-4">Agregar Curso</h2>
-      <form>
+      <!-- <form>
         <div class="mb-4">
           <label for="nombreCurso" class="block text-sm font-medium text-gray-700">Nombre</label>
           <input type="text" id="nombreCurso" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
@@ -72,7 +76,7 @@
         </div>
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Guardar</button>
         <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg" onclick="closeModal('#modalAgregarCurso')">Cancelar</button>
-      </form>
+      </form> -->
     </div>
   </div>
 </div>

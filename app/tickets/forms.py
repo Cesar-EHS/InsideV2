@@ -5,7 +5,7 @@ from flask_wtf.file import FileAllowed, FileRequired
 
 class TicketForm(FlaskForm):
     categoria = SelectField(
-        'Categoría', 
+        'Área', 
         choices=[
             ('Soporte Sistemas', 'Soporte Sistemas'),
             ('Requisición Compras', 'Requisición Compras'),

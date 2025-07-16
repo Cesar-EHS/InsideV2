@@ -43,10 +43,10 @@
     letter-spacing: 0.01em;
     font-family: inherit;
   }
-  .badge-prioridad.urgente { background: #ff3b30; color: #fff; }
-  .badge-prioridad.alta { background: #ffe08a; color: #3b3b3c; }
-  .badge-prioridad.media { background: #e5e5ea; color: #3b3b3c; }
-  .badge-prioridad.baja { background: #f2f3f7; color: #3b3b3c; }
+  .badge-prioridad.urgente { background: #FFB3B4; color: #fff; }
+  .badge-prioridad.alta { background: #FFA880; color: #3b3b3c; }
+  .badge-prioridad.media { background: #FFF7B3; color: #3b3b3c; }
+  .badge-prioridad.baja { background: #C9FFB3; color: #3b3b3c; }
   .badge-estatus {
     display: inline-block;
     padding: 0.25em 0.8em;
@@ -58,9 +58,9 @@
     letter-spacing: 0.01em;
     font-family: inherit;
   }
-  .badge-estatus.abierto { background: #e5e5ea; color: #3b3b3c; }
-  .badge-estatus.en-progreso { background: #ffe08a; color: #3b3b3c; }
-  .badge-estatus.resuelto { background: #b7ebc6; color: #2e7d32; }
+  .badge-estatus.abierto { background: #C9FFB3; color: #3b3b3c; }
+  .badge-estatus.en-progreso { background: #B6E8FA; color: #3b3b3c; }
+  .badge-estatus.resuelto { background: #6D6F74; color: #FFFFFF; }
   .tab-content { min-height: 320px; }
   table {
     border-collapse: separate;
@@ -119,7 +119,7 @@
   <div class="max-w-4xl w-full mx-auto px-2 sm:px-6 py-8">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold font-sfpro" style="color:#232323;letter-spacing:-1px;">Centro de ayuda</h1>
-      <button id="btnNuevoTicket" class="font-sfpro">+ Nuevo ticket</button>
+      <button id="btnNuevoTicket" class="bg-[#fab522] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#e5a800] transition">+ Nuevo ticket</button>
     </div>
     <div class="glassmorphism rounded-2xl border border-[#fab522]/30 p-0 animate-fadein shadow-xl">
       <div class="flex border-b border-[#fab522]/20 bg-white/95 rounded-t-2xl">
@@ -151,12 +151,12 @@
                 <td class="py-2 px-4">
                   <span class="badge-prioridad {{ ticket.prioridad|lower }}">{{ ticket.prioridad }}</span>
                 </td>
-                <td class="py-2 px-4 font-sfpro">
+                <td class="py-2 px-4 font-sfpro whitespace-nowrap">
                   <span class="badge-estatus {{ ticket.estatus|lower|replace(' ', '-') }}">{{ ticket.estatus }}</span>
                 </td>
                 <td class="py-2 px-4 font-sfpro text-[#3b3b3c]/80">{{ ticket.usuario.nombre }} {{ ticket.usuario.apellido_paterno }}</td>
                 <td class="py-2 px-4">
-                  <button class="btn-ver-ticket font-sfpro" data-id="{{ ticket.id }}">Ver</button>
+                  <button class="btn-ver-ticket font-sfpro text-[#3b3b3c] hover:text-[#fab522] transition-colors duration-200 text-xl" data-id="{{ ticket.id }}">&#128065;</button>
                 </td>
               </tr>
               {% else %}
@@ -206,22 +206,31 @@
 
     <!-- Modal Nuevo Ticket -->
     <div id="modalNuevoTicket" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all">
-      <div class="glassmorphism-modal shadow-2xl max-w-lg w-full p-6 relative flex flex-col gap-4 animate-fadein">
+      <div class="glassmorphism-modal shadow-2xl max-w-2xl w-full p-6 relative flex flex-col gap-4 animate-fadein">
         <button type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none transition-all duration-200 btn-cancelar-modal">&times;</button>
         <h2 class="text-xl font-semibold mb-2 font-sfpro text-[#3b3b3c]">Nuevo ticket</h2>
         <form id="formNuevoTicket" method="POST" enctype="multipart/form-data" action="{{ url_for('tickets.nuevo_ticket') }}" class="flex flex-col gap-3">
           {{ form.hidden_tag() }}
-          <div>
+
+          <div class="grid grids-cols-1 md:grid-cols-3 gap-4">
+            <div>
             {{ form.categoria.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
             {{ form.categoria(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
-          </div>
-          <div>
+            </div>
+
+            <div>
             {{ form.titulo.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
             {{ form.titulo(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
+            </div>
+
           </div>
-          <div>
+
+          <div class="col-span-full">
             {{ form.descripcion.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
             {{ form.descripcion(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
+          </div>
+
+          <div>
           </div>
           <div>
             {{ form.prioridad.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}

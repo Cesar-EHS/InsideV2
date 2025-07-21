@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recursos - Inside</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('knowledge.static', filename='css/knowledge.css') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom right, #f5f5f7, #eaeaec);
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: none; }
+    }
+    .category-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:py-10 page-transition animate-fadeInUp">
+    
+    <!-- Header con título e icono -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8 animate-fadeInUp">
+      <div class="flex items-center">
+        <h1 class="text-2xl sm:text-4xl font-bold text-gray-800">Recursos</h1>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 ml-2 sm:ml-3 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      
+      <!-- Botón Nuevo (mismo diseño que home) -->
+      {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id == 7 %}
+        <button id="btn-open-modal" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 animate-fadeInUp-delayed">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden sm:inline">Nuevo Documento</span>
+          <span class="sm:hidden">Nuevo</span>
+        </button>
+      {% endif %}
+    </div>
+
+    <!-- Grid de Categorías -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 fade-in">
+      
+      <!-- Operaciones - Color Azul -->
+      <div class="category-card glass rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center" 
+           onclick="openCategory('Operaciones')"
+           style="border-bottom: 4px solid #3B82F6;">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold"
+             style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div class="flex flex-col justify-between flex-1 min-h-[80px]">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight">Operaciones</h3>
+          <div class="mt-auto">
+            <p class="text-2xl sm:text-3xl font-bold text-blue-600">{{ categoria_counts.get('Operaciones', 0) }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">documentos</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Administración - Color Verde -->
+      <div class="category-card glass rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center" 
+           onclick="openCategory('Administración')"
+           style="border-bottom: 4px solid #10B981;">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold"
+             style="background: linear-gradient(135deg, #10B981, #059669);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <div class="flex flex-col justify-between flex-1 min-h-[80px]">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight">Administración</h3>
+          <div class="mt-auto">
+            <p class="text-2xl sm:text-3xl font-bold text-green-600">{{ categoria_counts.get('Administración', 0) }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">documentos</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recursos Humanos - Color Púrpura -->
+      <div class="category-card glass rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center" 
+           onclick="openCategory('Recursos Humanos')"
+           style="border-bottom: 4px solid #8B5CF6;">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold"
+             style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <div class="flex flex-col justify-between flex-1 min-h-[80px]">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight">Recursos Humanos</h3>
+          <div class="mt-auto">
+            <p class="text-2xl sm:text-3xl font-bold text-purple-600">{{ categoria_counts.get('Recursos Humanos', 0) }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">documentos</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desarrollo Organizacional - Color Naranja -->
+      <div class="category-card glass rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center" 
+           onclick="openCategory('Desarrollo Organizacional')"
+           style="border-bottom: 4px solid #F59E0B;">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold"
+             style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </div>
+        <div class="flex flex-col justify-between flex-1 min-h-[80px]">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight">Desarrollo Organizacional</h3>
+          <div class="mt-auto">
+            <p class="text-2xl sm:text-3xl font-bold text-yellow-600">{{ categoria_counts.get('Desarrollo Organizacional', 0) }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">documentos</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comercial & Branding - Color Rosa -->
+      <div class="category-card glass rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center" 
+           onclick="openCategory('Comercial & Branding')"
+           style="border-bottom: 4px solid #EC4899;">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold"
+             style="background: linear-gradient(135deg, #EC4899, #DB2777);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        </div>
+        <div class="flex flex-col justify-between flex-1 min-h-[80px]">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight">Comercial & Branding</h3>
+          <div class="mt-auto">
+            <p class="text-2xl sm:text-3xl font-bold text-pink-600">{{ categoria_counts.get('Comercial & Branding', 0) }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">documentos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal para agregar documento -->
+  <div id="modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Header del modal -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-800">Nuevo recurso</h2>
+        <button id="modal-close" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido del modal -->
+      <div class="p-6">
+        <form id="upload-form" method="POST" enctype="multipart/form-data" class="space-y-6">
+          {{ form.hidden_tag() }}
+          
+          <!-- Selects en fila: Categoría y Tipo -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+              {{ form.categoria(class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white") }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de documento</label>
+              {{ form.tipo(class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white") }}
+            </div>
+          </div>
+
+          <!-- Campo de nombre -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+            {{ form.nombre(class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500", placeholder="Agrega Titulo") }}
+          </div>
+
+          <!-- Sección de carga de documento -->
+          <div class="space-y-4">
+            <div class="flex items-start gap-4">
+              <!-- Área de carga -->
+              <div class="flex-shrink-0">
+                <div class="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" onclick="document.getElementById('archivo').click()">
+                  <div class="text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <div class="text-xs text-gray-500 font-medium">Cargar documento</div>
+                  </div>
+                </div>
+                {{ form.archivo(class="hidden", id="archivo") }}
+              </div>
+              
+              <!-- Descripción -->
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Añadir una descripción:</label>
+                <textarea 
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" 
+                  rows="4" 
+                  placeholder="Descripción General del Documento"
+                  name="descripcion"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón de acción -->
+          <div class="flex justify-end pt-4">
+            <button type="submit" class="bg-black text-white px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+              Cargar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('knowledge.static', filename='js/knowledge.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('modal');
+      const openBtn = document.getElementById('btn-open-modal');
+      const closeBtn = document.getElementById('modal-close');
+      const form = document.getElementById('upload-form');
+      const fileInput = document.getElementById('archivo');
+      const uploadArea = fileInput?.parentElement?.querySelector('.border-dashed');
+
+      // Funciones del modal
+      function openModal() {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        form.reset();
+        if (uploadArea) updateUploadArea();
+      }
+
+      // Event listeners para el modal
+      openBtn?.addEventListener('click', openModal);
+      closeBtn?.addEventListener('click', closeModal);
+      modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+      // Solo continuar si existe el uploadArea
+      if (!uploadArea) return;
+
+      // Mejorar área de carga de archivos
+      function updateUploadArea(file = null) {
+        if (file) {
+          uploadArea.innerHTML = `
+            <div class="text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="text-xs text-green-600 font-medium">${file.name}</div>
+            </div>
+          `;
+          uploadArea.classList.remove('border-gray-300', 'bg-gray-50');
+          uploadArea.classList.add('border-green-300', 'bg-green-50');
+        } else {
+          uploadArea.innerHTML = `
+            <div class="text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <div class="text-xs text-gray-500 font-medium">Cargar documento</div>
+            </div>
+          `;
+          uploadArea.classList.remove('border-green-300', 'bg-green-50');
+          uploadArea.classList.add('border-gray-300', 'bg-gray-50');
+        }
+      }
+
+      // Drag & Drop functionality
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+      });
+
+      uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          fileInput.files = files;
+          updateUploadArea(files[0]);
+        }
+      });
+
+      // File input change event
+      fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        updateUploadArea(file);
+      });
+
+      // Envío del formulario
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        
+        try {
+          const response = await fetch('{{ url_for("knowledge.index") }}', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            closeModal();
+            location.reload();
+          } else {
+            alert('Error al subir el documento. Por favor, intenta de nuevo.');
+          }
+        } catch (error) {
+          alert('Error de conexión. Por favor, verifica tu conexión e intenta de nuevo.');
+        }
+      });
+    });
+
+    // Función para abrir categoría directamente
+    function openCategory(categoria) {
+      window.location.href = `{{ url_for('knowledge.view_categoria', categoria='CATEGORIA') }}`.replace('CATEGORIA', encodeURIComponent(categoria));
+    }
+  </script>
+
+</body>
+</html>
+{% endblock %}

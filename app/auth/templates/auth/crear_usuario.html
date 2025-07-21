@@ -4,93 +4,57 @@
   <meta charset="UTF-8">
   <title>Agregar Usuario</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tipografía Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-900 py-10 px-4">
 
-  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-    <h1 class="text-2xl font-bold mb-6">Agregar Usuario</h1>
+  <div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold mb-6 text-center">Gestión de Usuarios</h1>
 
-    {% if form.errors %}
-      <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-        <ul class="list-disc pl-5">
-        {% for field, errors in form.errors.items() %}
-          {% for error in errors %}
-            <li><strong>{{ form[field].label.text }}:</strong> {{ error }}</li>
-          {% endfor %}
+    <div class="mb-6">
+      <!-- Botón para agregar nuevo usuario -->
+      <button id="agregarUsuarioBtn" data-url="{{ url_for('auth.crear_usuario') }}" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition duration-200">
+        Agregar Nuevo Usuario
+      </button>
+    </div>
+
+    <table class="w-full border-collapse border border-gray-300">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border border-gray-300 px-4 py-2 text-left">Nombre</th>
+          <th class="border border-gray-300 px-4 py-2 text-left">Correo</th>
+          <th class="border border-gray-300 px-4 py-2 text-left">Departamento</th>
+          <th class="border border-gray-300 px-4 py-2 text-left">Fecha de Ingreso</th>
+          <th class="border border-gray-300 px-4 py-2 text-left">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for usuario in usuarios %}
+        <tr class="hover:bg-gray-100">
+          <td class="border border-gray-300 px-4 py-2">{{ usuario.nombre }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ usuario.email }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ usuario.departamento }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ usuario.fecha_ingreso }}</td>
+          <td class="border border-gray-300 px-4 py-2">
+            <button class="bg-yellow-400 text-black px-4 py-1 rounded hover:bg-yellow-500 transition duration-200">Editar</button>
+            <button class="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200">Eliminar</button>
+          </td>
+        </tr>
         {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('auth.crear_usuario') }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {{ form.csrf_token }}
-
-      {{ form.estatus_id.label(class="block font-medium") }}
-      {{ form.estatus_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.foto.label(class="block font-medium") }}
-      {{ form.foto(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.nombre.label(class="block font-medium") }}
-      {{ form.nombre(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.apellido_paterno.label(class="block font-medium") }}
-      {{ form.apellido_paterno(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.apellido_materno.label(class="block font-medium") }}
-      {{ form.apellido_materno(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.curp.label(class="block font-medium") }}
-      {{ form.curp(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.email.label(class="block font-medium") }}
-      {{ form.email(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.departamento_id.label(class="block font-medium") }}
-      {{ form.departamento_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.proyecto_id.label(class="block font-medium") }}
-      {{ form.proyecto_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.puesto_trabajo_id.label(class="block font-medium") }}
-      {{ form.puesto_trabajo_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.jefe_inmediato_id.label(class="block font-medium") }}
-      {{ form.jefe_inmediato_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.ocupacion_especifica_id.label(class="block font-medium") }}
-      {{ form.ocupacion_especifica_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.institucion_educativa_id.label(class="block font-medium") }}
-      {{ form.institucion_educativa_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.nivel_max_estudios_id.label(class="block font-medium") }}
-      {{ form.nivel_max_estudios_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.documento_probatorio_id.label(class="block font-medium") }}
-      {{ form.documento_probatorio_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.entidad_federativa_id.label(class="block font-medium") }}
-      {{ form.entidad_federativa_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.municipio_id.label(class="block font-medium") }}
-      {{ form.municipio_id(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.fecha_ingreso.label(class="block font-medium") }}
-      {{ form.fecha_ingreso(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.password.label(class="block font-medium") }}
-      {{ form.password(class="w-full border px-3 py-2 rounded") }}
-
-      {{ form.confirm_password.label(class="block font-medium") }}
-      {{ form.confirm_password(class="w-full border px-3 py-2 rounded") }}
-
-      <div class="md:col-span-2 flex justify-end mt-6">
-        {{ form.submit(class="bg-yellow-400 text-black px-6 py-2 rounded font-semibold hover:bg-yellow-500") }}
-      </div>
-    </form>
+      </tbody>
+    </table>
   </div>
 
+  <script defer src="{{ url_for('auth.static', filename='js/crear_usuario.js') }}"></script>
 </body>
 </html>

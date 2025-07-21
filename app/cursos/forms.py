@@ -4,18 +4,12 @@ from wtforms import (
     StringField, TextAreaField, SelectField, SubmitField
 )
 from wtforms.validators import DataRequired, Length, Optional, URL
+from app.cursos.models import Categoria
 
 class CursoForm(FlaskForm):
     categoria = SelectField(
         'Categoría',
-        choices=[
-            ('Protección Civil', 'Protección Civil'),
-            ('Seguridad Industrial', 'Seguridad Industrial'),
-            ('Salud Ocupacional', 'Salud Ocupacional'),
-            ('Protección Medioambiente', 'Protección Medioambiente'),
-            ('Herramientas Digitales', 'Herramientas Digitales'),
-            ('Desarrollo Humano', 'Desarrollo Humano'),
-        ],
+        choices=[],  # Se llenará dinámicamente
         validators=[DataRequired()]
     )
     modalidad = SelectField(
@@ -55,6 +49,10 @@ class CursoForm(FlaskForm):
     )
     imagen = FileField('Imagen del curso', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Solo imágenes')])
     submit = SubmitField('Guardar')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.categoria.choices = [(c.id, c.nombre) for c in Categoria.query.all()]
 
 class ExamenForm(FlaskForm):
     titulo = StringField('Título del examen', validators=[DataRequired(), Length(max=150)])

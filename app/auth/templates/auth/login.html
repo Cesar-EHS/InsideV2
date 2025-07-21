@@ -1,71 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <title>Iniciar sesión - Sistema EHS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión - Inside</title>
 
-    <!-- CSS personalizado para login -->
-    <link rel="stylesheet" href="{{ url_for('auth.static', filename='css/login.css') }}" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- JS personalizado para login -->
-    <script defer src="{{ url_for('auth.static', filename='js/login.js') }}"></script>
+  <!-- Tipografía Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script defer src="{{ url_for('auth.static', filename='js/login.js') }}"></script>
 </head>
 <body class="bg-gray-100">
-    <div class="flex min-h-screen animate-fade-in">
-        <!-- LADO IZQUIERDO -->
-        <div class="hidden md:flex w-1/2 bg-[#e5e5e5] text-white items-center justify-center p-10">
-            <div class="text-center">
-                <img src="{{ url_for('auth.static', filename='img/logo_inside.png') }}" alt="Inside" class="h-20 mb-6 mx-auto" />
-                <h2 id="greeting" class="text-4xl font-bold mb-2" style="color: #3b3b3c;">¡Bienvenido!</h2>
-                <p class="text-lg" style="color: #3b3b3c;">Conecta con el conocimiento de EHStandard.</p>
-            </div>
-        </div>
 
-        <!-- LADO DERECHO: Login -->
-        <div class="w-full md:w-1/2 bg-white flex items-center justify-center p-8">
-            <div class="max-w-md w-full transition-all duration-700 ease-in-out transform scale-100">
-                <h2 class="text-3xl font-bold text-[#3b3b3c] mb-1">Iniciar sesión</h2>
-                <p class="text-sm text-gray-500 mb-6">Accede a tu cuenta institucional</p>
-
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="bg-red-100 text-red-800 text-sm p-2 mb-4 rounded">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-5" onsubmit="showLoader()">
-                    {{ form.hidden_tag() }}
-
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
-                        {{ form.email(class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#fab522]", id="email") }}
-                    </div>
-
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                        <div class="relative mt-1">
-                            {{ form.password(class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm pr-10 focus:outline-none focus:ring-2 focus:ring-[#fab522]", id="password") }}
-                            <i class="ph ph-eye absolute right-3 top-2.5 text-xl text-gray-500 cursor-pointer" id="eyeIcon" onclick="togglePassword()"></i>
-                        </div>
-
-                    </div>
-
-                    <div>
-                        {{ form.submit(class_="w-full bg-[#fab522] hover:bg-yellow-600 text-[#3b3b3c] font-semibold py-2 px-4 rounded-md shadow flex items-center justify-center gap-2", id="loginBtn") }}
-                    </div>
-
-                    <div class="text-center mt-3">
-                        <a href="{{ url_for('auth.reset_password_request') }}" class="text-sm text-[#3b3b3c] hover:underline">¿Olvidaste tu contraseña?</a>
-                    </div>
-                </form>
-            </div>
-        </div>
+  <div class="flex min-h-screen">
+    <!-- LADO IZQUIERDO -->
+    <div class="hidden md:flex w-1/2 bg-gray-100 items-center justify-center">
+      <img src="{{ url_for('auth.static', filename='img/m.jpg') }}" alt="Inside" class="w-full h-screen object-cover" />
     </div>
+
+    <!-- LADO DERECHO -->
+    <div class="w-full md:w-1/2 bg-white flex items-center justify-center p-6">
+      <div class="w-full max-w-sm">
+
+        <img src="{{ url_for('auth.static', filename='img/logo_inside.png') }}" alt="Inside" class="h-20 mb-6 mx-auto" />
+
+        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-2">Bienvenido</h2>
+        <p class="text-sm text-gray-500 text-center mb-4">Accede a la plataforma EHStandard</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="bg-red-100 text-red-700 text-sm px-4 py-2 rounded-md mb-4">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-4">
+          {{ form.hidden_tag() }}
+
+          <div>
+            {{ form.email(class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400", id="email", placeholder="Correo electrónico") }}
+          </div>
+          
+          <div>
+            <div class="relative">
+              {{ form.password(class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400", id="password", placeholder="Contraseña") }}
+              <i class="ph ph-eye text-lg absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer transition duration-200 ease-in-out" id="eyeIcon"></i>
+            </div>
+          </div>
+
+          <div>
+            {{ form.submit(class_="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition duration-200 ease-in-out", id="loginBtn") }}
+          </div>
+
+          <div class="text-center">
+            <a href="{{ url_for('auth.reset_password_request') }}" class="text-sm text-blue-500 hover:underline">¿Olvidaste tu contraseña?</a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
 </body>
 </html>

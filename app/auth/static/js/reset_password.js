@@ -1,24 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('password');
   const confirmInput = document.getElementById('confirm_password');
-  const eyeIcon1 = document.getElementById('eyeIcon1');
-  const eyeIcon2 = document.getElementById('eyeIcon2');
+  const eyeIconPassword = document.getElementById('eyeIconPassword');
+  const eyeIconConfirmPassword = document.getElementById('eyeIconConfirmPassword');
   const form = document.getElementById('resetPasswordForm');
 
   // Toggle contraseña nueva
-  eyeIcon1.addEventListener('click', () => {
+  eyeIconPassword.addEventListener('click', () => {
     const isPassword = passwordInput.type === 'password';
     passwordInput.type = isPassword ? 'text' : 'password';
-    eyeIcon1.classList.toggle('ph-eye');
-    eyeIcon1.classList.toggle('ph-eye-slash');
+    eyeIconPassword.classList.toggle('ph-eye');
+    eyeIconPassword.classList.toggle('ph-eye-slash');
   });
 
   // Toggle confirmación
-  eyeIcon2.addEventListener('click', () => {
+  eyeIconConfirmPassword.addEventListener('click', () => {
     const isPassword = confirmInput.type === 'password';
     confirmInput.type = isPassword ? 'text' : 'password';
-    eyeIcon2.classList.toggle('ph-eye');
-    eyeIcon2.classList.toggle('ph-eye-slash');
+    eyeIconConfirmPassword.classList.toggle('ph-eye');
+    eyeIconConfirmPassword.classList.toggle('ph-eye-slash');
   });
 
   // Validación básica en submit

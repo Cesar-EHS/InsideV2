@@ -10,6 +10,7 @@ class Documento(db.Model):
     nombre = db.Column(db.String(150), nullable=False, comment="Nombre descriptivo del documento")
     tipo = db.Column(db.String(20), nullable=False, comment="Tipo de documento: Registro, Procedimiento, etc.")
     categoria = db.Column(db.String(50), nullable=False, index=True, comment="Categoría: Operaciones, Consultoría, etc.")
+    descripcion = db.Column(db.Text, nullable=True, comment="Descripción opcional del documento")
     archivo = db.Column(db.String(200), nullable=False, comment="Ruta relativa del archivo guardado")
     fecha_carga = db.Column(db.DateTime, default=datetime.utcnow, index=True, comment="Fecha de carga")
 

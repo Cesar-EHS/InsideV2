@@ -3,6 +3,12 @@ from app import db
 from app.auth.models import User
 from sqlalchemy import Enum
 
+# Tabla de asociación para la relación many-to-many entre Post y Proyecto
+post_proyectos = db.Table('post_proyectos',
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'), primary_key=True),
+    db.Column('proyecto_id', db.Integer, db.ForeignKey('proyectos.id'), primary_key=True)
+)
+
 class Post(db.Model):
     __tablename__ = 'post'
 
@@ -11,11 +17,28 @@ class Post(db.Model):
     image_filename = db.Column(db.String(255), nullable=True)  # Para ruta de imagen
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False, index=True)
+    visible_para_todos = db.Column(db.Boolean, default=False, nullable=False)  # True si es visible para todos los proyectos
 
     user = db.relationship('User', backref='posts')
+    proyectos_visibles = db.relationship('Proyecto', secondary=post_proyectos, 
+                                        backref=db.backref('posts', lazy='dynamic'))
 
     comments = db.relationship('Comment', backref='post', lazy='dynamic', cascade='all, delete-orphan')
     reactions = db.relationship('Reaction', backref='post', lazy='dynamic', cascade='all, delete-orphan')
+
+    def get_proyectos_nombres(self):
+        """Retorna una lista con los nombres de los proyectos que pueden ver esta publicación"""
+        if self.visible_para_todos:
+            return ['Todos los proyectos']
+        return [proyecto.nombre for proyecto in self.proyectos_visibles]
+
+    def puede_ver_usuario(self, usuario):
+        """Verifica si un usuario puede ver esta publicación basado en su proyecto"""
+        if self.visible_para_todos:
+            return True
+        if not usuario.proyecto:
+            return False
+        return usuario.proyecto in self.proyectos_visibles
 
 class Comment(db.Model):
     __tablename__ = 'comment'

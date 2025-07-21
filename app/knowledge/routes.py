@@ -1,7 +1,7 @@
 import os
 from flask import (
     render_template, request, redirect, url_for, flash,
-    current_app, abort, send_from_directory
+    current_app, abort, send_from_directory, jsonify
 )
 from werkzeug.utils import secure_filename
 from . import knowledge_bp
@@ -20,12 +20,17 @@ def get_upload_folder():
 @knowledge_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    """Muestra la lista de documentos y permite subir nuevos si el usuario está autorizado."""
+    """Muestra la vista principal de categorías del módulo Knowledge/Recursos."""
     form = DocumentoForm()
-    documentos = Documento.query.order_by(Documento.fecha_carga.desc()).all()
 
-    # Las categorías válidas deben coincidir con las del modelo y el form
-    categorias_permitidas = [c[0] for c in form.categoria.choices]
+    # Categorías actualizadas
+    categorias_permitidas = [
+        'Operaciones',
+        'Administración', 
+        'Recursos Humanos',
+        'Desarrollo Organizacional',
+        'Comercial & Branding'
+    ]
 
     if form.validate_on_submit():
         if form.categoria.data not in categorias_permitidas:
@@ -55,7 +60,8 @@ def index():
             nombre=form.nombre.data,
             tipo=form.tipo.data,
             categoria=form.categoria.data,
-            archivo=os.path.join(form.categoria.data, filename).replace('\\', '/')
+            archivo=os.path.join(form.categoria.data, filename).replace('\\', '/'),
+            descripcion=form.descripcion.data
         )
         db.session.add(nuevo_doc)
         db.session.commit()
@@ -63,7 +69,68 @@ def index():
         flash('Documento cargado correctamente.', 'success')
         return redirect(url_for('knowledge.index'))
 
-    return render_template('knowledge.html', form=form, documentos=documentos, usuario=current_user)
+    # Obtener conteo de documentos por categoría
+    categoria_counts = {}
+    for categoria in categorias_permitidas:
+        count = Documento.query.filter_by(categoria=categoria).count()
+        categoria_counts[categoria] = count
+
+    return render_template('knowledge/index.html', 
+                         form=form, 
+                         usuario=current_user,
+                         categorias=categorias_permitidas,
+                         categoria_counts=categoria_counts)
+
+
+@knowledge_bp.route('/categoria/<string:categoria>')
+@login_required  
+def view_categoria(categoria):
+    """Muestra los documentos de una categoría específica."""
+    categorias_permitidas = [
+        'Operaciones',
+        'Administración', 
+        'Recursos Humanos',
+        'Desarrollo Organizacional',
+        'Comercial & Branding'
+    ]
+    
+    if categoria not in categorias_permitidas:
+        flash('Categoría no válida.', 'error')
+        return redirect(url_for('knowledge.index'))
+    
+    # Filtros
+    tipo_filter = request.args.get('tipo', '')
+    search_query = request.args.get('search', '')
+    order_by = request.args.get('order', 'fecha')  # abc o fecha
+    
+    # Query base
+    query = Documento.query.filter_by(categoria=categoria)
+    
+    # Aplicar filtros
+    if tipo_filter:
+        query = query.filter_by(tipo=tipo_filter)
+    
+    if search_query:
+        query = query.filter(Documento.nombre.ilike(f'%{search_query}%'))
+    
+    # Aplicar ordenamiento
+    if order_by == 'abc':
+        documentos = query.order_by(Documento.nombre.asc()).all()
+    else:
+        documentos = query.order_by(Documento.fecha_carga.desc()).all()
+    
+    # Obtener tipos únicos para el filtro
+    tipos_disponibles = db.session.query(Documento.tipo.distinct()).filter_by(categoria=categoria).all()
+    tipos_disponibles = [tipo[0] for tipo in tipos_disponibles]
+    
+    return render_template('knowledge/categoria.html',
+                         categoria=categoria,
+                         documentos=documentos,
+                         tipos_disponibles=tipos_disponibles,
+                         current_tipo=tipo_filter,
+                         current_search=search_query,
+                         current_order=order_by,
+                         usuario=current_user)
 
 
 @knowledge_bp.route('/delete/<int:document_id>', methods=['POST'])
@@ -71,6 +138,8 @@ def index():
 def delete_document(document_id):
     """Elimina un documento y su archivo solo si el usuario tiene puesto 7 (encargado)."""
     if not current_user.puesto_trabajo or current_user.puesto_trabajo.id != 7:
+        if request.is_json:
+            return jsonify({'error': 'No autorizado'}), 403
         abort(403)  # Prohibido
 
     doc = Documento.query.get_or_404(document_id)
@@ -82,6 +151,8 @@ def delete_document(document_id):
             os.remove(file_path)
     except Exception as e:
         current_app.logger.error(f"Error al eliminar archivo {file_path}: {e}")
+        if request.is_json:
+            return jsonify({'error': 'Error al eliminar el archivo del servidor'}), 500
         flash('Error al eliminar el archivo del servidor.', 'error')
         return redirect(url_for('knowledge.index'))
 
@@ -90,9 +161,14 @@ def delete_document(document_id):
         db.session.commit()
     except Exception as e:
         current_app.logger.error(f"Error al eliminar registro en BD: {e}")
+        if request.is_json:
+            return jsonify({'error': 'Error al eliminar el registro en base de datos'}), 500
         flash('Error al eliminar el registro en base de datos.', 'error')
         return redirect(url_for('knowledge.index'))
 
+    if request.is_json:
+        return jsonify({'success': True, 'message': 'Documento eliminado correctamente'})
+    
     flash('Documento eliminado correctamente.', 'success')
     return redirect(url_for('knowledge.index'))
 

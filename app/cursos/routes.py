@@ -424,3 +424,26 @@ def enviar_resultado_actividad(actividad_id):
     flash('Actividad entregada correctamente.', 'success')
     return redirect(url_for('cursos.curso_detalle', curso_id=curso.id))
 
+
+@bp_cursos.route('/crear', methods=['GET', 'POST'])
+@login_required
+def crear_curso():
+    form = CursoForm()
+    if form.validate_on_submit():
+        nuevo_curso = Curso(
+            categoria_id=form.categoria.data,
+            modalidad=form.modalidad.data,
+            objetivo=form.objetivo.data,
+            nombre=form.nombre.data,
+            contenido=form.contenido.data,
+            area_tematica=form.area_tematica.data,
+            duracion=form.duracion.data,
+            tipo_agente=form.tipo_agente.data,
+            creador_id=current_user.id
+        )
+        db.session.add(nuevo_curso)
+        db.session.commit()
+        flash('Curso creado exitosamente', 'success')
+        return redirect(url_for('cursos.index'))
+    return render_template('cursos/crear.html', form=form)
+

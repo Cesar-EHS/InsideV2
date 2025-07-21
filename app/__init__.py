@@ -68,7 +68,7 @@ def create_app(config_name=None):
     from app.knowledge.routes import knowledge_bp as knowledge_blueprint
     from app.logros.routes import bp_logros as logros_blueprint
     from app.chat.routes import chat_bp
-    from app.crecehs import bp_crecehs
+    # from app.crecehs import bp_crecehs
 
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     app.register_blueprint(home_blueprint, url_prefix='/home')
@@ -79,7 +79,7 @@ def create_app(config_name=None):
     app.register_blueprint(logros_blueprint, url_prefix='/logros')
     app.register_blueprint(search_bp)
     app.register_blueprint(chat_bp)
-    app.register_blueprint(bp_crecehs, url_prefix='/crecehs')
+    # app.register_blueprint(bp_crecehs, url_prefix='/crecehs')
 
     # Ruta para servir archivos de uploads (imágenes y evidencias)
     from flask import send_from_directory

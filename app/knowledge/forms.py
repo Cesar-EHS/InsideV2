@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, FileField, SubmitField
-from wtforms.validators import DataRequired, Length
+from wtforms import StringField, SelectField, FileField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, Optional
 from flask_wtf.file import FileAllowed, FileRequired
 
 class DocumentoForm(FlaskForm):
@@ -26,14 +26,19 @@ class DocumentoForm(FlaskForm):
         'Categoría',
         choices=[
             ('Operaciones', 'Operaciones'),
-            ('Consultoría', 'Consultoría'),
-            ('Proyectos', 'Proyectos'),
             ('Administración', 'Administración'),
             ('Recursos Humanos', 'Recursos Humanos'),
-            ('Desarrollo', 'Desarrollo'),
-            ('Comercial', 'Comercial')
+            ('Desarrollo Organizacional', 'Desarrollo Organizacional'),
+            ('Comercial & Branding', 'Comercial & Branding')
         ],
         validators=[DataRequired(message="Selecciona la categoría.")]
+    )
+    descripcion = TextAreaField(
+        'Descripción',
+        validators=[
+            Optional(),
+            Length(max=500, message="Máximo 500 caracteres.")
+        ]
     )
     archivo = FileField(
         'Archivo adjunto',

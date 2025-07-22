@@ -91,6 +91,7 @@
       main { padding-top: 4.5rem !important; }
     }
   </style>
+  {% block extra_css %}{% endblock %}
 </head>
 <body class="min-h-screen bg-[var(--inside-light)]">
   <header class="w-full bg-white apple-shadow flex items-center px-6 py-2 fixed top-0 left-0 z-50 rounded-b-2xl" style="box-shadow: var(--inside-shadow);">
@@ -227,5 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 });
 </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -215,47 +215,60 @@ def add_comment(post_id):
         return jsonify(success=False, message='Error interno del servidor.'), 500
 
 
-@home_bp.route('/add_reaction/<int:post_id>', methods=['POST'])
+@home_bp.route('/toggle_reaction', methods=['POST'])
 @login_required
-def add_reaction(post_id):
-    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
-        return jsonify(success=False, message='Solicitud no válida.'), 400
+def toggle_reaction():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify(success=False, message='Datos no válidos.'), 400
+            
+        post_id = data.get('post_id')
+        reaction_type = data.get('reaction_type', 'love')
 
-    reaction_type = request.args.get('reaction_type')
+        if not post_id:
+            return jsonify(success=False, message='ID de post requerido.'), 400
 
-    if reaction_type != 'love':
-        return jsonify(success=False, message='Tipo de reacción inválido.'), 400
+        if reaction_type != 'love':
+            return jsonify(success=False, message='Tipo de reacción inválido.'), 400
 
-    post = Post.query.get_or_404(post_id)
+        post = Post.query.get_or_404(post_id)
+        existing = Reaction.query.filter_by(post_id=post.id, user_id=current_user.id, type='love').first()
 
-    existing = Reaction.query.filter_by(post_id=post.id, user_id=current_user.id).first()
+        if existing:
+            # Si ya reaccionó, quitar reacción (alternar)
+            db.session.delete(existing)
+            user_reacted = False
+        else:
+            # Si no ha reaccionado, agregar nueva
+            reaction = Reaction(post_id=post.id, user_id=current_user.id, type='love')
+            db.session.add(reaction)
+            user_reacted = True
 
-    if existing:
-        # Si ya reaccionó, quitar reacción (alternar)
-        db.session.delete(existing)
-    else:
-        # Si no ha reaccionado, agregar nueva
-        reaction = Reaction(post_id=post.id, user_id=current_user.id, type='love')
-        db.session.add(reaction)
+        db.session.commit()
 
-    db.session.commit()
+        # Recuento actualizado
+        love_count = Reaction.query.filter_by(post_id=post.id, type='love').count()
 
-    # Recuento actualizado
-    love_count = Reaction.query.filter_by(post_id=post.id, type='love').count()
-
-    return jsonify(success=True, love_count=love_count), 200
+        return jsonify(success=True, love_count=love_count, user_reacted=user_reacted), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error al toggle reaction: {e}")
+        return jsonify(success=False, message='Error interno del servidor.'), 500
 
 
-@home_bp.route('/evento/delete/<int:id>', methods=['POST'])
+@home_bp.route('/delete_evento/<int:id>', methods=['POST'])
 @login_required
 def delete_evento(id):
-    evento = Evento.query.get_or_404(id)
-    db.session.delete(evento)
-    db.session.commit()
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    try:
+        evento = Evento.query.get_or_404(id)
+        db.session.delete(evento)
+        db.session.commit()
         return jsonify(success=True, message='Evento eliminado correctamente.')
-    flash('Evento eliminado correctamente.', 'success')
-    return redirect(url_for('home.home'))
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(success=False, message='Error al eliminar evento.'), 500
 
 
 @home_bp.route('/post/<int:post_id>/comments', methods=['GET'])
@@ -318,6 +331,77 @@ def get_comments(post_id):
         return jsonify(success=False, message=f'Error al cargar comentarios: {str(e)}'), 500
 
 
+@home_bp.route('/cargar_mas_comentarios/<int:post_id>', methods=['GET'])
+@login_required  
+def cargar_mas_comentarios(post_id):
+    """Ruta específica para cargar más comentarios desde el botón"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        post = Post.query.get_or_404(post_id)
+        
+        per_page = 4
+        # Obtener comentarios más antiguos (saltando los ya mostrados)
+        skip = (page - 1) * per_page + 5  # 5 comentarios iniciales + páginas anteriores
+        
+        comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.timestamp.desc()).offset(skip).limit(per_page).all()
+        
+        comments_html = []
+        for comment in comments:
+            user_foto = comment.user.foto_url if hasattr(comment.user, 'foto_url') and comment.user.foto_url else url_for('auth.static', filename='img/default_user.png')
+            user_name = f"{comment.user.nombre} {comment.user.apellido_paterno}"
+            puede_eliminar = (comment.user_id == current_user.id) or getattr(current_user, 'is_admin', False)
+            delete_url = url_for('home.delete_comment', comment_id=comment.id)
+            
+            dropdown_html = ""
+            if puede_eliminar:
+                dropdown_html = f'''
+                <div class="absolute right-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <div class="relative dropdown">
+                    <button class="dropdown-toggle" data-dropdown-id="comment-{comment.id}" type="button" aria-label="Opciones de comentario">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-comment-{comment.id}" class="dropdown-menu">
+                      <button class="dropdown-item danger" data-delete-url="{delete_url}" data-delete-type="comentario" type="button">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                '''
+            
+            comment_html = f'''
+            <li class="flex space-x-3 group relative" data-comment-id="{comment.id}">
+              {dropdown_html}
+              <img title="{user_name}" class="w-8 h-8 rounded-full flex-shrink-0" src="{user_foto}" alt="Avatar">
+              <div class="flex-1 bg-gray-100 rounded-xl px-3 py-2">
+                <p class="text-gray-800 text-sm">{comment.content}</p>
+              </div>
+            </li>
+            '''
+            comments_html.append(comment_html)
+        
+        # Verificar si hay más comentarios
+        total_comments = Comment.query.filter_by(post_id=post_id).count()
+        comments_shown = 5 + (page * per_page)  # 5 iniciales + comentarios cargados
+        has_more = comments_shown < total_comments
+        
+        return jsonify({
+            "success": True,
+            "comments_html": comments_html,
+            "has_more": has_more,
+            "next_page": page + 1 if has_more else None
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error al cargar más comentarios: {e}")
+        return jsonify(success=False, message="Error al cargar comentarios"), 500
+
+
 @home_bp.route('/delete_comment/<int:comment_id>', methods=['POST'])
 @login_required
 def delete_comment(comment_id):
@@ -352,7 +436,7 @@ def delete_post(post_id):
         return jsonify(success=False, message='Error al eliminar la publicación.'), 500
 
 
-@home_bp.route('/evento/create', methods=['POST'])
+@home_bp.route('/create_evento', methods=['POST'])
 @login_required
 def create_evento():
     # Solo usuarios permitidos

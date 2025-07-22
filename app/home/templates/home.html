@@ -13,13 +13,39 @@
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-medium text-gray-900">Próximos eventos</h2>
         {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
-        <button id="btn-nuevo-evento-mobile" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors" type="button">Agregar +</button>
+        <button id="btn-nuevo-evento-mobile" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Agregar
+        </button>
         {% endif %}
       </div>
       <div class="overflow-x-auto">
         <div class="flex gap-4 pb-2" style="width: max-content;">
           {% for evento in eventos[:5] %}
-          <div class="w-64 bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex-shrink-0">
+          <div class="w-64 bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex-shrink-0 group relative">
+            <!-- Menú de 3 puntos para eventos móviles -->
+            {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="relative dropdown">
+                <button class="dropdown-toggle" data-dropdown-id="evento-mobile-{{ evento.id }}" type="button" aria-label="Opciones de evento">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                  </svg>
+                </button>
+                <div id="dropdown-evento-mobile-{{ evento.id }}" class="dropdown-menu">
+                  <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" data-delete-type="evento" type="button">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
             <h3 class="font-medium text-gray-900 mb-2 line-clamp-2">{{ evento.titulo }}</h3>
             <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
               <span>{{ evento.fecha.strftime('%d/%m') }}</span>
@@ -114,7 +140,24 @@
         <article class="bg-white rounded-xl shadow-sm p-6 group relative">
           {% set puestos_permitidos = [2, 5, 7, 8, 23, 24] %}
           {% if (post.user_id == current_user.id or current_user.is_admin) and current_user.puesto_trabajo and current_user.puesto_trabajo.id in puestos_permitidos %}
-          <button class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition text-red-500 hover:text-red-600 focus:outline-none text-sm bg-white rounded-full p-1.5 shadow-sm" data-delete-url="{{ url_for('home.delete_post', post_id=post.id) }}" onclick="confirmarEliminarPublicacion(this.dataset.deleteUrl)" title="Eliminar publicación" aria-label="Eliminar publicación" type="button"> Eliminar</button>
+          <!-- Menú de 3 puntos para publicaciones -->
+          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="relative dropdown">
+              <button class="dropdown-toggle" data-dropdown-id="post-{{ post.id }}" type="button" aria-label="Opciones de publicación">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                </svg>
+              </button>
+              <div id="dropdown-post-{{ post.id }}" class="dropdown-menu">
+                <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_post', post_id=post.id) }}" data-delete-type="publicacion" type="button">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
           {% endif %}
           
           <div class="mb-4">
@@ -160,14 +203,14 @@
           
           <div class="flex items-center gap-6 text-gray-600 text-sm mb-4">
             {% set user_love = post.reactions|selectattr("user_id", "equalto", current_user.id)|selectattr("type", "equalto", "love")|list|length > 0 %}
-            <button class="flex items-center gap-2 {% if user_love %}text-red-500{% else %}hover:text-red-500{% endif %} focus:outline-none transition" data-post-id="{{ post.id }}" data-reaction="love" onclick="toggleReaction(this)" type="button">
+            <button class="flex items-center gap-2 {% if user_love %}text-red-500{% else %}hover:text-red-500{% endif %} focus:outline-none transition" data-post-id="{{ post.id }}" data-reaction="love" type="button">
               <svg class="w-5 h-5" fill="{% if user_love %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
               </svg>
               <span class="font-medium hidden sm:inline">Me Gusta</span>
               <span id="love-count-{{ post.id }}" class="ml-1">{{ post.reactions|selectattr('type', 'equalto', 'love')|list|length }}</span>
             </button>
-            <button id="btn-comments-toggle-{{ post.id }}" onclick="toggleComments('{{ post.id }}')" class="flex items-center gap-2 hover:text-blue-600 transition" aria-expanded="false" aria-controls="comments-section-{{ post.id }}" type="button">
+            <button id="btn-comments-toggle-{{ post.id }}" data-post-id="{{ post.id }}" class="flex items-center gap-2 hover:text-blue-600 transition" aria-expanded="false" aria-controls="comments-section-{{ post.id }}" type="button">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m10 0v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8m10 0H7m6 4h.01"/>
               </svg>
@@ -181,16 +224,25 @@
               {% set comentarios = post.comments|sort(attribute='timestamp', reverse=True) %}
               {% for comment in comentarios[:5] %}
               <li class="flex space-x-3 group relative" data-comment-id="{{ comment.id }}">
-                <!-- Botón eliminar (lado izquierdo, solo visible en hover) -->
+                <!-- Menú de 3 puntos para comentarios (lado derecho) -->
                 {% if (comment.user_id == current_user.id or current_user.is_admin) %}
-                <button class="eliminar-comentario absolute left-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 text-sm w-5 h-5 flex items-center justify-center bg-white rounded-full shadow-sm z-10" 
-                        data-comment-id="{{ comment.id }}" 
-                        data-post-id="{{ post.id }}"
-                        data-delete-url="{{ url_for('home.delete_comment', comment_id=comment.id) }}"
-                        onclick="confirmarEliminarComentario(this.dataset.deleteUrl)"
-                        title="Eliminar comentario">
-                  ✕
-                </button>
+                <div class="absolute right-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <div class="relative dropdown">
+                    <button class="dropdown-toggle" data-dropdown-id="comment-{{ comment.id }}" type="button" aria-label="Opciones de comentario">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-comment-{{ comment.id }}" class="dropdown-menu">
+                      <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_comment', comment_id=comment.id) }}" data-delete-type="comentario" type="button">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
                 {% endif %}
                 <img title="{{ comment.user.nombre }} {{ comment.user.apellido_paterno }}" class="w-8 h-8 rounded-full flex-shrink-0" src="{{ comment.user.foto_url if comment.user.foto_url else url_for('auth.static', filename='img/default_user.png') }}" alt="Avatar">
                 <div class="flex-1 bg-gray-100 rounded-xl px-3 py-2">
@@ -204,7 +256,8 @@
             {% if post.comments.count() > 5 %}
             {% set remaining_comments = post.comments.count() - 5 %}
             <button id="load-more-{{ post.id }}" 
-                    class="mostrar-mas-comentarios text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    class="mostrar-mas-comentarios text-sm font-medium hover:underline cursor-pointer"
+                    style="color: #3c3c3b;"
                     data-post-id="{{ post.id }}"
                     data-page="1">
               Ver más comentarios ({{ remaining_comments }} restante{% if remaining_comments != 1 %}s{% endif %})
@@ -232,7 +285,12 @@
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-medium text-gray-900">Próximos eventos</h2>
           {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
-          <button id="btn-nuevo-evento" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors" type="button">Agregar +</button>
+          <button id="btn-nuevo-evento" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Agregar
+          </button>
           {% endif %}
         </div>
 
@@ -240,7 +298,28 @@
         {% if eventos %}
         <div class="space-y-4">
           {% for evento in eventos[:5] %}
-          <div class="bg-white rounded-xl shadow-sm p-4 group">
+          <div class="bg-white rounded-xl shadow-sm p-4 group relative">
+            <!-- Menú de 3 puntos para eventos -->
+            {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
+            <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="relative dropdown">
+                <button class="dropdown-toggle" data-dropdown-id="evento-{{ evento.id }}" type="button" aria-label="Opciones de evento">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                  </svg>
+                </button>
+                <div id="dropdown-evento-{{ evento.id }}" class="dropdown-menu">
+                  <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" data-delete-type="evento" type="button">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
             <h3 class="font-medium text-gray-900 mb-2 line-clamp-2">{{ evento.titulo }}</h3>
             <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
               <span class="font-medium">{{ evento.fecha.strftime('%d de %B') }}</span>
@@ -253,9 +332,6 @@
             <a href="{{ evento.link_teams }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium mt-2 transition-colors">
               🔗 Unirse
             </a>
-            {% endif %}
-            {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
-            <button class="ml-3 text-red-500 hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" onclick="confirmarEliminarEvento(this.dataset.deleteUrl)" title="Eliminar evento">Eliminar</button>
             {% endif %}
           </div>
           {% endfor %}
@@ -270,11 +346,12 @@
 <!-- Modales -->
 <!-- Modal para agregar evento -->
 {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
-<div id="modal-evento" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all p-4">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative flex flex-col gap-3 sm:gap-4">
+<div id="modal-evento" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 transition-all p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative flex flex-col gap-3 sm:gap-4 mx-auto">
     <button id="btn-cerrar-modal-evento" type="button" class="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-400 hover:text-red-500 text-xl sm:text-2xl font-bold focus:outline-none">&times;</button>
     <h3 class="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 pr-8">Nuevo evento</h3>
-    <form id="form-evento" method="POST" action="#" class="flex flex-col gap-3">
+    <form id="form-evento" method="POST" action="{{ url_for('home.create_evento') }}" class="flex flex-col gap-3">
+      {{ form_post.csrf_token }}
       <input type="text" name="titulo" required placeholder="Título del evento" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base" />
       <textarea name="descripcion" rows="2" placeholder="Descripción" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base"></textarea>
       <input type="date" name="fecha" required class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base bg-white" />
@@ -289,8 +366,8 @@
 {% endif %}
 
 <!-- Modal Nueva Publicación -->
-<div id="modal-post" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all p-4" aria-hidden="true">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative flex flex-col gap-3 sm:gap-4">
+<div id="modal-post" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 transition-all p-4" aria-hidden="true">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative flex flex-col gap-3 sm:gap-4 mx-auto">
     <button id="btn-cerrar-modal-post" type="button" class="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-400 hover:text-red-500 text-xl sm:text-2xl font-bold focus:outline-none">&times;</button>
     <h3 class="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 pr-8">Nueva publicación</h3>
     <form id="post-form-modal" method="POST" action="{{ url_for('home.create_post') }}" enctype="multipart/form-data" class="flex flex-col gap-3">
@@ -334,96 +411,11 @@
   </div>
 </div>
 
-<!-- Modales de confirmación de eliminación -->
-<!-- Modal de confirmación para eliminar publicación -->
-<div id="delete-publication-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden p-4">
-  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl relative">
-    
-    <!-- Header del modal -->
-    <div class="p-6 text-center border-b border-gray-200">
-      <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Eliminar publicación</h3>
-      <p class="text-gray-600 text-sm">¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</p>
-    </div>
-
-    <!-- Botones del modal -->
-    <div class="p-6 flex gap-3">
-      <button id="delete-publication-cancel" class="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-        Cancelar
-      </button>
-      <button id="delete-publication-confirm" class="flex-1 px-4 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors">
-        Eliminar
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de confirmación para eliminar evento -->
-<div id="delete-event-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden p-4">
-  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl relative">
-    
-    <!-- Header del modal -->
-    <div class="p-6 text-center border-b border-gray-200">
-      <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7m0 0H6a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2V7m-8 0h8m-4 0v2m0-2V5" />
-        </svg>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Eliminar evento</h3>
-      <p class="text-gray-600 text-sm">¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.</p>
-    </div>
-
-    <!-- Botones del modal -->
-    <div class="p-6 flex gap-3">
-      <button id="delete-event-cancel" class="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-        Cancelar
-      </button>
-      <button id="delete-event-confirm" class="flex-1 px-4 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors">
-        Eliminar
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de confirmación para eliminar comentario -->
-<div id="delete-comment-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden p-4">
-  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl relative">
-    
-    <!-- Header del modal -->
-    <div class="p-6 text-center border-b border-gray-200">
-      <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Eliminar comentario</h3>
-      <p class="text-gray-600 text-sm">¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.</p>
-    </div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Eliminar comentario</h3>
-      <p class="text-gray-600 text-sm">¿Estás seguro de que deseas eliminar este comentario? Esta acción no se puede deshacer.</p>
-    </div>
-
-    <!-- Botones del modal -->
-    <div class="p-6 flex gap-3">
-      <button id="delete-comment-cancel" class="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-        Cancelar
-      </button>
-      <button id="delete-comment-confirm" class="flex-1 px-4 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors">
-        Eliminar
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Fin Modales -->
 
 {% block scripts %}
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="{{ url_for('home.static', filename='js/home.js') }}"></script>
+<script src="{{ url_for('home.static', filename='js/home_clean.js') }}"></script>
 <script>
 // Función para manejar la selección de visibilidad
 function toggleProjectSelection() {
@@ -444,34 +436,9 @@ function toggleProjectSelection() {
   }
 }
 
-// Asegurar que el formulario funcione correctamente
+// Inicialización simple
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM cargado, verificando funciones...');
-  console.log('toggleComments disponible:', typeof window.toggleComments);
-  console.log('toggleReaction disponible:', typeof window.toggleReaction);
-  
-  // Reinicializar el selector cuando se abre el modal
-  const modal = document.getElementById('modal-post');
-  const btnAbrirModal = document.getElementById('btn-abrir-modal-post');
-  
-  if (btnAbrirModal && modal) {
-    btnAbrirModal.addEventListener('click', function() {
-      console.log('Modal abierto, reiniciando formulario...');
-      
-      // Resetear el formulario
-      const form = modal.querySelector('form');
-      if (form) form.reset();
-      
-      // Resetear visibilidad
-      const visibilitySelect = document.getElementById('visibility-select');
-      const projectsContainer = document.getElementById('projects-container');
-      const publicInput = document.getElementById('public-visibility-input');
-      
-      if (visibilitySelect) visibilitySelect.value = 'public';
-      if (projectsContainer) projectsContainer.classList.add('hidden');
-      if (publicInput) publicInput.disabled = false;
-    });
-  }
+  console.log('HOME.HTML CARGADO - Todo funcionando correctamente');
 });
 </script>
 <style>
@@ -504,6 +471,83 @@ document.addEventListener('DOMContentLoaded', function() {
   
   .overflow-x-auto::-webkit-scrollbar {
     display: none;
+  }
+  
+  /* Menú dropdown de 3 puntos */
+  .dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 120px;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .dropdown-item.danger {
+    color: #6b7280; /* Color gris normal por defecto - igual que la imagen */
+    font-weight: 500;
+  }
+  
+  .dropdown-item.danger:hover {
+    background-color: #fef2f2;
+    color: #dc2626; /* Solo se pone rojo en hover */
+  }
+  
+  .dropdown-item.danger svg {
+    color: #6b7280; /* Ícono gris por defecto */
+    transition: color 0.15s ease;
+  }
+  
+  .dropdown-item.danger:hover svg {
+    color: #dc2626; /* Ícono rojo solo en hover */
+  }
+  
+  .dropdown-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #6b7280;
+    transition: all 0.15s ease;
+  }
+  
+  .dropdown-toggle:hover {
+    background-color: #f3f4f6;
+    color: #374151;
   }
 </style>
 {% endblock %}

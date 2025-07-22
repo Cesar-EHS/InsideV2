@@ -1,465 +1,783 @@
 {% extends 'base.html' %}
+{% block title %}{{ categoria }} - Knowledge Base{% endblock %}
+{% block extra_css %}
+<!-- Actualizado: Iconos dinámicos por categoría y contador sin texto -->
+<style>
+  body {
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(to bottom right, #f5f5f7, #eaeaec);
+  }
+  .container-main {
+    max-width: 1200px;
+    margin: 2.5rem auto;
+    padding: 0;
+  }
+  .header-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1.2rem;
+  }
+  .back-arrow {
+    font-size: 1rem;
+    color: #666;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.18s;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    text-decoration: none;
+    padding: 0.5rem 0;
+  }
+  .back-arrow:hover {
+    color: #3b82f6;
+  }
+  .category-info {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.8rem;
+  }
+  .category-left {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+  .category-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .category-icon svg {
+    width: 28px;
+    height: 28px;
+    color: white;
+  }
+  /* Colores por categoría */
+  .category-operaciones { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+  .category-administracion { background: linear-gradient(135deg, #10B981, #059669); }
+  .category-recursos-humanos { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+  .category-desarrollo-organizacional { background: linear-gradient(135deg, #F59E0B, #D97706); }
+  .category-comercial-branding { background: linear-gradient(135deg, #EC4899, #DB2777); }
+  .category-default { background: linear-gradient(135deg, #6B7280, #4B5563); }
+  .category-details h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: #232323;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .doc-count-badge {
+    background: rgba(107, 114, 128, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 0.25rem 0.6rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #5e5e5e;
+    border: 1px solid rgba(107, 114, 128, 0.1);
+  }
+  .category-details .cat-desc {
+    font-size: 1rem;
+    color: #5e5e5e;
+    opacity: 0.8;
+  }
+  .filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.2rem;
+  }
+  .filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .filter-icon {
+    color: #666;
+    font-size: 1.2rem;
+  }
+  .filters select {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    background: white;
+    transition: border-color 0.2s;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    color: #333;
+    min-width: 120px;
+  }
+  .filters select:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+  .search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    margin-left: 1rem;
+  }
+  .search-bar svg {
+    color: #999;
+    margin-right: 0.5rem;
+  }
+  .search-bar input {
+    border: none;
+    background: transparent;
+    font-size: 0.9rem;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    width: 100%;
+    outline: none;
+    color: #333;
+  }
+  .search-bar input::placeholder {
+    color: #999;
+    opacity: 1;
+  }
+  .document-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap: 1.2rem;
+  }
+  .document-card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(60,72,88,0.08);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: box-shadow 0.3s, transform 0.3s;
+    min-height: 240px;
+    cursor: pointer;
+  }
+  .document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  }
+  .doc-image {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.8rem;
+    align-self: center;
+  }
+  .doc-image svg {
+    width: 64px;
+    height: 64px;
+    color: #dc2626;
+  }
+  .document-card h3 {
+    font-size: 1rem;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    color: #232323;
+    letter-spacing: 0.2px;
+    transition: color 0.18s;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    text-align: justify;
+    line-height: 1.3;
+  }
+  .document-card:hover h3 {
+    color: #3b82f6;
+  }
+  .document-card p {
+    flex: 1;
+    color: #5e5e5e;
+    font-size: 0.85rem;
+    margin: 0 0 1rem;
+    opacity: 0.8;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    text-align: justify;
+    line-height: 1.4;
+  }
+  .card-actions {
+    position: absolute;
+    left: 0.8rem;
+    bottom: 0.8rem;
+  }
+  .doc-type-badge {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.8rem;
+    background: rgba(107, 114, 128, 0.12);
+    backdrop-filter: blur(6px);
+    border-radius: 8px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #5e5e5e;
+    border: 1px solid rgba(107, 114, 128, 0.08);
+  }
+  .three-dots {
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 6px;
+    width: 28px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: none;
+    font-size: 1rem;
+    color: #3b82f6;
+    border: none;
+    transition: all 0.2s;
+  }
+  .three-dots:hover {
+    background: rgba(59, 130, 246, 0.15);
+    transform: scale(1.05);
+  }
+  .card-menu {
+    position: absolute;
+    left: 0;
+    bottom: 2rem;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 0.3rem;
+    display: none;
+    flex-direction: column;
+    min-width: 100px;
+    z-index: 10;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .card-menu button {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 0.85rem;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .card-menu button:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+  .card-menu button.delete:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+  }
+  .delete-icon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(60,72,88,0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
+  .modal-content {
+    background: rgba(255,255,255,0.85);
+    border-radius: 16px;
+    max-width: 700px;
+    width: 95vw;
+    max-height: 80vh;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px #3b82f622;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(8px);
+  }
+  .modal-content iframe {
+    width: 100%;
+    height: 60vh;
+    border: none;
+    border-radius: 10px;
+    background: #eaf0ff;
+  }
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #3b82f6;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 1px 4px #3b82f622;
+    transition: background 0.18s;
+  }
+  .modal-close:hover {
+    background: #232323;
+    color: #3b82f6;
+  }
+  
+  /* Modal de confirmación elegante */
+  .delete-confirmation-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    backdrop-filter: blur(4px);
+  }
+  
+  .delete-modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90vw;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .delete-icon-container {
+    width: 80px;
+    height: 80px;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .delete-icon-container svg {
+    width: 40px;
+    height: 40px;
+    color: #dc2626;
+  }
+  
+  .delete-modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+  }
+  
+  .delete-modal-message {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0 0 2rem;
+    line-height: 1.5;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+  }
+  
+  .delete-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+  
+  .delete-modal-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    min-width: 100px;
+  }
+  
+  .delete-modal-cancel {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  
+  .delete-modal-cancel:hover {
+    background: #e5e7eb;
+  }
+  
+  .delete-modal-confirm {
+    background: #dc2626;
+    color: white;
+  }
+  
+  .delete-modal-confirm:hover {
+    background: #b91c1c;
+  }
+</style>
+{% endblock %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>{{ categoria }} - Recursos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('knowledge.static', filename='css/knowledge.css') }}">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to bottom right, #f5f5f7, #eaeaec);
-    }
-    .glass {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .fade-in {
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: none; }
-    }
-    .document-card {
-      transition: all 0.3s ease;
-      pointer-events: none; /* Permitir que los clicks pasen a través */
-    }
-    .document-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    }
-    /* Restaurar pointer events para los elementos interactivos dentro de la tarjeta */
-    .document-card button,
-    .document-card a {
-      pointer-events: auto;
-    }
-    /* Hacer que los elementos hijos del botón no intercepten clicks */
-    .document-card button *,
-    .document-card a * {
-      pointer-events: none;
-    }
-  </style>
-</head>
-<body class="min-h-screen">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:py-10">
-    
-    <!-- Header con navegación -->
-    <div class="mb-6 sm:mb-8">
-      <div class="flex items-center mb-4">
-        <a href="{{ url_for('knowledge.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 transition mr-4 text-sm sm:text-base">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+<div class="container-main">
+  <div class="header-bar">
+    <a href="{{ url_for('knowledge.index') }}" class="back-arrow" title="Volver a Recursos">← Volver a Recursos</a>
+  </div>
+  <div class="category-info">
+    <div class="category-left">
+      <div class="category-icon {% if categoria == 'Operaciones' %}category-operaciones{% elif categoria == 'Administración' %}category-administracion{% elif categoria == 'Recursos Humanos' %}category-recursos-humanos{% elif categoria == 'Desarrollo Organizacional' %}category-desarrollo-organizacional{% elif categoria == 'Comercial & Branding' %}category-comercial-branding{% else %}category-default{% endif %}">
+        {% if categoria == 'Operaciones' %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          Volver a Recursos
-        </a>
+        {% elif categoria == 'Administración' %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        {% elif categoria == 'Recursos Humanos' %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        {% elif categoria == 'Desarrollo Organizacional' %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        {% elif categoria == 'Comercial & Branding' %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        {% else %}
+          <!-- Icono para categoría general -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        {% endif %}
       </div>
-      
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div class="flex items-center">
-          <h1 class="text-2xl sm:text-4xl font-bold text-gray-800">{{ categoria }}</h1>
-          {% if categoria == 'Operaciones' %}
-            <div class="w-8 h-8 sm:w-10 sm:h-10 ml-3 sm:ml-4 rounded-full flex items-center justify-center text-white" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-          {% elif categoria == 'Administración' %}
-            <div class="w-8 h-8 sm:w-10 sm:h-10 ml-3 sm:ml-4 rounded-full flex items-center justify-center text-white" style="background: linear-gradient(135deg, #10B981, #059669);">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-          {% elif categoria == 'Recursos Humanos' %}
-            <div class="w-8 h-8 sm:w-10 sm:h-10 ml-3 sm:ml-4 rounded-full flex items-center justify-center text-white" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-          {% elif categoria == 'Desarrollo Organizacional' %}
-            <div class="w-8 h-8 sm:w-10 sm:h-10 ml-3 sm:ml-4 rounded-full flex items-center justify-center text-white" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-          {% elif categoria == 'Comercial & Branding' %}
-            <div class="w-8 h-8 sm:w-10 sm:h-10 ml-3 sm:ml-4 rounded-full flex items-center justify-center text-white" style="background: linear-gradient(135deg, #EC4899, #DB2777);">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-            </div>
-          {% endif %}
-        </div>
-        
-        <div class="text-right">
-          <p class="text-2xl sm:text-3xl font-bold text-gray-800">{{ documentos|length }}</p>
-          <p class="text-xs sm:text-sm text-gray-500">documentos</p>
-        </div>
+      <div class="category-details">
+        <h1>{{ categoria }} <span class="doc-count-badge">{{ documentos|length }}</span></h1>
       </div>
     </div>
-
-    <!-- Controles de filtrado y búsqueda -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8">
-      
-      <!-- Ordenar -->
-      <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-        </svg>
-        <form method="GET" id="filter-form" class="flex-1">
-          <select name="order" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]">
-            <option value="fecha" {% if current_order == 'fecha' %}selected{% endif %}>Más reciente</option>
-            <option value="abc" {% if current_order == 'abc' %}selected{% endif %}>A-Z</option>
-          </select>
-          <input type="hidden" name="tipo" value="{{ current_tipo }}">
-          <input type="hidden" name="search" value="{{ current_search }}">
-        </form>
+  </div>
+  <div class="filters-bar">
+    <div class="filters">
+      <div class="filter-item">
+        <select id="order-select">
+          <option value="alfabetico" {% if request.args.get('order','alfabetico')=='alfabetico' %}selected{% endif %}>A-Z</option>
+          <option value="reciente" {% if request.args.get('order')=='reciente' %}selected{% endif %}>Más reciente</option>
+          <option value="antiguo" {% if request.args.get('order')=='antiguo' %}selected{% endif %}>Más antiguo</option>
+        </select>
       </div>
-
-      <!-- Filtro por tipo -->
-      <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0013 13.414V19a1 1 0 01-1.447.894l-2-1A1 1 0 009 18v-4.586a1 1 0 00-.293-.707L2.293 6.707A1 1 0 012 6V4z" />
-        </svg>
-        <form method="GET" id="tipo-form" class="flex-1">
-          <select name="tipo" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]">
-            <option value="">Todos</option>
-            {% for tipo in tipos_disponibles %}
-            <option value="{{ tipo }}" {% if current_tipo == tipo %}selected{% endif %}>{{ tipo }}</option>
-            {% endfor %}
-          </select>
-          <input type="hidden" name="order" value="{{ current_order }}">
-          <input type="hidden" name="search" value="{{ current_search }}">
-        </form>
-      </div>
-
-      <!-- Buscador -->
-      <div class="flex items-center gap-2 flex-1">
-        <form method="GET" id="search-form" class="flex-1">
-          <div class="relative">
-            <input type="text" name="search" value="{{ current_search }}" placeholder="Buscar" 
-                   class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input type="hidden" name="order" value="{{ current_order }}">
-            <input type="hidden" name="tipo" value="{{ current_tipo }}">
-          </div>
-        </form>
+      <div class="filter-item">
+        <select id="tipo-filter">
+          <option value="">Todos los tipos</option>
+          {% for tipo in tipos_disponibles %}
+          <option value="{{ tipo }}" {% if request.args.get('tipo')==tipo %}selected{% endif %}>{{ tipo }}</option>
+          {% endfor %}
+        </select>
       </div>
     </div>
-
-    <!-- Grid de documentos -->
-    {% if documentos %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 fade-in">
-      {% for doc in documentos %}
-      <div class="document-card glass rounded-xl sm:rounded-2xl p-4 sm:p-6 relative">
-        
-        <!-- Header del documento -->
-        <div class="flex items-center mb-3 sm:mb-4">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl text-white font-bold text-base sm:text-lg"
-               {% if categoria == 'Operaciones' %}style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);"
-               {% elif categoria == 'Administración' %}style="background: linear-gradient(135deg, #10B981, #059669);"
-               {% elif categoria == 'Recursos Humanos' %}style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);"
-               {% elif categoria == 'Desarrollo Organizacional' %}style="background: linear-gradient(135deg, #F59E0B, #D97706);"
-               {% elif categoria == 'Comercial & Branding' %}style="background: linear-gradient(135deg, #EC4899, #DB2777);"
-               {% endif %}>
-            {% if doc.tipo == 'Registro' %}R
-            {% elif doc.tipo == 'Procedimiento' %}P
-            {% elif doc.tipo == 'Reglamento' %}G
-            {% elif doc.tipo == 'Política' %}PL
-            {% else %}D
-            {% endif %}
-          </div>
-          <div class="ml-2 sm:ml-3 flex-1">
-            <h3 class="text-sm sm:text-lg font-semibold text-gray-800 leading-tight" title="{{ doc.nombre }}">
-              {{ doc.nombre[:40] }}{% if doc.nombre|length > 40 %}...{% endif %}
-            </h3>
-            <p class="text-xs sm:text-sm text-gray-500">{{ doc.tipo }}</p>
-            {% if doc.descripcion %}
-            <p class="text-xs text-gray-400 mt-1 italic">{{ doc.descripcion[:80] }}{% if doc.descripcion|length > 80 %}...{% endif %}</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Descripción -->
-        <div class="mb-3 sm:mb-4">
-          {% if doc.descripcion %}
-          <p class="text-xs sm:text-sm text-gray-600 bg-gray-50 rounded-lg px-2 sm:px-3 py-1 sm:py-2" title="{{ doc.descripcion }}">
-            {{ doc.descripcion[:100] }}{% if doc.descripcion|length > 100 %}...{% endif %}
-          </p>
-          {% else %}
-          <p class="text-xs sm:text-sm text-gray-400 bg-gray-50 rounded-lg px-2 sm:px-3 py-1 sm:py-2 italic">
-            Sin descripción
-          </p>
-          {% endif %}
-        </div>
-
-        <!-- Footer con acciones -->
-        <div class="flex justify-end items-center pt-3 sm:pt-4 border-t border-gray-200 gap-2">
-          <a href="{{ doc.download_url() }}" 
-             target="_blank"
-             data-filename="{{ doc.filename }}"
-             data-doc-name="{{ doc.nombre }}"
-             data-download-url="{{ doc.download_url() }}"
-             class="preview-btn bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-xs font-medium hover:bg-blue-200 transition-all duration-200 flex items-center gap-1 whitespace-nowrap">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="search-bar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input type="text" id="search-input" placeholder="Buscar por título..." value="{{ request.args.get('search','') }}">
+    </div>
+  </div>
+  <div class="document-grid">
+    {% for doc in documentos %}
+    <div class="document-card" data-doc-id="{{ doc.id }}">
+      <div class="doc-image">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h3>{{ doc.nombre }}</h3>
+      <p>{{ doc.descripcion or 'Sin descripción disponible.' }}</p>
+      <div class="card-actions">
+        <button class="three-dots" title="Opciones" onclick="toggleMenu(this)">&#8942;</button>
+        <div class="card-menu">
+          <button class="preview" data-url="{{ doc.download_url() }}" data-filename="{{ doc.filename }}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 14px; height: 14px;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            <span>Ver</span>
-          </a>
-          {% if current_user.puesto_trabajo and current_user.puesto_trabajo.id == 7 %}
-          <button type="button" data-doc-id="{{ doc.id }}" 
-                  class="delete-btn bg-red-100 text-red-700 px-3 py-2 rounded-lg text-xs font-medium hover:bg-red-200 transition-all duration-200 flex items-center gap-1 whitespace-nowrap"
-                  title="Eliminar documento">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span>Eliminar</span>
+            Ver
           </button>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="text-center py-16">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-      <h3 class="text-xl font-semibold text-gray-500 mb-2">No hay documentos</h3>
-      <p class="text-gray-400">No se encontraron documentos en esta categoría con los filtros actuales.</p>
-    </div>
-    {% endif %}
-
-  </div>
-
-  <!-- Modal de vista previa -->
-  <div id="preview-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50 hidden p-4">
-    <div class="bg-white rounded-2xl w-full max-w-4xl h-[90vh] shadow-2xl relative flex flex-col">
-      
-      <!-- Header del modal -->
-      <div class="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-        <h2 id="preview-title" class="text-xl font-semibold text-gray-800">Vista previa del documento</h2>
-        <div class="flex items-center gap-3">
-          <a id="download-btn" href="#" download class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <button class="delete" data-id="{{ doc.id }}">
+            <svg class="delete-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
             </svg>
-            Descargar
-          </a>
-          <button id="preview-close" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            Eliminar
           </button>
         </div>
       </div>
-
-      <!-- Contenido del modal -->
-      <div class="flex-1 p-6 overflow-hidden">
-        <iframe id="preview-iframe" class="w-full h-full border border-gray-200 rounded-lg" src=""></iframe>
+      <div class="doc-type-badge">
+        {{ doc.tipo or 'Documento' }}
       </div>
     </div>
+    {% endfor %}
   </div>
-
+  <div id="modal-bg" style="display:none;" class="modal-bg">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <h2 id="modal-title" style="margin-bottom:1rem;font-size:1.1rem;"></h2>
+      <iframe id="modal-iframe" src=""></iframe>
+      <button id="modal-download" style="margin-top:1rem;background:#3b82f6;color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:8px;font-size:1rem;cursor:pointer;">Descargar archivo</button>
+    </div>
+  </div>
+  
   <!-- Modal de confirmación de eliminación -->
-  <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden p-4">
-    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl relative">
-      
-      <!-- Header del modal -->
-      <div class="p-6 text-center border-b border-gray-200">
-        <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </div>
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Eliminar documento</h3>
-        <p class="text-gray-600 text-sm">¿Estás seguro de que deseas eliminar este documento? Esta acción no se puede deshacer.</p>
+  <div id="delete-confirmation-modal" class="delete-confirmation-modal">
+    <div class="delete-modal-content">
+      <div class="delete-icon-container">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
       </div>
-
-      <!-- Botones del modal -->
-      <div class="p-6 flex gap-3">
-        <button id="delete-cancel" class="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-          Cancelar
-        </button>
-        <button id="delete-confirm" class="flex-1 px-4 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors">
-          Eliminar
-        </button>
+      <h3 class="delete-modal-title">Eliminar documento</h3>
+      <p class="delete-modal-message">¿Estás seguro de que deseas eliminar este documento?<br>Esta acción no se puede deshacer.</p>
+      <div class="delete-modal-actions">
+        <button class="delete-modal-btn delete-modal-cancel" id="delete-cancel">Cancelar</button>
+        <button class="delete-modal-btn delete-modal-confirm" id="delete-confirm">Eliminar</button>
       </div>
     </div>
   </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+console.log('🔥 SISTEMA DE FILTROS CARGADO');
 
-  <script>
-    // Función para obtener CSRF token
-    function getCSRFToken() {
-      const token = document.querySelector('meta[name=csrf-token]');
-      let value = token ? token.getAttribute('content') : '';
-      
-      // Si el token viene con comillas, las removemos
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      }
-      
-      return value;
-    }
-
-    // Variables para el modal de eliminación
-    let currentDocIdToDelete = null;
-
-    // Función para eliminar documento
-    function deleteDocument(docId) {
-      const deleteUrl = '/knowledge/delete/' + docId;
-      const csrfToken = getCSRFToken();
-      
-      fetch(deleteUrl, {
-        method: 'POST',
-        headers: { 
-          'X-CSRFToken': csrfToken,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        credentials: 'same-origin',
-        body: 'csrf_token=' + encodeURIComponent(csrfToken)
-      })
-      .then(response => {
-        if (response.ok) {
-          window.location.reload();
-        } else {
-          alert('Error al eliminar el documento');
-        }
-      })
-      .catch(error => {
-        alert('Error de conexión al eliminar el documento');
-      });
-    }
-
-    // Función para mostrar modal de confirmación
-    function showDeleteModal(docId) {
-      currentDocIdToDelete = docId;
-      const deleteModal = document.getElementById('delete-modal');
-      deleteModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    // Función para cerrar modal de confirmación
-    function closeDeleteModal() {
-      const deleteModal = document.getElementById('delete-modal');
-      deleteModal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-      currentDocIdToDelete = null;
-    }
-
-    // Auto-submit para el buscador con debounce
-    document.addEventListener('DOMContentLoaded', function() {
-      // Configurar auto-submit del buscador
-      let searchTimeout;
-      const searchInput = document.querySelector('input[name="search"]');
-      if (searchInput) {
-        searchInput.addEventListener('input', function() {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            this.form.submit();
-          }, 500);
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const orderSelect = document.getElementById('order-select');
+    const typeFilter = document.getElementById('tipo-filter');
+    const documentGrid = document.querySelector('.document-grid');
+    const originalCards = Array.from(document.querySelectorAll('.document-card'));
+    
+    console.log('📋 Cards originales encontradas:', originalCards.length);
+    
+    // Función principal de filtrado
+    function filterAndSort() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedOrder = orderSelect.value;
+        const selectedType = typeFilter.value;
+        
+        console.log('🔍 Filtrando:', { searchTerm, selectedOrder, selectedType });
+        
+        // Filtrar cards
+        let filteredCards = originalCards.filter(card => {
+            const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+            const docType = card.querySelector('.doc-type-badge')?.textContent.trim() || '';
+            
+            console.log('🔍 Comparando:', { 
+                docType: `"${docType}"`, 
+                selectedType: `"${selectedType}"`, 
+                match: docType === selectedType,
+                matchIgnoreCase: docType.toLowerCase() === selectedType.toLowerCase()
+            });
+            
+            // Búsqueda SOLO en el título (más precisa)
+            const matchesSearch = !searchTerm || title.includes(searchTerm);
+            
+            // Filtro por tipo de documento (ignorar mayúsculas/minúsculas)
+            const matchesType = !selectedType || docType.toLowerCase() === selectedType.toLowerCase();
+            
+            return matchesSearch && matchesType;
         });
-      }
-      
-      // Configurar botones de eliminar
-      const deleteButtons = document.querySelectorAll('.delete-btn');
-      deleteButtons.forEach((button) => {
-        const docId = button.getAttribute('data-doc-id');
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          showDeleteModal(docId);
+        
+        console.log('✅ Cards después del filtro:', filteredCards.length);
+        
+        // Ordenar cards
+        filteredCards.sort((a, b) => {
+            const titleA = a.querySelector('h3')?.textContent || '';
+            const titleB = b.querySelector('h3')?.textContent || '';
+            
+            switch(selectedOrder) {
+                case 'alfabetico':
+                    return titleA.localeCompare(titleB);
+                case 'reciente':
+                    // Por ahora ordenamos por ID descendente como proxy de reciente
+                    const idA = parseInt(a.dataset.docId) || 0;
+                    const idB = parseInt(b.dataset.docId) || 0;
+                    return idB - idA;
+                case 'antiguo':
+                    // Por ahora ordenamos por ID ascendente como proxy de antiguo
+                    const idA2 = parseInt(a.dataset.docId) || 0;
+                    const idB2 = parseInt(b.dataset.docId) || 0;
+                    return idA2 - idB2;
+                default:
+                    return 0;
+            }
         });
-      });
-
-      // Configurar modal de eliminación
-      const deleteModal = document.getElementById('delete-modal');
-      const deleteCancelBtn = document.getElementById('delete-cancel');
-      const deleteConfirmBtn = document.getElementById('delete-confirm');
-
-      deleteCancelBtn.addEventListener('click', closeDeleteModal);
-      deleteConfirmBtn.addEventListener('click', function() {
-        if (currentDocIdToDelete) {
-          closeDeleteModal();
-          deleteDocument(currentDocIdToDelete);
-        }
-      });
-
-      // Cerrar modal de eliminación al hacer click fuera
-      deleteModal.addEventListener('click', function(e) {
-        if (e.target === deleteModal) {
-          closeDeleteModal();
-        }
-      });
-
-      // Configurar vista previa
-      const previewModal = document.getElementById('preview-modal');
-      const previewIframe = document.getElementById('preview-iframe');
-      const previewTitle = document.getElementById('preview-title');
-      const downloadBtn = document.getElementById('download-btn');
-      const previewClose = document.getElementById('preview-close');
-      const previewButtons = document.querySelectorAll('.preview-btn');
-
-      // Función para abrir vista previa
-      function openPreview(url, filename, docName) {
-        previewTitle.textContent = docName || filename;
-        previewIframe.src = url;
-        downloadBtn.href = url;
-        downloadBtn.download = filename;
-        previewModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-      }
-
-      // Función para cerrar vista previa
-      function closePreview() {
-        previewModal.classList.add('hidden');
-        previewIframe.src = '';
-        document.body.style.overflow = 'auto';
-      }
-
-      // Event listeners para vista previa
-      previewButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          const url = this.getAttribute('data-download-url');
-          const filename = this.getAttribute('data-filename');
-          const docName = this.getAttribute('data-doc-name');
-          openPreview(url, filename, docName);
+        
+        // Actualizar el DOM
+        documentGrid.innerHTML = '';
+        filteredCards.forEach(card => {
+            documentGrid.appendChild(card);
         });
-      });
-
-      previewClose.addEventListener('click', closePreview);
-      previewModal.addEventListener('click', function(e) {
-        if (e.target === previewModal) {
-          closePreview();
+        
+        // Mostrar mensaje si no hay resultados
+        if (filteredCards.length === 0) {
+            documentGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 style="margin: 0 0 0.5rem; font-size: 1.1rem;">No se encontraron documentos</h3>
+                    <p style="margin: 0; opacity: 0.7;">Intenta con otros términos de búsqueda o filtros.</p>
+                </div>
+            `;
         }
-      });
-
-      // Cerrar con ESC
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          if (!previewModal.classList.contains('hidden')) {
-            closePreview();
-          } else if (!deleteModal.classList.contains('hidden')) {
-            closeDeleteModal();
-          }
-        }
-      });
+        
+        console.log('🎯 Filtrado completado, mostrando', filteredCards.length, 'documentos');
+    }
+    
+    // Event listeners optimizados
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            console.log('🔍 Búsqueda:', this.value);
+            filterAndSort();
+        }, 300); // Debounce de 300ms
     });
-  </script>
-
-</body>
-</html>
+    
+    orderSelect.addEventListener('change', function() {
+        console.log('📑 Orden cambiado a:', this.value);
+        filterAndSort();
+    });
+    
+    typeFilter.addEventListener('change', function() {
+        console.log('🏷️ Tipo cambiado a:', this.value);
+        filterAndSort();
+    });
+    
+    // Funciones para el menú de opciones
+    window.toggleMenu = function(button) {
+        const menu = button.nextElementSibling;
+        const isVisible = menu.style.display === 'flex';
+        
+        // Cerrar todos los menús
+        document.querySelectorAll('.card-menu').forEach(m => m.style.display = 'none');
+        
+        // Mostrar/ocultar el menú actual
+        menu.style.display = isVisible ? 'none' : 'flex';
+    };
+    
+    // Cerrar menús al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.card-actions')) {
+            document.querySelectorAll('.card-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+    });
+    
+    // Funcionalidad del modal de vista previa
+    const modal = document.getElementById('modal-bg');
+    const modalTitle = document.getElementById('modal-title');
+    const modalIframe = document.getElementById('modal-iframe');
+    const modalClose = document.getElementById('modal-close');
+    const modalDownload = document.getElementById('modal-download');
+    
+    // Modal de confirmación de eliminación
+    const deleteModal = document.getElementById('delete-confirmation-modal');
+    const deleteCancel = document.getElementById('delete-cancel');
+    const deleteConfirm = document.getElementById('delete-confirm');
+    let documentToDelete = null;
+    
+    // Manejar clics en botones del menú
+    document.addEventListener('click', function(e) {
+        // Botón "Ver"
+        if (e.target.closest('.preview')) {
+            const button = e.target.closest('.preview');
+            const url = button.dataset.url;
+            const filename = button.dataset.filename;
+            
+            modalTitle.textContent = filename;
+            modalIframe.src = url;
+            modalDownload.onclick = () => window.open(url, '_blank');
+            modal.style.display = 'flex';
+        }
+        
+        // Botón "Eliminar" - Mostrar modal de confirmación
+        if (e.target.closest('.delete')) {
+            const button = e.target.closest('.delete');
+            documentToDelete = button.dataset.id;
+            deleteModal.style.display = 'flex';
+        }
+    });
+    
+    // Manejar confirmación de eliminación
+    deleteConfirm.addEventListener('click', function() {
+        if (documentToDelete) {
+            console.log('Eliminar documento:', documentToDelete);
+            // TODO: Implementar eliminación real con fetch/AJAX
+            deleteModal.style.display = 'none';
+            documentToDelete = null;
+        }
+    });
+    
+    // Manejar cancelación de eliminación
+    deleteCancel.addEventListener('click', function() {
+        deleteModal.style.display = 'none';
+        documentToDelete = null;
+    });
+    
+    // Cerrar modal de eliminación al hacer clic fuera
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            deleteModal.style.display = 'none';
+            documentToDelete = null;
+        }
+    });
+    
+    // Cerrar modal
+    modalClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+        modalIframe.src = '';
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            modalIframe.src = '';
+        }
+    });
+    
+    console.log('✅ Sistema de filtros completamente inicializado');
+});
+</script>
 {% endblock %}

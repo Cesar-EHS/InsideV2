@@ -1,261 +1,2036 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-  body, .helpdesk-scope {
-    background: linear-gradient(120deg, #f7f8fa 0%, #f2f3f7 100%) !important;
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', Arial, sans-serif;
+  body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f8f9fa;
   }
-  .glassmorphism {
-    background: rgba(255,255,255,0.85);
-    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.08);
-    backdrop-filter: blur(12px);
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.18);
+  
+  .filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: transparent;
+    padding: 1rem 0;
   }
-  .glassmorphism-modal {
-    background: rgba(255,255,255,0.95) !important;
-    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.10);
-    backdrop-filter: blur(16px);
-    border-radius: 24px;
-    border: 1px solid #ececec;
+  
+  .filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
   }
-  .tab-btn {
-    transition: background 0.2s, color 0.2s;
-    border: none;
+  
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .filters select {
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    background: white;
+    transition: all 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    min-width: 140px;
+    font-weight: 400;
+  }
+  
+  .filters select:focus {
     outline: none;
-    font-family: inherit;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .search-bar:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .search-bar svg {
+    color: #9ca3af;
+    margin-right: 0.5rem;
+  }
+  
+  .search-bar input {
+    border: none;
     background: transparent;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    width: 100%;
+    outline: none;
+    color: #333;
+    font-weight: 400;
   }
-  .tab-btn.border-b-2 {
-    background: #fffbe6;
-    color: #3b3b3c;
-    border-bottom: 2px solid #fab522;
+  
+  .search-bar input::placeholder {
+    color: #9ca3af;
+    opacity: 1;
   }
-  .badge-prioridad {
-    display: inline-block;
-    padding: 0.25em 0.8em;
-    border-radius: 999px;
-    font-size: 0.95em;
-    font-weight: 500;
-    background: #f7f7fa;
-    color: #3b3b3c;
-    letter-spacing: 0.01em;
-    font-family: inherit;
-  }
-  .badge-prioridad.urgente { background: #ff3b30; color: #fff; }
-  .badge-prioridad.alta { background: #ffe08a; color: #3b3b3c; }
-  .badge-prioridad.media { background: #e5e5ea; color: #3b3b3c; }
-  .badge-prioridad.baja { background: #f2f3f7; color: #3b3b3c; }
-  .badge-estatus {
-    display: inline-block;
-    padding: 0.25em 0.8em;
-    border-radius: 999px;
-    font-size: 0.95em;
-    font-weight: 500;
-    background: #f7f7fa;
-    color: #3b3b3c;
-    letter-spacing: 0.01em;
-    font-family: inherit;
-  }
-  .badge-estatus.abierto { background: #e5e5ea; color: #3b3b3c; }
-  .badge-estatus.en-progreso { background: #ffe08a; color: #3b3b3c; }
-  .badge-estatus.resuelto { background: #b7ebc6; color: #2e7d32; }
-  .tab-content { min-height: 320px; }
-  table {
-    border-collapse: separate;
-    border-spacing: 0 0.5em;
-    font-family: inherit;
-  }
-  th, td {
-    font-family: inherit;
-    font-size: 1em;
-  }
-  th {
-    font-weight: 600;
-    background: transparent;
-  }
-  tr {
-    transition: background 0.18s;
-  }
-  tr:hover {
-    background: #fffbe6 !important;
-  }
-  .btn-ver-ticket {
-    background: #fff;
-    border: 1px solid #ececec;
-    color: #3b3b3c;
-    font-weight: 500;
+  
+  .table-container {
+    background: white;
     border-radius: 12px;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px 0 rgba(31,38,135,0.04);
-    font-family: inherit;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
   }
-  .btn-ver-ticket:hover {
-    background: #ffe08a;
-    color: #3b3b3c;
-    box-shadow: 0 2px 8px 0 rgba(31,38,135,0.08);
+  
+  /* Tabs mejoradas estilo minimalista */
+  .tabs-container {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem; /* Espacio entre tabs */
+    background: transparent; /* Sin fondo */
+    border-radius: 0;
+    padding: 0;
+    border: none; /* Sin borde */
+    width: 100%;
   }
-  #btnNuevoTicket {
-    background: #fff;
-    color: #3b3b3c;
-    border: 1.5px solid #fab522;
-    border-radius: 16px;
+  
+  .tab-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0; /* Solo padding vertical, sin horizontal */
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.25s ease;
+    position: relative;
+    text-decoration: none;
+    border-radius: 0; /* Sin border radius */
+    color: #6b7280;
+    background: transparent; /* Sin background */
+    white-space: nowrap;
+    border: none; /* Sin borde */
+    border-bottom: 2px solid transparent; /* Línea inferior transparente por defecto */
+  }
+  
+  .tab-link.active {
+    background: transparent; /* Sin background cuando activo */
+    color: #000000;
+    border-bottom: 2px solid #fab522; /* Línea amarilla debajo cuando activo */
+    box-shadow: none; /* Sin sombra */
+    font-weight: 700;
+  }
+  
+  .tab-link:not(.active):hover {
+    color: #374151;
+    background: transparent; /* Sin background en hover */
+    border-bottom: 2px solid rgba(250, 178, 34, 0.3); /* Línea amarilla suave en hover */
+  }
+
+  /* Iconos de las tabs - minimalistas SVG */
+  .tab-link .tab-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+  
+  .tab-link.active .tab-icon {
+    opacity: 1;
+  }
+
+  /* Responsivo para tabs */
+  @media (max-width: 768px) {
+    .tabs-container {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 0.25rem;
+      padding: 0.375rem;
+    }
+    
+    .tabs-container > div {
+      flex: 1;
+      display: flex;
+      justify-content: flex-start;
+      gap: 0.25rem;
+    }
+    
+    .tab-link {
+      padding: 0.625rem 1rem;
+      font-size: 0.85rem;
+      min-width: 120px;
+      justify-content: center;
+    }
+    
+    .tab-link .tab-icon {
+      width: 14px;
+      height: 14px;
+    }
+    
+    .filters-bar {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .filters {
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    
+    .filter-item {
+      flex: 1;
+      min-width: 140px;
+    }
+    
+    .search-bar {
+      margin: 0;
+      width: 100%;
+    }
+    
+    #nuevo-ticket-container {
+      width: 100%;
+    }
+    
+    #btn-nuevo-ticket {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .tabs-container {
+      gap: 0.25rem;
+    }
+    
+    .tab-link {
+      padding: 0.75rem 1.125rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Estilos adicionales para móvil */
+  @media (max-width: 480px) {
+    .tabs-container {
+      padding: 0.25rem;
+    }
+    
+    .tab-link {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      min-width: 100px;
+    }
+    
+    .tab-link span:not(.tab-icon) {
+      display: none;
+    }
+    
+    .tab-link .tab-icon {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .priority-badge,
+    .status-badge {
+      font-size: 0.625rem;
+      padding: 0.125rem 0.5rem;
+    }
+    
+    .tickets-table th,
+    .tickets-table td {
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    
+    .titulo-limitado {
+      max-width: 150px;
+    }
+  }
+  
+  /* Prioridades con colores y estilo redondeado */
+  .priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .priority-baja { 
+    background-color: #dcfce7; 
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  
+  .priority-media { 
+    background-color: #fef3c7; 
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+  
+  .priority-alta { 
+    background-color: #fecaca; 
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+  }
+  
+  .priority-urgente { 
+    background-color: #dc2626; 
+    color: #ffffff;
+    border: 1px solid #b91c1c;
     font-weight: 600;
-    box-shadow: 0 2px 8px 0 rgba(31,38,135,0.04);
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    font-family: inherit;
   }
-  #btnNuevoTicket:hover {
-    background: #ffe08a;
-    color: #3b3b3c;
-    box-shadow: 0 4px 16px 0 rgba(31,38,135,0.08);
+  
+  /* Status badges mejorados */
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border: 1px solid;
   }
-  .font-sfpro {
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', Arial, sans-serif !important;
+  
+  .status-abierto { 
+    background-color: #dbeafe; 
+    color: #1e40af;
+    border-color: #93c5fd;
+  }
+  
+  .status-en-proceso { 
+    background-color: #fef3c7; 
+    color: #92400e;
+    border-color: #fde68a;
+  }
+  
+  .status-resuelto { 
+    background-color: #dcfce7; 
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+  
+  .status-cerrado { 
+    background-color: #f3f4f6; 
+    color: #4b5563;
+    border-color: #d1d5db;
+  }
+  
+  .status-archivado { 
+    background-color: #e5e7eb; 
+    color: #6b7280;
+    border-color: #d1d5db;
+  }
+  
+  /* Botones de acción minimalistas */
+  .action-btn {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .action-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  
+  .action-btn:disabled {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .action-btn svg {
+    width: 16px;
+    height: 16px;
+    color: #6b7280;
+  }
+  
+  .action-btn:hover:not(:disabled) svg {
+    color: #374151;
+  }
+  
+  /* Botón nuevo ticket mejorado */
+  #btn-nuevo-ticket {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  #btn-nuevo-ticket:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Tabla con estilo Apple */
+  .table-container table {
+    background: white;
+  }
+  
+  .table-container thead {
+    background: #f8fafc;
+  }
+  
+  .table-container th {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .table-container td {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .table-container tbody tr:hover {
+    background: #f8fafc;
+  }
+  
+  /* Select de estatus estilizado - neutro al desplegar */
+  .estatus-select {
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border: 1px solid;
+    transition: all 0.2s ease;
+  }
+  
+  .estatus-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background-color: #f9fafb !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+  }
+  
+  .estatus-select option {
+    background-color: #ffffff;
+    color: #374151;
+    padding: 0.5rem;
+  }
+  
+  /* Aplicar colores específicos al select según el estatus */
+  .estatus-select.status-abierto {
+    background-color: #dbeafe; 
+    color: #1e40af;
+    border-color: #93c5fd;
+  }
+  
+  .estatus-select.status-en-progreso,
+  .estatus-select.status-en-proceso {
+    background-color: #fef3c7; 
+    color: #92400e;
+    border-color: #fde68a;
+  }
+  
+  .estatus-select.status-resuelto {
+    background-color: #dcfce7; 
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+  
+  .estatus-select.status-cerrado {
+    background-color: #f3f4f6; 
+    color: #4b5563;
+    border-color: #d1d5db;
+  }
+
+  /* Estilos para tabla */
+  .tickets-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .tickets-table th {
+    background: #f8f9fa;
+    color: #1f2937;
+    font-weight: 600;
+    text-align: center; /* Centrar headers */
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .tickets-table th.text-left {
+    text-align: left; /* Solo título a la izquierda */
+  }
+
+  .tickets-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    background: white;
+    text-align: center; /* Centrar contenido */
+  }
+
+  .tickets-table td.text-left {
+    text-align: left; /* Solo título a la izquierda */
+  }
+
+  .tickets-table tr:hover td {
+    background: #f8f9fa;
+  }
+
+  /* Estilos para acciones de tabla */
+  .table-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Centrar acciones en archivados */
+  .table-actions.center {
+    justify-content: center;
+  }
+
+  /* Estilo para título con ancho limitado */
+  .titulo-limitado {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+
+  .btn-action {
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-action:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+  }
+
+  .btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-action:disabled:hover {
+    background: white;
+    border-color: #d1d5db;
+  }
+
+  /* Estilos responsivos */
+  @media (max-width: 768px) {
+    .filters-bar {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .filters {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
+    .search-bar {
+      margin: 0;
+    }
+    
+    .table-actions {
+      gap: 4px;
+    }
+    
+    .btn-action {
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+    
+    .tickets-table th,
+    .tickets-table td {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .priority-badge,
+    .status-badge {
+      font-size: 0.625rem;
+      padding: 0.125rem 0.5rem;
+    }
+    
+    .tickets-table th,
+    .tickets-table td {
+      padding: 6px 8px;
+      font-size: 12px;
+    }
   }
 </style>
-<div class="helpdesk-scope">
-  <div class="max-w-4xl w-full mx-auto px-2 sm:px-6 py-8">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold font-sfpro" style="color:#232323;letter-spacing:-1px;">Centro de ayuda</h1>
-      <button id="btnNuevoTicket" class="font-sfpro">+ Nuevo ticket</button>
-    </div>
-    <div class="glassmorphism rounded-2xl border border-[#fab522]/30 p-0 animate-fadein shadow-xl">
-      <div class="flex border-b border-[#fab522]/20 bg-white/95 rounded-t-2xl">
-        {% if es_encargado %}
-        <button id="tab-gestion" class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c] bg-white rounded-t-2xl focus:outline-none transition-all border-b-2 border-[#fab522]">Gestión</button>
+
+<div class="min-h-screen p-4" style="background: #f8f9fa;">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Tabs mejoradas con 3 secciones -->
+    <div class="tabs-container">
+      <div class="flex items-center gap-8">
+        <a href="{{ url_for('tickets.index', tab='mis_tickets') }}" 
+           class="tab-link {% if tab_actual != 'asignados' and tab_actual != 'archivados' %}active{% endif %}">
+          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+          <span>Mis Tickets</span>
+        </a>
+        
+        {% if es_administrador %}
+        <a href="{{ url_for('tickets.index', tab='asignados') }}" 
+           class="tab-link {% if tab_actual == 'asignados' %}active{% endif %}">
+          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span>Tickets Asignados</span>
+        </a>
         {% endif %}
-        <button id="tab-mis" class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all">Mis tickets</button>
       </div>
-      {% if es_encargado %}
-      <div id="tab-content-gestion" class="tab-content p-6">
-        <h2 class="text-xl font-bold mb-2 font-sfpro" style="color:#3b3b3c;">Tickets de gestión de mi categoría</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white/95 glassmorphism rounded-2xl border border-[#fab522]/20">
-            <thead>
-              <tr class="bg-white/90 text-[#3b3b3c] text-sm border-b border-[#fab522]/20">
-                <th class="py-2 px-4 text-left">Título</th>
-                <th class="py-2 px-4 text-left">Fecha</th>
-                <th class="py-2 px-4 text-left">Prioridad</th>
-                <th class="py-2 px-4 text-left">Estatus</th>
-                <th class="py-2 px-4 text-left">Levantado por</th>
-                <th class="py-2 px-4 text-left">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for ticket in tickets_gestion %}
-              <tr class="border-b border-[#fab522]/20 group">
-                <td class="py-2 px-4 font-medium font-sfpro text-[#3b3b3c]">{{ ticket.titulo }}</td>
-                <td class="py-2 px-4 text-[#3b3b3c]/80">{{ ticket.fecha_creacion.strftime('%d/%m/%Y') }}</td>
-                <td class="py-2 px-4">
-                  <span class="badge-prioridad {{ ticket.prioridad|lower }}">{{ ticket.prioridad }}</span>
-                </td>
-                <td class="py-2 px-4 font-sfpro">
-                  <span class="badge-estatus {{ ticket.estatus|lower|replace(' ', '-') }}">{{ ticket.estatus }}</span>
-                </td>
-                <td class="py-2 px-4 font-sfpro text-[#3b3b3c]/80">{{ ticket.usuario.nombre }} {{ ticket.usuario.apellido_paterno }}</td>
-                <td class="py-2 px-4">
-                  <button class="btn-ver-ticket font-sfpro" data-id="{{ ticket.id }}">Ver</button>
-                </td>
-              </tr>
-              {% else %}
-              <tr><td colspan="6" class="text-center text-gray-400 py-4 font-sfpro">No hay tickets de gestión pendientes.</td></tr>
+      
+      <a href="{{ url_for('tickets.index', tab='archivados') }}" 
+         class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
+        <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Filtros mejorados con estilo de Knowledge -->
+    <div class="filters-bar">
+      <div class="filters">
+        <div class="filter-item">
+          <select id="order-select" onchange="aplicarFiltros()">
+            <option value="alfabetico" {% if orden == 'alfabetico' %}selected{% endif %}>A-Z</option>
+            <option value="reciente" {% if orden == 'reciente' %}selected{% endif %}>Más reciente</option>
+            <option value="antiguo" {% if orden == 'antiguo' %}selected{% endif %}>Más antiguo</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <select id="categoria-filter" onchange="aplicarFiltros()">
+            <option value="">Todas las categorías</option>
+            {% for categoria in categorias_disponibles %}
+            <option value="{{ categoria }}" {% if categoria_seleccionada == categoria %}selected{% endif %}>{{ categoria }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      
+      <div class="search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input type="text" id="search-input" placeholder="Buscar tickets..." value="{{ busqueda }}" onkeyup="buscarTickets(this.value)">
+      </div>
+      
+      <!-- Botón Nuevo Ticket - Solo en pestaña "Mis Tickets" -->
+      <div id="nuevo-ticket-container" class="">
+        <button id="btn-nuevo-ticket" class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nuevo Ticket
+        </button>
+        
+        <!-- Botón de prueba adicional -->
+        <button id="btn-test" class="ml-2 bg-red-500 text-white px-3 py-2 rounded" onclick="alert('Test funciona!')">
+          Test
+        </button>
+        
+        <!-- Botón de prueba directo para nuevo ticket -->
+        <button id="btn-test-modal" class="ml-2 bg-green-500 text-white px-3 py-2 rounded" onclick="
+            const modal = document.getElementById('modal-nuevo-ticket');
+            console.log('Test Modal - Modal element:', modal);
+            console.log('Test Modal - Clases antes:', modal.className);
+            modal.classList.remove('hidden');
+            console.log('Test Modal - Clases después:', modal.className);
+            console.log('Test Modal - Estilo computed:', getComputedStyle(modal).display);
+            console.log('Test Modal - z-index:', getComputedStyle(modal).zIndex);
+        ">
+          Test Modal
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de Tickets -->
+    <div class="table-container">
+      <div class="overflow-x-auto">
+        <table class="tickets-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th class="text-left">Título</th>
+              <th>Fecha Apertura</th>
+              <th>Última Actualización</th>
+              <th>Prioridad</th>
+              <th>Estatus</th>
+              {% if tab_actual == 'asignados' %}
+              <th>Solicitante</th>
+              {% endif %}
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in tickets %}
+            <tr>
+              <!-- ID -->
+              <td>
+                <span class="font-medium text-gray-900">#{{ ticket.id }}</span>
+              </td>
+              
+              <!-- Título -->
+              <td class="text-left">
+                <div class="font-medium text-gray-900 titulo-limitado" title="{{ ticket.titulo }}">
+                  {{ ticket.titulo }}
+                </div>
+              </td>
+              
+              <!-- Fecha Apertura -->
+              <td>
+                <div class="text-gray-900">{{ ticket.fecha_creacion.strftime('%d/%m/%Y') }}</div>
+              </td>
+              
+              <!-- Última Actualización -->
+              <td>
+                <div class="text-gray-900">{{ ticket.fecha_actualizacion.strftime('%d/%m/%Y') if ticket.fecha_actualizacion else ticket.fecha_creacion.strftime('%d/%m/%Y') }}</div>
+              </td>
+              
+              <!-- Prioridad -->
+              <td>
+                <span class="priority-badge priority-{{ ticket.prioridad.lower() }}">
+                  {{ ticket.prioridad }}
+                </span>
+              </td>
+              
+              <!-- Estatus -->
+              <td>
+                {% if tab_actual == 'asignados' and es_administrador %}
+                <select class="status-badge estatus-select status-{{ ticket.estatus.lower().replace(' ', '-') }}" 
+                        data-ticket-id="{{ ticket.id }}" onchange="actualizarEstatusTicket(this)">
+                  <option value="Abierto" {% if ticket.estatus == 'Abierto' %}selected{% endif %}>Abierto</option>
+                  <option value="En progreso" {% if ticket.estatus == 'En progreso' %}selected{% endif %}>En progreso</option>
+                  <option value="Resuelto" {% if ticket.estatus == 'Resuelto' %}selected{% endif %}>Resuelto</option>
+                  <option value="Cerrado" {% if ticket.estatus == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+                </select>
+                {% else %}
+                <span class="status-badge status-{{ ticket.estatus.lower().replace(' ', '-') }}">
+                  {{ ticket.estatus }}
+                </span>
+                {% endif %}
+              </td>
+              
+              <!-- Solicitante (solo en tickets asignados) -->
+              {% if tab_actual == 'asignados' %}
+              <td>
+                <span class="text-gray-900">{{ ticket.nombre_solicitante }}</span>
+              </td>
+              {% endif %}
+              
+              <!-- Acciones -->
+              <td>
+                <div class="table-actions {% if tab_actual == 'archivados' %}center{% endif %}">
+                  <!-- Ver Detalles - Siempre disponible -->
+                  <button class="btn-action btn-ver" 
+                          data-ticket-id="{{ ticket.id }}" title="Ver detalles del ticket">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                  </button>
+                  
+                  <!-- Acciones adicionales solo si NO estamos en archivados -->
+                  {% if tab_actual != 'archivados' %}
+                    <!-- Archivar (en ambas pestañas si está resuelto) -->
+                    <button class="btn-action btn-archivar" 
+                            data-ticket-id="{{ ticket.id }}" 
+                            {% if ticket.estatus != 'Resuelto' %}disabled{% endif %}
+                            title="{% if ticket.estatus == 'Resuelto' %}Archivar ticket{% else %}Solo se pueden archivar tickets resueltos{% endif %}">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                      </svg>
+                    </button>
+                    
+                    <!-- Reportes -->
+                    <button class="btn-action btn-reportes" 
+                            data-ticket-id="{{ ticket.id }}" title="Generar reporte" disabled>
+                      <svg class="w-4 h-4" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                    </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="{% if tab_actual == 'asignados' %}8{% else %}7{% endif %}" class="px-6 py-8 text-center">
+                <div class="text-gray-500">
+                  <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {% if tab_actual == 'archivados' %}
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l6 6 6-6M3 6h18l-2 10H5L3 6z"/>
+                    {% else %}
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    {% endif %}
+                  </svg>
+                  <p class="text-lg font-medium text-gray-900 mb-2">
+                    {% if tab_actual == 'archivados' %}
+                      No hay tickets archivados
+                    {% else %}
+                      No hay tickets
+                    {% endif %}
+                  </p>
+                  <p class="text-gray-500">
+                    {% if tab_actual == 'archivados' %}
+                      Los tickets archivados aparecerán aquí para consulta posterior
+                    {% elif tab_actual == 'asignados' %}
+                      No tienes tickets asignados
+                    {% else %}
+                      Aún no has creado ningún ticket
+                    {% endif %}
+                  </p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Paginación -->
+      {% if pagination.pages > 1 %}
+      <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+        <div class="flex items-center justify-between">
+          <div class="flex-1 flex justify-between items-center">
+            <div>
+              <p class="text-sm text-gray-700">
+                Mostrando 
+                <span class="font-medium">{{ ((pagination.page - 1) * pagination.per_page) + 1 }}</span>
+                a 
+                <span class="font-medium">
+                  {% if pagination.page * pagination.per_page > pagination.total %}
+                    {{ pagination.total }}
+                  {% else %}
+                    {{ pagination.page * pagination.per_page }}
+                  {% endif %}
+                </span>
+                de 
+                <span class="font-medium">{{ pagination.total }}</span>
+                resultados
+              </p>
+            </div>
+            
+            <div class="flex space-x-2">
+              {% if pagination.has_prev %}
+              <a href="{{ url_for('tickets.index', page=pagination.prev_num, tab=tab_actual, orden=orden_actual, categoria=categoria_filtro, buscar=buscar_actual) }}" 
+                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Anterior
+              </a>
+              {% endif %}
+              
+              {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                  {% if page_num != pagination.page %}
+                  <a href="{{ url_for('tickets.index', page=page_num, tab=tab_actual, orden=orden_actual, categoria=categoria_filtro, buscar=buscar_actual) }}" 
+                     class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    {{ page_num }}
+                  </a>
+                  {% else %}
+                  <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-600 bg-blue-50">
+                    {{ page_num }}
+                  </span>
+                  {% endif %}
+                {% else %}
+                <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">
+                  ...
+                </span>
+                {% endif %}
               {% endfor %}
-            </tbody>
-          </table>
+              
+              {% if pagination.has_next %}
+              <a href="{{ url_for('tickets.index', page=pagination.next_num, tab=tab_actual, orden=orden_actual, categoria=categoria_filtro, buscar=buscar_actual) }}" 
+                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Siguiente
+              </a>
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
       {% endif %}
-      <div id="tab-content-mis" class="tab-content p-6 {% if es_encargado %}hidden{% endif %}">
-        <h2 class="text-xl font-bold mb-2 font-sfpro" style="color:#3b3b3c;">Mis tickets</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white/95 glassmorphism rounded-2xl border border-[#fab522]/20">
-            <thead>
-              <tr class="bg-white/90 text-[#3b3b3c] text-sm border-b border-[#fab522]/20">
-                <th class="py-2 px-4 text-left">Título</th>
-                <th class="py-2 px-4 text-left">Fecha</th>
-                <th class="py-2 px-4 text-left">Prioridad</th>
-                <th class="py-2 px-4 text-left">Estatus</th>
-                <th class="py-2 px-4 text-left">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for ticket in tickets_usuario %}
-              <tr class="border-b border-[#fab522]/20 group">
-                <td class="py-2 px-4 font-medium font-sfpro text-[#3b3b3c]">{{ ticket.titulo }}</td>
-                <td class="py-2 px-4 text-[#3b3b3c]/80">{{ ticket.fecha_creacion.strftime('%d/%m/%Y') }}</td>
-                <td class="py-2 px-4">
-                  <span class="badge-prioridad {{ ticket.prioridad|lower }}">{{ ticket.prioridad }}</span>
-                </td>
-                <td class="py-2 px-4 font-sfpro">
-                  <span class="badge-estatus {{ ticket.estatus|lower|replace(' ', '-') }}">{{ ticket.estatus }}</span>
-                </td>
-                <td class="py-2 px-4">
-                  <button class="btn-ver-ticket font-sfpro" data-id="{{ ticket.id }}">Ver</button>
-                </td>
-              </tr>
-              {% else %}
-              <tr><td colspan="5" class="text-center text-gray-400 py-4 font-sfpro">No has creado tickets aún.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ver detalles del ticket -->
+<div id="modal-ticket-detalle" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
+    <!-- Header del Modal -->
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold text-gray-900">Detalles del Ticket</h3>
+        <button id="btn-cerrar-modal-detalle" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Tabs para cambiar entre vistas -->
+      <div class="mt-4 flex border-b border-gray-200">
+        <button id="tab-general" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50">
+          Generales
+        </button>
+        <button id="tab-chat" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 ml-4">
+          Chat
+        </button>
+      </div>
+    </div>
+    
+    <!-- Contenido del Modal -->
+    <div class="h-[calc(90vh-150px)]">
+      <!-- Vista General -->
+      <div id="vista-general" class="h-full p-6 overflow-y-auto">
+        <div id="contenido-modal-detalle">
+          <!-- El contenido se cargará dinámicamente -->
+        </div>
+      </div>
+      
+      <!-- Vista Chat -->
+      <div id="vista-chat" class="h-full flex-col hidden">
+        <!-- Header del Chat -->
+        <div class="p-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex items-center">
+            <div class="flex-1">
+              <h4 id="chat-titulo" class="text-lg font-bold text-gray-900 mb-1"></h4>
+              <div class="flex gap-4 text-sm text-gray-600">
+                <span id="chat-fecha-creacion" class="bg-blue-100 px-2 py-1 rounded-md font-medium"></span>
+                <span id="chat-ultima-actualizacion" class="bg-green-100 px-2 py-1 rounded-md font-medium"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Área de Comentarios -->
+        <div class="flex-1 p-6 bg-gradient-to-b from-gray-50 to-gray-100 overflow-y-auto flex justify-center">
+          <div class="w-full max-w-4xl">
+            <div id="comentarios-container" class="space-y-1">
+              <!-- Los comentarios se cargarán aquí -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Formulario para nuevo comentario -->
+        <div class="p-6 border-t border-gray-200 bg-white flex justify-center">
+          <div class="w-full max-w-4xl">
+            <form id="form-nuevo-comentario" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ form.csrf_token.current_token }}">
+            <div class="relative">
+              <textarea name="comentario" rows="3" class="w-full border border-gray-300 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-50 transition-all duration-200 placeholder-gray-400" placeholder="Escribir comentario..."></textarea>
+              <div class="absolute bottom-3 right-3 text-xs text-gray-400">
+                Presiona Enter para enviar
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <label class="cursor-pointer text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center space-x-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                  </svg>
+                  <span class="text-sm">Adjuntar imagen</span>
+                  <input type="file" name="imagen" accept="image/*" class="hidden">
+                </label>
+              </div>
+              <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                Enviar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-
-    <!-- Modal Nuevo Ticket -->
-    <div id="modalNuevoTicket" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all">
-      <div class="glassmorphism-modal shadow-2xl max-w-lg w-full p-6 relative flex flex-col gap-4 animate-fadein">
-        <button type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none transition-all duration-200 btn-cancelar-modal">&times;</button>
-        <h2 class="text-xl font-semibold mb-2 font-sfpro text-[#3b3b3c]">Nuevo ticket</h2>
-        <form id="formNuevoTicket" method="POST" enctype="multipart/form-data" action="{{ url_for('tickets.nuevo_ticket') }}" class="flex flex-col gap-3">
-          {{ form.hidden_tag() }}
-          <div>
-            {{ form.categoria.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
-            {{ form.categoria(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
-          </div>
-          <div>
-            {{ form.titulo.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
-            {{ form.titulo(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
-          </div>
-          <div>
-            {{ form.descripcion.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
-            {{ form.descripcion(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
-          </div>
-          <div>
-            {{ form.prioridad.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
-            {{ form.prioridad(class="w-full border border-[#fab522]/40 rounded-xl px-3 py-2 bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200") }}
-          </div>
-          <div>
-            {{ form.archivo.label(class="block mb-1 text-sm font-medium font-sfpro text-[#3b3b3c]") }}
-            {{ form.archivo(class="w-full bg-white font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none transition-all duration-200 border border-[#fab522]/40") }}
-          </div>
-          <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="bg-[#5e5e5e] hover:bg-[#3b3b3c]/10 text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none btn-cancelar-modal">Cancelar</button>
-            {{ form.submit(class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none") }}
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal Detalle Ticket (renderizado por JS) -->
-    <div id="modalDetalleTicket" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-all"></div>
   </div>
 </div>
-{% block scripts %}
-<!-- Inserta este div donde tenga sentido en tu HTML base, por ejemplo al final del body -->
-<div id="user-data"
-     data-categoria="{{ categorias_encargadas.get(current_user.puesto_trabajo_id, '') }}"
-     data-puesto-id="{{ current_user.puesto_trabajo_id }}"
-     data-puestos-encargados='{{ categorias_encargadas.keys()|list|tojson }}'
-     hidden></div>
+
+<!-- Modal de previsualización de imágenes -->
+<div id="modal-preview-imagen" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-75 p-4">
+  <div class="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
+    <button id="btn-cerrar-preview" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+    <img id="preview-imagen" src="" alt="Vista previa" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+  </div>
+</div>
+
+<!-- Modal para nuevo ticket -->
+<div id="modal-nuevo-ticket" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-gray-900">Nuevo ticket</h3>
+        <button id="btn-cerrar-modal-nuevo" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <form id="form-nuevo-ticket" method="POST" action="/tickets/nuevo_ticket" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="space-y-6">
+          <!-- Primera fila: Área, Categoría, Nivel de prioridad -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Área</label>
+              <select name="area" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                <option value="">Selecciona un área</option>
+                <option value="Compras">Compras</option>
+                <option value="IT">IT</option>
+                <option value="Diseño">Diseño</option>
+                <option value="Soporte EHSmart">Soporte EHSmart</option>
+                <option value="Recursos Humanos">Recursos Humanos</option>
+                <option value="Desarrollo Organizacional">Desarrollo Organizacional</option>
+                <option value="Capacitación">Capacitación</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+              <select name="categoria" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                <option value="">Selecciona una categoría</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Nivel de prioridad
+                <span class="ml-2 text-gray-400 cursor-help" title="Información sobre prioridades">ⓘ</span>
+              </label>
+              <select name="prioridad" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                <option value="">Selecciona prioridad</option>
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+                <option value="Urgente">Urgente</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Segunda fila: Asunto -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Asunto</label>
+            <input type="text" name="titulo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="el generante me habló feo">
+          </div>
+          
+          <!-- Tercera fila: Descripción -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <textarea name="descripcion" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Solicito tu ayuda con la compra de los siguientes componentes:&#10;-Cable flex de pantalla para Dell Inspiron 15 3000 series&#10;-Panel LCD o LED&#10;Son necesarios para reparar el equipo del colaborador Nombre de ejemplo 1"></textarea>
+          </div>
+          
+          <!-- Cuarta fila: Evidencia (hasta 3 archivos) -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-3">Evidencia (si aplica)</label>
+            <div class="flex gap-3">
+              <div class="evidencia-container flex-1">
+                <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                  <div class="flex flex-col items-center justify-center">
+                    <svg class="w-5 h-5 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    <p class="text-xs text-gray-500">Archivo 1</p>
+                  </div>
+                  <input type="file" name="evidencia_1" class="hidden evidencia-input" accept="image/*,.pdf,.doc,.docx">
+                </label>
+                <div class="evidencia-preview hidden mt-2">
+                  <div class="relative bg-gray-100 rounded-lg p-2">
+                    <span class="evidencia-nombre text-xs text-gray-700"></span>
+                    <button type="button" class="absolute top-1 right-1 text-red-500 hover:text-red-700 evidencia-remove">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="evidencia-container flex-1">
+                <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                  <div class="flex flex-col items-center justify-center">
+                    <svg class="w-5 h-5 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    <p class="text-xs text-gray-500">Archivo 2</p>
+                  </div>
+                  <input type="file" name="evidencia_2" class="hidden evidencia-input" accept="image/*,.pdf,.doc,.docx">
+                </label>
+                <div class="evidencia-preview hidden mt-2">
+                  <div class="relative bg-gray-100 rounded-lg p-2">
+                    <span class="evidencia-nombre text-xs text-gray-700"></span>
+                    <button type="button" class="absolute top-1 right-1 text-red-500 hover:text-red-700 evidencia-remove">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="evidencia-container flex-1">
+                <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                  <div class="flex flex-col items-center justify-center">
+                    <svg class="w-5 h-5 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    <p class="text-xs text-gray-500">Archivo 3</p>
+                  </div>
+                  <input type="file" name="evidencia_3" class="hidden evidencia-input" accept="image/*,.pdf,.doc,.docx">
+                </label>
+                <div class="evidencia-preview hidden mt-2">
+                  <div class="relative bg-gray-100 rounded-lg p-2">
+                    <span class="evidencia-nombre text-xs text-gray-700"></span>
+                    <button type="button" class="absolute top-1 right-1 text-red-500 hover:text-red-700 evidencia-remove">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end mt-6">
+          <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+            Enviar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación para archivar -->
+<div id="modal-confirmar-archivar" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center mb-4">
+        <div class="flex-shrink-0">
+          <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <h3 class="text-lg font-semibold text-gray-900">Archivar Ticket</h3>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <p class="text-sm text-gray-600">
+          ¿Estás seguro de que quieres archivar este ticket? Esta acción moverá el ticket a la sección de archivados donde podrás consultarlo posteriormente, pero ya no aparecerá en las listas activas.
+        </p>
+      </div>
+      
+      <div class="flex justify-end space-x-3">
+        <button id="btn-cancelar-archivar" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+          Cancelar
+        </button>
+        <button id="btn-confirmar-archivar" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200">
+          Sí, Archivar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-  const userData = document.getElementById('user-data');
-  window.miCategoria = userData.dataset.categoria;
-  window.mi_puesto_id = parseInt(userData.dataset.puestoId);
-  window.puestos_encargados = JSON.parse(userData.dataset.puestosEncargados);
+// Variables globales para CSRF y configuración
+window.csrfToken = '{{ form.csrf_token.current_token }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado - Inicializando aplicación');
+    
+    // Variables globales
+    const modalDetalle = document.getElementById('modal-ticket-detalle');
+    const modalNuevo = document.getElementById('modal-nuevo-ticket');
+    
+    console.log('Modal detalle encontrado:', !!modalDetalle);
+    console.log('Modal nuevo encontrado:', !!modalNuevo);
+    
+    // Función helper para obtener token CSRF
+    function getCSRFToken() {
+        return window.csrfToken || document.querySelector('input[name="csrf_token"]')?.value || '';
+    }
+    
+    // --- Filtros dinámicos ---
+    window.aplicarFiltros = function() {
+        const orden = document.getElementById('order-select').value;
+        const categoria = document.getElementById('categoria-filter').value;
+        const busqueda = document.getElementById('search-input').value;
+        const tab = new URLSearchParams(window.location.search).get('tab') || 'mis_tickets';
+        
+        const params = new URLSearchParams();
+        params.set('tab', tab);
+        params.set('page', '1'); // Resetear a página 1 cuando se cambian filtros
+        if (orden && orden !== 'reciente') params.set('orden', orden);
+        if (categoria) params.set('categoria', categoria);
+        if (busqueda) params.set('busqueda', busqueda);
+        
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    };
+    
+    // Búsqueda en tiempo real
+    let searchTimeout;
+    window.buscarTickets = function(valor) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            aplicarFiltros();
+        }, 500);
+    };
+    
+    // --- Actualización de estatus con efecto suave ---
+    window.actualizarEstatusTicket = function(select) {
+        const ticketId = select.dataset.ticketId;
+        const nuevoEstatus = select.value;
+        const estatusAnterior = select.dataset.originalValue;
+        
+        // Efecto visual inmediato
+        select.style.opacity = '0.6';
+        select.disabled = true;
+        
+        // Preparar datos con CSRF token
+        const formData = new FormData();
+        formData.append('estatus', nuevoEstatus);
+        formData.append('csrf_token', getCSRFToken());
+        
+        fetch(`/tickets/actualizar_estatus/${ticketId}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            // Verificar si la respuesta es realmente JSON
+            const contentType = response.headers.get('content-type');
+            
+            if (!contentType || !contentType.includes('application/json')) {
+                // Si no es JSON, obtener el texto para ver qué está devolviendo
+                return response.text().then(text => {
+                    throw new Error(`Respuesta no es JSON. Content-Type: ${contentType}`);
+                });
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Actualizar clases CSS con transición suave
+                updateStatusClasses(select, nuevoEstatus);
+                select.dataset.originalValue = nuevoEstatus;
+                showNotification('Estatus actualizado correctamente', 'success');
+                
+                // Actualizar botón de archivar si es necesario
+                const row = select.closest('tr');
+                const btnArchivar = row.querySelector('.btn-archivar');
+                if (btnArchivar) {
+                    btnArchivar.disabled = nuevoEstatus !== 'Resuelto';
+                    btnArchivar.title = nuevoEstatus === 'Resuelto' ? 
+                        'Archivar ticket' : 'Solo se pueden archivar tickets resueltos';
+                }
+            } else {
+                showNotification(data.message || 'Error al actualizar estatus', 'error');
+                select.value = estatusAnterior;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error de conexión', 'error');
+            select.value = estatusAnterior;
+        })
+        .finally(() => {
+            select.style.opacity = '1';
+            select.disabled = false;
+        });
+    };
+
+    // --- Ver detalles del ticket ---
+    document.querySelectorAll('.btn-ver').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const ticketId = this.dataset.ticketId;
+            loadTicketDetails(ticketId);
+        });
+    });
+
+    function loadTicketDetails(ticketId) {
+        fetch(`/tickets/api/ticket/${ticketId}`)
+        .then(response => response.json())
+        .then(response => {
+            if (!response.success) {
+                showNotification(response.error || 'Error al cargar detalles', 'error');
+                return;
+            }
+            
+            const data = response.ticket; // Extraer los datos del ticket de la respuesta
+            
+            // Llenar información general
+            document.getElementById('contenido-modal-detalle').innerHTML = `
+                <!-- Primera fila: área, categoría y asunto -->
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Área</label>
+                        <p class="text-sm font-semibold">${data.area || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Categoría</label>
+                        <p class="text-sm font-semibold">${data.categoria}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Asunto</label>
+                        <p class="text-sm font-semibold">${data.titulo}</p>
+                    </div>
+                </div>
+                
+                <!-- Segunda fila: fechas -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Fecha de creación</label>
+                        <p class="text-sm bg-gray-50 px-3 py-2 rounded-lg font-medium">${data.fecha_creacion}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Fecha de actualización</label>
+                        <p class="text-sm bg-gray-50 px-3 py-2 rounded-lg font-medium">${data.fecha_actualizacion || data.fecha_creacion}</p>
+                    </div>
+                </div>
+                
+                <!-- Tercera fila: prioridad -->
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-500 block mb-2">Nivel de prioridad</label>
+                    <span class="priority-badge priority-${data.prioridad.toLowerCase()}">${data.prioridad}</span>
+                </div>
+                
+                <!-- Tercera fila: descripción -->
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-500">Descripción</label>
+                    <p class="text-gray-700 mt-1 p-3 bg-gray-50 rounded-lg">${data.descripcion}</p>
+                </div>
+                
+                <!-- Cuarta fila: evidencia con vista previa -->
+                ${data.evidencias && data.evidencias.length > 0 ? `
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Evidencia</label>
+                    <div class="mt-2 grid grid-cols-2 gap-3">
+                        ${data.evidencias.map((evidencia, index) => {
+                            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(evidencia);
+                            return `
+                                <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    ${isImage ? `
+                                        <img src="/tickets/archivo/${evidencia}" alt="Evidencia ${index + 1}" class="w-full h-32 object-cover rounded mb-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="showImageModal('/tickets/archivo/${evidencia}')">
+                                    ` : `
+                                        <div class="w-full h-32 bg-gray-200 rounded mb-2 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors" onclick="showImageModal('/tickets/archivo/${evidencia}')">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        </div>
+                                    `}
+                                    <p class="text-blue-600 hover:text-blue-800 text-xs font-medium cursor-pointer" onclick="showImageModal('/tickets/archivo/${evidencia}')">
+                                        Evidencia ${index + 1}
+                                    </p>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            // Llenar información del chat
+            document.getElementById('chat-titulo').textContent = data.titulo;
+            document.getElementById('chat-fecha-creacion').textContent = `Creado: ${data.fecha_creacion}`;
+            document.getElementById('chat-ultima-actualizacion').textContent = `Actualizado: ${data.fecha_actualizacion || data.fecha_creacion}`;
+            
+            // Cargar comentarios
+            loadComentarios(ticketId, data.comentarios || []);
+            
+            // Configurar formulario de comentario
+            setupComentarioForm(ticketId);
+            
+            // Configurar tabs del modal
+            setupModalTabs();
+            
+            modalDetalle.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error al cargar detalles del ticket', 'error');
+        });
+    }
+    
+    // Función para mostrar modal de previsualización de imágenes
+    window.showImageModal = function(imageSrc) {
+        const modal = document.getElementById('modal-preview-imagen');
+        const img = document.getElementById('preview-imagen');
+        img.src = imageSrc;
+        modal.classList.remove('hidden');
+    };
+    
+    // Cerrar modal de previsualización
+    document.getElementById('btn-cerrar-preview').addEventListener('click', function() {
+        document.getElementById('modal-preview-imagen').classList.add('hidden');
+    });
+    
+    // Cerrar modal al hacer clic fuera de la imagen
+    document.getElementById('modal-preview-imagen').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.add('hidden');
+        }
+    });
+    
+    function loadComentarios(ticketId, comentarios) {
+        const container = document.getElementById('comentarios-container');
+        if (!comentarios || comentarios.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-4">No hay comentarios aún</p>';
+            return;
+        }
+        
+        container.innerHTML = comentarios.map(comentario => {
+            const isOwner = comentario.es_propietario || false;
+            const emisorNombre = comentario.emisor_nombre || 'Usuario';
+            const inicialEmisor = emisorNombre.charAt(0).toUpperCase();
+            const fechaComentario = comentario.fecha_creacion || comentario.fecha || 'Fecha no disponible';
+            const contenidoComentario = comentario.contenido || '';
+            const fotoUsuario = comentario.foto_usuario || null; // Assuming this field exists
+            
+            return `
+                <div class="flex ${isOwner ? 'justify-end' : 'justify-start'} mb-4">
+                    <div class="max-w-sm lg:max-w-md">
+                        ${!isOwner ? `
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden">
+                                ${fotoUsuario ? 
+                                    `<img src="${fotoUsuario}" alt="${emisorNombre}" class="w-full h-full object-cover">` :
+                                    `<div class="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                                        <span class="text-white text-sm font-bold">${inicialEmisor}</span>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-4 relative">
+                                <div class="absolute -left-2 top-4 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-white"></div>
+                                <div class="text-xs font-semibold text-blue-600 mb-2">${emisorNombre}</div>
+                                <p class="text-sm text-gray-800 leading-relaxed">${contenidoComentario}</p>
+                                ${comentario.imagen ? `
+                                    <div class="mt-3">
+                                        <img src="/tickets/archivo/${comentario.imagen}" class="max-w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" />
+                                    </div>
+                                ` : ''}
+                                <div class="text-xs text-gray-400 mt-2 font-medium">${fechaComentario}</div>
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="flex items-start space-x-3 justify-end">
+                            <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-md p-4 relative">
+                                <div class="absolute -right-2 top-4 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-8 border-l-blue-600"></div>
+                                <p class="text-sm text-white leading-relaxed">${contenidoComentario}</p>
+                                ${comentario.imagen ? `
+                                    <div class="mt-3">
+                                        <img src="/tickets/archivo/${comentario.imagen}" class="max-w-full rounded-lg shadow-sm" />
+                                    </div>
+                                ` : ''}
+                                <div class="text-xs text-blue-200 mt-2 font-medium text-right">${fechaComentario}</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden">
+                                ${fotoUsuario ? 
+                                    `<img src="${fotoUsuario}" alt="${emisorNombre}" class="w-full h-full object-cover">` :
+                                    `<div class="w-full h-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center">
+                                        <span class="text-white text-sm font-bold">${inicialEmisor}</span>
+                                    </div>`
+                                }
+                            </div>
+                        </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function setupComentarioForm(ticketId) {
+        const form = document.getElementById('form-nuevo-comentario');
+        if (!form) {
+            console.error('Formulario de comentario no encontrado');
+            return;
+        }
+        
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            console.log('Enviando comentario para ticket:', ticketId);
+            
+            const formData = new FormData(form);
+            const contenido = formData.get('comentario');
+            
+            if (!contenido || contenido.trim() === '') {
+                showNotification('El comentario no puede estar vacío', 'error');
+                return;
+            }
+            
+            console.log('Contenido del comentario:', contenido);
+            
+            fetch(`/tickets/comentar/${ticketId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Respuesta del servidor:', response);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data);
+                if (data.success) {
+                    showNotification('Comentario agregado', 'success');
+                    form.reset();
+                    // Recargar comentarios
+                    loadTicketDetails(ticketId);
+                } else {
+                    showNotification(data.error || 'Error al agregar comentario', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error completo:', error);
+                showNotification('Error de conexión', 'error');
+            });
+        };
+    }
+
+    // --- Funcionalidad de tabs en modal ---
+    function setupModalTabs() {
+        const tabGeneral = document.getElementById('tab-general');
+        const tabChat = document.getElementById('tab-chat');
+        const vistaGeneral = document.getElementById('vista-general');
+        const vistaChat = document.getElementById('vista-chat');
+
+        function showGeneralTab() {
+            // Activar tab general
+            tabGeneral.classList.add('text-blue-600', 'border-blue-600', 'bg-blue-50');
+            tabGeneral.classList.remove('text-gray-500', 'border-transparent');
+            
+            // Desactivar tab chat
+            tabChat.classList.remove('text-blue-600', 'border-blue-600', 'bg-blue-50');
+            tabChat.classList.add('text-gray-500', 'border-transparent');
+            
+            // Mostrar vista general
+            vistaGeneral.classList.remove('hidden');
+            vistaChat.classList.add('hidden');
+            vistaChat.classList.remove('flex');
+        }
+
+        function showChatTab() {
+            // Activar tab chat
+            tabChat.classList.add('text-blue-600', 'border-blue-600', 'bg-blue-50');
+            tabChat.classList.remove('text-gray-500', 'border-transparent');
+            
+            // Desactivar tab general
+            tabGeneral.classList.remove('text-blue-600', 'border-blue-600', 'bg-blue-50');
+            tabGeneral.classList.add('text-gray-500', 'border-transparent');
+            
+            // Mostrar vista chat
+            vistaChat.classList.remove('hidden');
+            vistaChat.classList.add('flex');
+            vistaGeneral.classList.add('hidden');
+        }
+
+        tabGeneral.addEventListener('click', showGeneralTab);
+        tabChat.addEventListener('click', showChatTab);
+        
+        // Por defecto mostrar vista general
+        showGeneralTab();
+    }
+
+    // --- Crear nuevo ticket ---
+    console.log('=== INICIANDO SETUP NUEVO TICKET ===');
+    
+    // Buscar elementos de manera más agresiva
+    setTimeout(() => {
+        console.log('Ejecutando después de timeout...');
+        
+        const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
+        const modalNuevo = document.getElementById('modal-nuevo-ticket');
+        
+        console.log('Después del timeout:');
+        console.log('- Botón:', btnNuevoTicket);
+        console.log('- Modal:', modalNuevo);
+        
+        if (btnNuevoTicket) {
+            console.log('✅ Botón encontrado, configurando...');
+            
+            // Múltiples formas de agregar el event listener
+            btnNuevoTicket.onclick = function(e) {
+                e.preventDefault();
+                console.log('🎯 ONCLICK DISPARADO!');
+                console.log('Modal antes:', modalNuevo.className);
+                if (modalNuevo) {
+                    modalNuevo.classList.remove('hidden');
+                    console.log('Modal después:', modalNuevo.className);
+                    console.log('Modal display:', getComputedStyle(modalNuevo).display);
+                    console.log('Modal z-index:', getComputedStyle(modalNuevo).zIndex);
+                    console.log('Modal position:', getComputedStyle(modalNuevo).position);
+                }
+            };
+            
+            btnNuevoTicket.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🎯 ADDEVENTLISTENER DISPARADO!');
+                if (modalNuevo) {
+                    modalNuevo.classList.remove('hidden');
+                    console.log('Modal abierto via addEventListener');
+                }
+            });
+            
+            // Agregar estilo hover para verificar que el botón responde
+            btnNuevoTicket.addEventListener('mouseenter', function() {
+                console.log('Mouse entró al botón');
+                this.style.backgroundColor = '#1d4ed8';
+            });
+            
+            btnNuevoTicket.addEventListener('mouseleave', function() {
+                console.log('Mouse salió del botón');
+                this.style.backgroundColor = '';
+            });
+            
+            console.log('✅ Todos los listeners configurados');
+        } else {
+            console.error('❌ Botón TODAVÍA no encontrado después del timeout');
+        }
+    }, 1000);
+    
+    const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
+    const btnCerrarNuevo = document.getElementById('btn-cerrar-modal-nuevo');
+    const formNuevoTicket = document.getElementById('form-nuevo-ticket');
+    
+    console.log('Elementos encontrados inmediatamente:');
+    console.log('- Botón nuevo:', !!btnNuevoTicket);
+    console.log('- Botón cerrar:', !!btnCerrarNuevo);
+    console.log('- Form:', !!formNuevoTicket);
+    console.log('- Modal:', !!modalNuevo);
+    
+    if (btnNuevoTicket && modalNuevo) {
+        console.log('✅ Configurando event listeners inmediatos...');
+        
+        // Event listener principal
+        btnNuevoTicket.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🎯 ¡BOTÓN CLICKEADO INMEDIATO!');
+            console.log('Modal clases antes:', modalNuevo.className);
+            
+            modalNuevo.classList.remove('hidden');
+            
+            console.log('Modal clases después:', modalNuevo.className);
+            console.log('Modal display:', getComputedStyle(modalNuevo).display);
+            console.log('Modal z-index:', getComputedStyle(modalNuevo).zIndex);
+            console.log('Modal visible:', modalNuevo.offsetParent !== null);
+            
+            // Forzar el modal a ser más visible
+            modalNuevo.style.display = 'flex';
+            modalNuevo.style.zIndex = '9999';
+            modalNuevo.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            
+            console.log('✅ Modal abierto inmediato - forzado a flex');
+        });
+        
+        console.log('✅ Event listener inmediato agregado');
+    } else {
+        console.error('❌ Elementos faltantes inmediatos:', {
+            boton: !!btnNuevoTicket,
+            modal: !!modalNuevo
+        });
+    }
+    
+    if (btnCerrarNuevo && modalNuevo) {
+        console.log('✅ Configurando botón cerrar');
+        btnCerrarNuevo.addEventListener('click', function() {
+            console.log('🔒 Cerrando modal');
+            modalNuevo.classList.add('hidden');
+            if (formNuevoTicket) {
+                formNuevoTicket.reset();
+                resetEvidenciaContainers();
+            }
+        });
+    }
+    
+    if (formNuevoTicket) {
+        formNuevoTicket.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Ticket creado correctamente', 'success');
+                    modalNuevo.classList.add('hidden');
+                    this.reset();
+                    resetEvidenciaContainers();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showNotification(data.error || 'Error al crear el ticket', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error de conexión', 'error');
+            });
+        });
+    }
+
+    // --- Manejo de múltiples evidencias ---
+    function initEvidenciaHandlers() {
+        document.querySelectorAll('.evidencia-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const container = this.closest('.evidencia-container');
+                const label = container.querySelector('label');
+                const preview = container.querySelector('.evidencia-preview');
+                const nombreSpan = container.querySelector('.evidencia-nombre');
+                const removeBtn = container.querySelector('.evidencia-remove');
+                
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    
+                    // Mostrar preview
+                    label.style.display = 'none';
+                    preview.classList.remove('hidden');
+                    nombreSpan.textContent = file.name;
+                    
+                    // Manejar botón de remover
+                    removeBtn.addEventListener('click', function() {
+                        input.value = '';
+                        label.style.display = 'flex';
+                        preview.classList.add('hidden');
+                    });
+                }
+            });
+        });
+    }
+    
+    function resetEvidenciaContainers() {
+        document.querySelectorAll('.evidencia-container').forEach(container => {
+            const input = container.querySelector('.evidencia-input');
+            const label = container.querySelector('label');
+            const preview = container.querySelector('.evidencia-preview');
+            
+            input.value = '';
+            label.style.display = 'flex';
+            preview.classList.add('hidden');
+        });
+    }
+    
+    // --- Filtrado dinámico de categorías por área ---
+    function initAreaCategoriaFilter() {
+        const areaSelect = document.querySelector('select[name="area"]');
+        const categoriaSelect = document.querySelector('select[name="categoria"]');
+        
+        if (!areaSelect || !categoriaSelect) return;
+        
+        // Mapeo de áreas a categorías
+        const areaCategoriaMap = {
+            'Compras': [
+                'Solicitud de compra',
+                'Cotizaciones',
+                'Reembolsos',
+                'Seguimiento de envíos'
+            ],
+            'IT': [
+                'Soporte técnico',
+                'Accesos y contraseñas',
+                'Red y conectividad',
+                'Correo electrónico',
+                'Impresoras y escáneres',
+                'Instalación de software'
+            ],
+            'Diseño': [
+                'Diseño de material impreso o digital',
+                'Actualización de diseño',
+                'Logotipos e identidad corporativa',
+                'Plantillas corporativas',
+                'Revisión de uso de marca'
+            ],
+            'Soporte EHSmart': [
+                'Acceso y usuarios',
+                'Errores técnicos',
+                'Capacitación EHSmart',
+                'Solicitud de soporte funcional'
+            ],
+            'Recursos Humanos': [
+                'Vacaciones y permisos',
+                'Nómina y pagos',
+                'Prestaciones y beneficios',
+                'Documentación y constancias'
+            ],
+            'Desarrollo Organizacional': [
+                'Asesoría individual',
+                'Gestión de conflictos laborales',
+                'Apoyo al desarrollo personal y profesional',
+                'Programas de desarrollo interno'
+            ],
+            'Capacitación': [
+                'Solicitud de curso',
+                'Alta de evento de capacitación',
+                'Dudas sobre plan de formación',
+                'Registro de constancia o diploma'
+            ]
+        };
+        
+        // Función para filtrar categorías
+        function filterCategorias(selectedArea) {
+            // Limpiar categorías actuales
+            categoriaSelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+            
+            // Agregar categorías del área seleccionada
+            if (selectedArea && areaCategoriaMap[selectedArea]) {
+                areaCategoriaMap[selectedArea].forEach(categoria => {
+                    const option = document.createElement('option');
+                    option.value = categoria;
+                    option.textContent = categoria;
+                    categoriaSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Evento para cambio de área
+        areaSelect.addEventListener('change', function() {
+            filterCategorias(this.value);
+        });
+        
+        // Inicializar filtrado si ya hay un área seleccionada
+        if (areaSelect.value) {
+            filterCategorias(areaSelect.value);
+        }
+    }
+    
+    // Inicializar handlers de evidencia y filtros
+    initEvidenciaHandlers();
+    initAreaCategoriaFilter();
+
+    // --- Archivar tickets con modal de confirmación ---
+    let ticketToArchive = null;
+    const modalConfirmarArchivar = document.getElementById('modal-confirmar-archivar');
+    
+    document.querySelectorAll('.btn-archivar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.disabled) {
+                showNotification('Solo se pueden archivar tickets resueltos', 'error');
+                return;
+            }
+            
+            ticketToArchive = this.dataset.ticketId;
+            modalConfirmarArchivar.classList.remove('hidden');
+        });
+    });
+    
+    // Cancelar archivado
+    document.getElementById('btn-cancelar-archivar').addEventListener('click', () => {
+        modalConfirmarArchivar.classList.add('hidden');
+        ticketToArchive = null;
+    });
+    
+    // Confirmar archivado
+    document.getElementById('btn-confirmar-archivar').addEventListener('click', () => {
+        if (ticketToArchive) {
+            // Preparar datos con CSRF token
+            const formData = new FormData();
+            formData.append('csrf_token', getCSRFToken());
+            
+            fetch(`/tickets/archivar/${ticketToArchive}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => {
+                // Verificar si la respuesta es realmente JSON
+                const contentType = response.headers.get('content-type');
+                
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Si no es JSON, obtener el texto para ver qué está devolviendo
+                    return response.text().then(text => {
+                        throw new Error(`Respuesta no es JSON. Content-Type: ${contentType}`);
+                    });
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showNotification('Ticket archivado correctamente', 'success');
+                    
+                    // Remover la fila con efecto suave
+                    const btn = document.querySelector(`[data-ticket-id="${ticketToArchive}"]`);
+                    const row = btn.closest('tr');
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(-20px)';
+                    setTimeout(() => {
+                        row.remove();
+                    }, 300);
+                } else {
+                    showNotification(data.message || 'Error al archivar ticket', 'error');
+                }
+                
+                modalConfirmarArchivar.classList.add('hidden');
+                ticketToArchive = null;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error de conexión', 'error');
+                modalConfirmarArchivar.classList.add('hidden');
+                ticketToArchive = null;
+            });
+        }
+    });
+
+    // --- Reportes ---
+    document.querySelectorAll('.btn-reportes').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const ticketId = this.dataset.ticketId;
+            showNotification('Función de reportes en desarrollo', 'info');
+        });
+    });
+
+    // --- Cerrar modales ---
+    if (document.getElementById('btn-cerrar-modal-detalle')) {
+        document.getElementById('btn-cerrar-modal-detalle').addEventListener('click', () => {
+            modalDetalle.classList.add('hidden');
+        });
+    }
+
+    // --- Cerrar modales al hacer clic fuera ---
+    [modalDetalle, modalNuevo, modalConfirmarArchivar].forEach(modal => {
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                    if (this === modalConfirmarArchivar) {
+                        ticketToArchive = null;
+                    }
+                }
+            });
+        }
+    });
+
+    // --- Funciones auxiliares ---
+    function updateStatusClasses(select, estatus) {
+        // Remover todas las clases de estatus anteriores
+        select.className = select.className.replace(/status-[\w-]+/g, '');
+        
+        // Agregar las clases base
+        select.classList.add('status-badge', 'estatus-select');
+        
+        // Agregar la nueva clase de estatus
+        const statusClass = `status-${estatus.toLowerCase().replace(/\s+/g, '-')}`;
+        select.classList.add(statusClass);
+    }
+
+    function showNotification(message, type) {
+        // Crear notificación mejorada en la parte inferior derecha
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : 
+                       type === 'info' ? 'bg-blue-500' : 'bg-red-500';
+        
+        notification.className = `fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${bgColor} text-white`;
+        notification.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${type === 'success' ? 
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' :
+                        type === 'info' ?
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
+                    }
+                </svg>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animar entrada
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Animar salida y remover
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Inicializar valores originales para rollback y aplicar estilos
+    document.querySelectorAll('.estatus-select').forEach(select => {
+        select.dataset.originalValue = select.value;
+        // Aplicar estilos iniciales basados en el valor actual
+        updateStatusClasses(select, select.value);
+    });
+});
 </script>
-<script src="{{ url_for('tickets.static', filename='tickets/js/helpdesk.js') }}"></script>
-{% endblock %}
 {% endblock %}

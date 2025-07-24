@@ -205,5 +205,4 @@ def crear_usuario():
         flash('Usuario creado correctamente.', 'success')
         return redirect(url_for('auth.crear_usuario'))  # Cambia esta ruta si es necesario
 
-    usuarios = User.query.order_by(User.nombre).all()
-    return render_template('auth/crear_usuario.html', form=form, usuarios=usuarios)
+    return render_template('auth/crear_usuario.html', form=form)

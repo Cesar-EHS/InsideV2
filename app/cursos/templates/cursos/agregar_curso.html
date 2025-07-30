@@ -1,89 +1,172 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mx-auto p-6 max-w-xl">
+<h1 class="text-3xl font-bold mb-6">Nuevo curso</h1>
 
-  <h1 class="text-3xl font-bold mb-6">Agregar Nuevo Curso</h1>
+<form id="formNuevoCurso" method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-8">
+  {{ form.hidden_tag() }}
 
-  <form method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-6">
-    {{ form.hidden_tag() }}
+  <!-- Primera fila: imagen y datos principales -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Imagen del curso -->
+    <div class="md:row-span-2 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full relative min-h-[192px] h-[192px] overflow-hidden">
+      <label for="{{ form.imagen.id }}" id="label-imagen" class="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+        <span id="icono-imagen" class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+          <i class="fas fa-image text-4xl mb-2"></i>
+          <span class="block mt-1 font-semibold">+ Añadir imagen</span>
+        </span>
+        {{ form.imagen(class="hidden") }}
+      </label>
+      <div id="preview-img" class="absolute inset-0 flex items-center justify-center w-full h-full pointer-events-none"></div>
+    </div>
+    <!-- Nombre del curso -->
+    <div>
+      {{ form.nombre.label(class="block font-semibold mb-1") }}
+      {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+      {% if form.nombre.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
+      {% endif %}
+      <!-- Creador debajo del nombre -->
+      <label class="block font-semibold mb-1 mt-4">Creador</label>
+      <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 text-sm" value="{{ current_user.nombre }}" readonly>
+    </div>
+  </div>
 
+  <!-- Segunda fila: grid de 3 columnas para los campos select -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div>
       {{ form.categoria.label(class="block font-semibold mb-1") }}
-      {{ form.categoria(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      <select name="{{ form.categoria.name }}" id="{{ form.categoria.id }}" class="w-full border border-gray-300 rounded px-3 py-2 font-light text-sm" required>
+        <option value="" disabled selected>Selecciona una categoría</option>
+        {% for value, label in form.categoria.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
       {% if form.categoria.errors %}
         <p class="text-red-600 text-sm mt-1">{{ form.categoria.errors[0] }}</p>
       {% endif %}
     </div>
-
-    <div>
-      {{ form.modalidad.label(class="block font-semibold mb-1") }}
-      {{ form.modalidad(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.modalidad.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      {{ form.objetivo.label(class="block font-semibold mb-1") }}
-      {{ form.objetivo(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.objetivo.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.objetivo.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      {{ form.nombre.label(class="block font-semibold mb-1") }}
-      {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.nombre.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      {{ form.contenido.label(class="block font-semibold mb-1") }}
-      {{ form.contenido(class="w-full border border-gray-300 rounded px-3 py-2 h-32 resize-y") }}
-      {% if form.contenido.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.contenido.errors[0] }}</p>
-      {% endif %}
-    </div>
-
     <div>
       {{ form.area_tematica.label(class="block font-semibold mb-1") }}
-      {{ form.area_tematica(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      <select name="{{ form.area_tematica.name }}" id="{{ form.area_tematica.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        <option value="" disabled selected>Selecciona el área temática</option>
+        {% for value, label in form.area_tematica.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
       {% if form.area_tematica.errors %}
         <p class="text-red-600 text-sm mt-1">{{ form.area_tematica.errors[0] }}</p>
       {% endif %}
     </div>
-
     <div>
-      {{ form.duracion.label(class="block font-semibold mb-1") }}
-      {{ form.duracion(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.duracion.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
+      {{ form.objetivo.label(class="block font-semibold mb-1") }}
+      <select name="{{ form.objetivo.name }}" id="{{ form.objetivo.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        <option value="" disabled selected>Selecciona el objetivo</option>
+        {% for value, label in form.objetivo.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if form.objetivo.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.objetivo.errors[0] }}</p>
       {% endif %}
     </div>
-
+    <div>
+      {{ form.modalidad.label(class="block font-semibold mb-1") }}
+      <select name="{{ form.modalidad.name }}" id="{{ form.modalidad.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        <option value="" disabled selected>Selecciona la modalidad</option>
+        {% for value, label in form.modalidad.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if form.modalidad.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
+      {% endif %}
+    </div>
     <div>
       {{ form.tipo_agente.label(class="block font-semibold mb-1") }}
-      {{ form.tipo_agente(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      <select name="{{ form.tipo_agente.name }}" id="{{ form.tipo_agente.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        <option value="" disabled selected>Selecciona el tipo de agente</option>
+        {% for value, label in form.tipo_agente.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
       {% if form.tipo_agente.errors %}
         <p class="text-red-600 text-sm mt-1">{{ form.tipo_agente.errors[0] }}</p>
       {% endif %}
     </div>
-
     <div>
-      {{ form.imagen.label(class="block font-semibold mb-1") }}
-      {{ form.imagen(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.imagen.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.imagen.errors[0] }}</p>
+      {{ form.duracion.label(class="block font-semibold mb-1") }}
+      <select name="{{ form.duracion.name }}" id="{{ form.duracion.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        <option value="" disabled selected>Selecciona la duración</option>
+        {% for value, label in form.duracion.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if form.duracion.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
       {% endif %}
     </div>
+  </div>
 
-    <div class="text-right">
-      {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded") }}
+  <!-- Campo de contenido abajo, ocupa todo el ancho -->
+  <!-- <div>
+    {{ form.contenido.label(class="block font-semibold mb-1") }}
+    {{ form.contenido(class="w-full border border-gray-300 rounded px-3 py-2 h-32 resize-y") }}
+    {% if form.contenido.errors %}
+      <p class="text-red-600 text-sm mt-1">{{ form.contenido.errors[0] }}</p>
+    {% endif %}
+  </div> -->
+
+  <!-- Sección de recursos -->
+  <div>
+    <label class="block text-xl font-bold mb-2">Cargar recursos</label>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Recuadro de archivo 1 -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+        <label for="archivo1" id="label-archivo1" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-file-upload text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Recurso</span>
+          </span>
+          <input type="file" id="archivo1" name="archivo1" class="hidden">
+        </label>
+        <div id="preview-archivo1" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      </div>
+      <!-- Recuadro de archivo 2 -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+        <label for="archivo2" id="label-archivo2" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-file-upload text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Recurso</span>
+          </span>
+          <input type="file" id="archivo2" name="archivo2" class="hidden">
+        </label>
+        <div id="preview-archivo2" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      </div>
+      <!-- Recuadro de archivo 3 -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+        <label for="archivo3" id="label-archivo3" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-file-upload text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Recurso</span>
+          </span>
+          <input type="file" id="archivo3" name="archivo3" class="hidden">
+        </label>
+        <div id="preview-archivo3" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      </div>
+      <!-- Recuadro visual para Formulario -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 transition group h-full min-h-[140px] h-[140px] overflow-hidden">
+        <div class="w-full flex flex-col items-center justify-center text-center">
+          <span class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-list-alt text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">Formulario</span>
+          </span>
+          <span class="mt-2 text-xs text-gray-500">Próximamente</span>
+        </div>
+      </div>
     </div>
+  </div>
 
-  </form>
-
-</div>
-{% endblock %}
+  <!-- Botones -->
+  <div class="flex justify-end gap-2 mt-4">
+    <button type="button" id="btnCancelarFormCurso" class="bg-[#5e5e5e] hover:bg-[#3b3b3c]/10 text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none">Cancelar</button>
+    {{ form.submit(class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none") }}
+  </div>
+</form>

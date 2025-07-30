@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, abort
+    Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify
 )
 from flask_login import login_required, current_user
 from app import db
@@ -13,6 +13,16 @@ import os
 from flask import current_app
 
 bp_cursos = Blueprint('cursos', __name__, template_folder='templates', static_folder='static')
+
+encargados = {
+    10: 'Soporte Sistemas',
+    3: 'Requisición Compras',
+    24: 'Desarrollo Organizacional',
+    7: 'Capacitación Técnica',
+    9: 'Diseño Institucional',
+    2: 'Recursos Humanos',
+    6: 'Soporte EHSmart'
+}
 
 # --- Utilidad para actualizar avance ---
 def actualizar_avance(inscripcion):
@@ -41,10 +51,21 @@ def index():
     categoria_filtro = request.args.get('categoria', None)
     page = request.args.get('page', 1, type=int)
 
-    mis_cursos = Curso.query.join(Inscripcion).filter(
+    #Cursos en los que el usuario ya está inscrito
+    mis_cursos_inscrito = Curso.query.join(Inscripcion).filter(
         Inscripcion.usuario_id == current_user.id,
         Inscripcion.activo == True
-    ).limit(4).all()
+    ).order_by(Curso.fecha_creacion.desc()).all()
+
+    #Instancia del formulario para pasarla a la plantilla principal
+    form_curso = CursoForm()
+
+    """ mis_cursos = Curso.query.join(Inscripcion).filter(
+        Inscripcion.usuario_id == current_user.id,
+        Inscripcion.activo == True
+    ).limit(4).all() """
+
+    mis_cursos_creados = Curso.query.filter_by(creador_id=current_user.id).order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=3)
 
     query = Curso.query
     if categoria_filtro:
@@ -63,9 +84,14 @@ def index():
         'Protección Medioambiente', 'Herramientas Digitales', 'Desarrollo Humano'
     ]
 
+    #Verficar si el usuario es encargado de cursos
+    es_encargado = current_user.puesto_trabajo_id in encargados
+
     return render_template('cursos/index.html',
-                           mis_cursos=mis_cursos, cursos=cursos,
-                           categorias=categorias, categoria_filtro=categoria_filtro)
+                           mis_cursos_inscrito=mis_cursos_inscrito, cursos=cursos,
+                           mis_cursos_creados=mis_cursos_creados,
+                           categorias=categorias, categoria_filtro=categoria_filtro,
+                           es_encargado=es_encargado, form=form_curso)
 
 
 @bp_cursos.route('/curso/<int:curso_id>')
@@ -85,12 +111,14 @@ def curso_detalle(curso_id):
     return render_template('cursos/curso_detalle.html', curso=curso)
 
 
-@bp_cursos.route('/agregar', methods=['GET', 'POST'])
+@bp_cursos.route('/agregar', methods=['POST']) #Dejar solo POST (antes tambien tenia get)
 @login_required
 def agregar_curso():
     # Ajusta los puestos permitidos según tu lógica
     puestos_permitidos = [2, 5, 7, 8, 23, 24]
     if current_user.puesto_trabajo_id not in puestos_permitidos:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': 'Permiso denegado.'}), 403
         abort(403)
 
     form = CursoForm()
@@ -98,12 +126,16 @@ def agregar_curso():
         filename = None
         if form.imagen.data:
             filename = secure_filename(form.imagen.data.filename)
-            ruta = os.path.join('cursos/img', filename)
+            # Define la ruta absoluta donde guardar la imagen
             abs_path = os.path.join(current_app.static_folder, 'cursos', 'img')
-            os.makedirs(abs_path, exist_ok=True)
+            os.makedirs(abs_path, exist_ok=True) # Crea el directorio si no existe
             form.imagen.data.save(os.path.join(abs_path, filename))
+            ruta = os.path.join('cursos/img', filename) # Ruta relativa para guardar en la DB
+        else:
+            ruta = None # Si no se sube imagen, la ruta es None
+
         curso = Curso(
-            categoria=form.categoria.data,
+            categoria_id=form.categoria.data,
             modalidad=form.modalidad.data,
             objetivo=form.objetivo.data,
             nombre=form.nombre.data,
@@ -112,43 +144,17 @@ def agregar_curso():
             duracion=form.duracion.data,
             tipo_agente=form.tipo_agente.data,
             creador_id=current_user.id,
-            imagen=ruta if filename else None
+            imagen=ruta
         )
         db.session.add(curso)
         db.session.commit()
-        flash('Curso agregado correctamente.', 'success')
-        return redirect(url_for('cursos.index'))
-    return render_template('cursos/agregar_curso.html', form=form)
-
-
-@bp_cursos.route('/editar/<int:curso_id>', methods=['GET', 'POST'])
-@login_required
-def editar_curso(curso_id):
-    curso = Curso.query.get_or_404(curso_id)
-    if curso.creador_id != current_user.id:
-        abort(403)
-
-    form = CursoForm(obj=curso)
-    if form.validate_on_submit():
-        if form.imagen.data:
-            filename = secure_filename(form.imagen.data.filename)
-            ruta = os.path.join('cursos/img', filename)
-            abs_path = os.path.join(current_app.static_folder, 'cursos', 'img')
-            os.makedirs(abs_path, exist_ok=True)
-            form.imagen.data.save(os.path.join(abs_path, filename))
-            curso.imagen = ruta
-        curso.categoria = form.categoria.data
-        curso.modalidad = form.modalidad.data
-        curso.objetivo = form.objetivo.data
-        curso.nombre = form.nombre.data
-        curso.contenido = form.contenido.data
-        curso.area_tematica = form.area_tematica.data
-        curso.duracion = form.duracion.data
-        curso.tipo_agente = form.tipo_agente.data
-        db.session.commit()
-        flash('Curso actualizado correctamente.', 'success')
-        return redirect(url_for('cursos.curso_detalle', curso_id=curso.id))
-    return render_template('cursos/editar_curso.html', form=form, curso=curso)
+        
+        # Responde con JSON para la petición AJAX
+        return jsonify({'success': True, 'message': 'Curso agregado correctamente.'})
+    else:
+        # Si la validación falla, devuelve JSON con los errores
+        # Incluye 'errors' para que el JS pueda mostrarlos campo por campo si lo deseas
+        return jsonify({'success': False, 'errors': form.errors, 'message': 'Errores de validación en el formulario.'}), 400
 
 
 @bp_cursos.route('/inscribirse/<int:curso_id>', methods=['POST'])

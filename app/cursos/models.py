@@ -6,8 +6,12 @@ class Curso(db.Model):
     __tablename__ = 'cursos'
 
     id = db.Column(db.Integer, primary_key=True)
-    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)  # Relación con Categoría
-    categoria = db.relationship('Categoria', back_populates='cursos')
+    # Se define la llave foránea para la relación de las tablas.
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias_cursos.id'), nullable=False)  # Relación con Categoría
+    
+    # Definimos la relación entre modelos, permitiendo acceder a la categoría del curso.
+    categoriaCurso = db.relationship('CategoriaCurso', back_populates='cursos')
+    
     modalidad = db.Column(db.String(20), nullable=False)  # Presencial, En línea, Mixta
     objetivo = db.Column(db.String(255), nullable=False)
     nombre = db.Column(db.String(150), nullable=False)
@@ -18,6 +22,7 @@ class Curso(db.Model):
     creador_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     imagen = db.Column(db.String(255), nullable=True)  # Ruta de la imagen del curso
+    estado = db.Column(db.String(20), default='Activo')  # Activo, Inactivo
 
     inscripciones = db.relationship('Inscripcion', back_populates='curso', cascade='all, delete-orphan')
     examenes = db.relationship('Examen', back_populates='curso', cascade='all, delete-orphan')
@@ -130,14 +135,15 @@ class ActividadResultado(db.Model):
         return f'<ActividadResultado actividad {self.actividad_id} inscripcion {self.inscripcion_id}>'
 
 
-class Categoria(db.Model):
-    __tablename__ = 'categorias'
+class CategoriaCurso(db.Model):
+    __tablename__ = 'categorias_cursos'
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
     descripcion = db.Column(db.Text, nullable=True)
 
-    cursos = db.relationship('Curso', back_populates='categoria')
+    # Aqui hacemos la relacion con el modelo de Curso
+    cursos = db.relationship('Curso', back_populates='categoriaCurso')
 
     def __repr__(self):
-        return f'<Categoria {self.nombre}>'
+        return f'<CategoriaCurso {self.nombre}>'

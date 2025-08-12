@@ -105,6 +105,12 @@ def create_app(config_name=None):
     def uploads(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+    # Ruta para servir fotos de perfil de usuarios desde auth/uploads
+    @app.route('/auth/uploads/<path:filename>')
+    def auth_uploads(filename):
+        auth_upload_folder = os.path.join(app.root_path, 'auth', 'uploads')
+        return send_from_directory(auth_upload_folder, filename)
+
     # Ruta raíz que redirige a /home
     @app.route('/')
     def root():

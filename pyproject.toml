@@ -1,0 +1,26 @@
+[tool.pylance]
+strictListInference = false
+strictDictionaryInference = false
+strictSetInference = false
+strictParameterNoneValue = false
+enableTypeIgnoreComments = true
+
+[tool.pyright]
+typeCheckingMode = "basic"
+strictListInference = false
+strictDictionaryInference = false
+strictSetInference = false
+strictParameterNoneValue = false
+enableTypeIgnoreComments = true
+
+# Ignorar warnings de SQLAlchemy
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportGeneralTypeIssues = "information"
+reportOptionalOperand = "information"
+reportOptionalMemberAccess = "information"
+reportAttributeAccessIssue = "information"
+reportArgumentType = "information"
+reportCallIssue = "information"

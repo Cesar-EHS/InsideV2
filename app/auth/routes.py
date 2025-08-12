@@ -2,6 +2,9 @@
 from __future__ import annotations
 import os
 import pytz
+import re
+import uuid
+import traceback
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
@@ -81,7 +84,7 @@ def login():
             flash(f"Su cuenta está temporalmente bloqueada. Por favor, intente nuevamente en {remaining_time} minutos.", "danger")
             return render_template('auth/login.html', form=form)
 
-        if user and check_password_hash(user.password_hash, form.password.data):
+        if user and form.password.data is not None and check_password_hash(user.password_hash, form.password.data):
             # Verificar estatus del usuario (si existe)
             if not user.estatus or user.estatus.nombre != "Activo":
                 flash("Su cuenta está suspendida o inactiva, contacte al administrador.", "warning")
@@ -103,7 +106,6 @@ def login():
             if user:
                 user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
                 user.last_failed_login = datetime.now(pytz.UTC)
-                
                 # Si excede el máximo de intentos, bloquear la cuenta
                 if user.failed_login_attempts >= 5:  # Este valor debería venir de la configuración
                     user.locked_until = datetime.now(pytz.UTC) + timedelta(minutes=15)
@@ -111,7 +113,6 @@ def login():
                 else:
                     remaining_attempts = 5 - user.failed_login_attempts
                     flash(f"Correo o contraseña incorrectos. Le quedan {remaining_attempts} intentos.", "danger")
-                
                 db.session.commit()
             else:
                 flash("Los datos ingresados son incorrectos. Por favor, verifica tu correo y contraseña.", "danger")
@@ -130,7 +131,7 @@ def logout():
 
 def generate_reset_token(email: str) -> str:
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    return serializer.dumps(email, salt='password-reset-salt')
+    return str(serializer.dumps(email, salt='password-reset-salt'))
 
 
 def verify_reset_token(token: str, expiration: int = 7200) -> Optional[str]:
@@ -370,26 +371,25 @@ def crear_usuario():
             return jsonify({'error': 'El CURP ya está registrado'}), 400
         
         # Crear nuevo usuario
-        usuario = User(
-            nombre=nombre,
-            apellido_paterno=apellido_paterno,
-            apellido_materno=safe_str(request.form.get('apellido_materno')),
-            curp=curp.upper(),
-            email=email.lower(),
-            telefono=safe_str(request.form.get('telefono')),
-            fecha_ingreso=safe_date(request.form.get('fecha_ingreso')),
-            estatus_id=safe_int(request.form.get('estatus_id')) or 1,
-            departamento_id=safe_int(request.form.get('departamento_id')),
-            proyecto_id=safe_int(request.form.get('proyecto_id')),
-            puesto_trabajo_id=safe_int(request.form.get('puesto_trabajo_id')),
-            jefe_inmediato_id=safe_int(request.form.get('jefe_inmediato_id')),
-            ocupacion_especifica_id=safe_int(request.form.get('ocupacion_especifica_id')),
-            institucion_educativa_id=safe_int(request.form.get('institucion_educativa_id')),
-            nivel_max_estudios_id=safe_int(request.form.get('nivel_max_estudios_id')),
-            documento_probatorio_id=safe_int(request.form.get('documento_probatorio_id')),
-            entidad_federativa_id=safe_int(request.form.get('entidad_federativa_id')),
-            municipio_id=safe_int(request.form.get('municipio_id'))
-        )
+        usuario = User()
+        usuario.nombre = nombre
+        usuario.apellido_paterno = apellido_paterno
+        usuario.apellido_materno = safe_str(request.form.get('apellido_materno'))
+        usuario.curp = curp.upper()
+        usuario.email = email.lower()
+        usuario.telefono = safe_str(request.form.get('telefono'))
+        usuario.fecha_ingreso = safe_date(request.form.get('fecha_ingreso'))
+        usuario.estatus_id = safe_int(request.form.get('estatus_id')) or 1
+        usuario.departamento_id = safe_int(request.form.get('departamento_id'))
+        usuario.proyecto_id = safe_int(request.form.get('proyecto_id'))
+        usuario.puesto_trabajo_id = safe_int(request.form.get('puesto_trabajo_id'))
+        usuario.jefe_inmediato_id = safe_int(request.form.get('jefe_inmediato_id'))
+        usuario.ocupacion_especifica_id = safe_int(request.form.get('ocupacion_especifica_id'))
+        usuario.institucion_educativa_id = safe_int(request.form.get('institucion_educativa_id'))
+        usuario.nivel_max_estudios_id = safe_int(request.form.get('nivel_max_estudios_id'))
+        usuario.documento_probatorio_id = safe_int(request.form.get('documento_probatorio_id'))
+        usuario.entidad_federativa_id = safe_int(request.form.get('entidad_federativa_id'))
+        usuario.municipio_id = safe_int(request.form.get('municipio_id'))
         
         # Establecer contraseña
         usuario.set_password(password)
@@ -404,10 +404,11 @@ def crear_usuario():
                     file_ext = file.filename.rsplit('.', 1)[1].lower()
                     if file_ext in allowed_extensions:
                         filename = secure_filename(f"user_{usuario.curp}_{file.filename}")
-                        filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), 'auth', filename)
+                        upload_folder = current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.root_path, 'auth', 'uploads')
+                        filepath = os.path.join(upload_folder, filename)
                         os.makedirs(os.path.dirname(filepath), exist_ok=True)
                         file.save(filepath)
-                        usuario.foto = f"auth/{filename}"
+                        usuario.foto = filename
         
         # Usar database manager para operación thread-safe
         from app.database_manager import db_manager
@@ -602,11 +603,12 @@ def actualizar_usuario(user_id):
                 if '.' in file.filename:
                     file_ext = file.filename.rsplit('.', 1)[1].lower()
                     if file_ext in allowed_extensions:
-                        filename = secure_filename(f"user_{usuario.curp}_{file.filename}")
-                        filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), 'auth', filename)
-                        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                        file.save(filepath)
-                        usuario.foto = f"auth/{filename}"
+                            filename = secure_filename(f"user_{usuario.curp}_{file.filename}")
+                            upload_folder = current_app.config['UPLOAD_FOLDER'] or os.path.join(current_app.root_path, 'auth', 'uploads')
+                            filepath = os.path.join(upload_folder, filename)
+                            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                            file.save(filepath)
+                            usuario.foto = filename
         
         # Usar database manager para operación thread-safe
         from app.database_manager import db_manager
@@ -1208,11 +1210,10 @@ def api_update_permisos():
             # Agregar nuevos permisos
             for puesto_id in puestos_nuevos:
                 if puesto_id not in puestos_existentes:
-                    permiso = PermisosGestion(
-                        puesto_trabajo_id=puesto_id,
-                        puede_gestionar_usuarios=True,
-                        actualizado_por=current_user.id
-                    )
+                    permiso = PermisosGestion()
+                    permiso.puesto_trabajo_id = puesto_id
+                    permiso.puede_gestionar_usuarios = True
+                    permiso.actualizado_por = current_user.id
                     db.session.add(permiso)
                     changes_made = True
                     print(f"➕ Agregando permiso para puesto ID: {puesto_id}")

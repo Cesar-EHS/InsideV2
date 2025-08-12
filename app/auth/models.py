@@ -227,6 +227,19 @@ class User(BaseModel, UserMixin, TimestampMixin):
         self.last_login = datetime.utcnow()
         db.session.commit()
 
+    @property
+    def foto_url(self):
+        """Get the user photo URL or default image."""
+        from flask import url_for
+        if self.foto:
+            return url_for('auth.serve_foto', filename=self.foto)
+        return url_for('static', filename='default_user.png')
+
+    @property
+    def nombre_completo(self):
+        """Get the full name of the user."""
+        return f"{self.nombre} {self.apellido_paterno}"
+
     # Security tables relationships
     historial_cambios = db.relationship('UserHistoryChange', 
                                        foreign_keys='[UserHistoryChange.user_id]',

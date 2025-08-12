@@ -631,15 +631,24 @@
           </svg>
           <span>Tickets Asignados</span>
         </a>
+        
+        <a href="{{ url_for('tickets.index', tab='archivados') }}" 
+           class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
+          <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Archivados</span>
+        </a>
+        {% else %}
+        <a href="{{ url_for('tickets.index', tab='archivados') }}" 
+           class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
+          <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Archivados</span>
+        </a>
         {% endif %}
       </div>
-      
-      <a href="{{ url_for('tickets.index', tab='archivados') }}" 
-         class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
-        <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-        </svg>
-      </a>
     </div>
 
     <!-- Filtros mejorados con estilo de Knowledge -->
@@ -671,32 +680,16 @@
       </div>
       
       <!-- Botón Nuevo Ticket - Solo en pestaña "Mis Tickets" -->
-      <div id="nuevo-ticket-container" class="">
+      {% if tab_actual != 'asignados' and tab_actual != 'archivados' %}
+      <div id="nuevo-ticket-container">
         <button id="btn-nuevo-ticket" class="flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
           Nuevo Ticket
         </button>
-        
-        <!-- Botón de prueba adicional -->
-        <button id="btn-test" class="ml-2 bg-red-500 text-white px-3 py-2 rounded" onclick="alert('Test funciona!')">
-          Test
-        </button>
-        
-        <!-- Botón de prueba directo para nuevo ticket -->
-        <button id="btn-test-modal" class="ml-2 bg-green-500 text-white px-3 py-2 rounded" onclick="
-            const modal = document.getElementById('modal-nuevo-ticket');
-            console.log('Test Modal - Modal element:', modal);
-            console.log('Test Modal - Clases antes:', modal.className);
-            modal.classList.remove('hidden');
-            console.log('Test Modal - Clases después:', modal.className);
-            console.log('Test Modal - Estilo computed:', getComputedStyle(modal).display);
-            console.log('Test Modal - z-index:', getComputedStyle(modal).zIndex);
-        ">
-          Test Modal
-        </button>
       </div>
+      {% endif %}
     </div>
 
     <!-- Tabla de Tickets -->
@@ -1601,101 +1594,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Crear nuevo ticket ---
-    console.log('=== INICIANDO SETUP NUEVO TICKET ===');
-    
-    // Buscar elementos de manera más agresiva
-    setTimeout(() => {
-        console.log('Ejecutando después de timeout...');
-        
-        const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
-        const modalNuevo = document.getElementById('modal-nuevo-ticket');
-        
-        console.log('Después del timeout:');
-        console.log('- Botón:', btnNuevoTicket);
-        console.log('- Modal:', modalNuevo);
-        
-        if (btnNuevoTicket) {
-            console.log('✅ Botón encontrado, configurando...');
-            
-            // Múltiples formas de agregar el event listener
-            btnNuevoTicket.onclick = function(e) {
-                e.preventDefault();
-                console.log('🎯 ONCLICK DISPARADO!');
-                console.log('Modal antes:', modalNuevo.className);
-                if (modalNuevo) {
-                    modalNuevo.classList.remove('hidden');
-                    console.log('Modal después:', modalNuevo.className);
-                    console.log('Modal display:', getComputedStyle(modalNuevo).display);
-                    console.log('Modal z-index:', getComputedStyle(modalNuevo).zIndex);
-                    console.log('Modal position:', getComputedStyle(modalNuevo).position);
-                }
-            };
-            
-            btnNuevoTicket.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('🎯 ADDEVENTLISTENER DISPARADO!');
-                if (modalNuevo) {
-                    modalNuevo.classList.remove('hidden');
-                    console.log('Modal abierto via addEventListener');
-                }
-            });
-            
-            // Agregar estilo hover para verificar que el botón responde
-            btnNuevoTicket.addEventListener('mouseenter', function() {
-                console.log('Mouse entró al botón');
-                this.style.backgroundColor = '#1d4ed8';
-            });
-            
-            btnNuevoTicket.addEventListener('mouseleave', function() {
-                console.log('Mouse salió del botón');
-                this.style.backgroundColor = '';
-            });
-            
-            console.log('✅ Todos los listeners configurados');
-        } else {
-            console.error('❌ Botón TODAVÍA no encontrado después del timeout');
-        }
-    }, 1000);
-    
     const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
+    const modalNuevo = document.getElementById('modal-nuevo-ticket');
     const btnCerrarNuevo = document.getElementById('btn-cerrar-modal-nuevo');
     const formNuevoTicket = document.getElementById('form-nuevo-ticket');
     
-    console.log('Elementos encontrados inmediatamente:');
-    console.log('- Botón nuevo:', !!btnNuevoTicket);
-    console.log('- Botón cerrar:', !!btnCerrarNuevo);
-    console.log('- Form:', !!formNuevoTicket);
-    console.log('- Modal:', !!modalNuevo);
-    
     if (btnNuevoTicket && modalNuevo) {
-        console.log('✅ Configurando event listeners inmediatos...');
-        
-        // Event listener principal
         btnNuevoTicket.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('🎯 ¡BOTÓN CLICKEADO INMEDIATO!');
-            console.log('Modal clases antes:', modalNuevo.className);
-            
             modalNuevo.classList.remove('hidden');
-            
-            console.log('Modal clases después:', modalNuevo.className);
-            console.log('Modal display:', getComputedStyle(modalNuevo).display);
-            console.log('Modal z-index:', getComputedStyle(modalNuevo).zIndex);
-            console.log('Modal visible:', modalNuevo.offsetParent !== null);
-            
-            // Forzar el modal a ser más visible
-            modalNuevo.style.display = 'flex';
-            modalNuevo.style.zIndex = '9999';
-            modalNuevo.style.backgroundColor = 'rgba(0,0,0,0.8)';
-            
-            console.log('✅ Modal abierto inmediato - forzado a flex');
         });
-        
-        console.log('✅ Event listener inmediato agregado');
-    } else {
-        console.error('❌ Elementos faltantes inmediatos:', {
-            boton: !!btnNuevoTicket,
-            modal: !!modalNuevo
+    }
+    
+    if (btnCerrarNuevo && modalNuevo) {
+        btnCerrarNuevo.addEventListener('click', function() {
+            modalNuevo.classList.add('hidden');
+        });
+    }
+    
+    // Cerrar modal al hacer clic fuera
+    if (modalNuevo) {
+        modalNuevo.addEventListener('click', function(e) {
+            if (e.target === modalNuevo) {
+                modalNuevo.classList.add('hidden');
+            }
         });
     }
     

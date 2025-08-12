@@ -1,0 +1,1001 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración - Inside{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Configuración del Sistema</h1>
+                    <p class="mt-2 text-gray-600">Administra la configuración general del sistema y tablas de referencia</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{{ url_for('auth.gestionar_usuarios') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        Gestionar Usuarios
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Principales -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ users_count or 0 }}</div>
+                    <div class="text-sm text-gray-600">Total Usuarios</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ active_users or 0 }}</div>
+                    <div class="text-sm text-gray-600">Usuarios Activos</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-orange-600 mb-2">{{ suspended_users or 0 }}</div>
+                    <div class="text-sm text-gray-600">Suspendidos</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ new_users or 0 }}</div>
+                    <div class="text-sm text-gray-600">Nuevos (7 días)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación por Pestañas -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                    <button onclick="cambiarTab('personalizacion')" id="tab-personalizacion" class="whitespace-nowrap py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                        Personalización
+                    </button>
+                    <button onclick="cambiarTab('tablas')" id="tab-tablas" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Tablas de Referencia
+                    </button>
+                    <button onclick="cambiarTab('permisos')" id="tab-permisos" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Permisos de Sistema
+                    </button>
+                    <button onclick="cambiarTab('logs')" id="tab-logs" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Logs del Sistema
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Contenido de Pestañas -->
+        
+        <!-- Tab: Personalización -->
+        <div id="content-personalizacion" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Cambiar Imagen de Login -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Imagen del Login</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 block mb-2">Imagen de Fondo Izquierda</label>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                    <img id="currentLoginImage" src="{{ url_for('auth.static', filename=login_image) }}" alt="Login Background" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex flex-col space-y-2">
+                                    <button type="button" onclick="document.getElementById('loginImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        Cambiar Imagen
+                                    </button>
+                                    <input type="file" id="loginImageInput" accept="image/*" style="display: none;" onchange="subirImagenLogin()">
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max 2MB)</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 block mb-2">Logo del Sistema</label>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                    <img id="currentLogo" src="{{ url_for('static', filename=logo_sistema) }}" alt="Sistema Logo" class="w-full h-full object-contain">
+                                </div>
+                                <div class="flex flex-col space-y-2">
+                                    <button type="button" onclick="document.getElementById('logoImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        Cambiar Logo
+                                    </button>
+                                    <input type="file" id="logoImageInput" accept="image/*" style="display: none;" onchange="subirLogo()">
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG, SVG (Max 2MB)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración General -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Configuración General</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 block mb-2">Nombre de la Empresa</label>
+                            <input type="text" id="empresaNombre" value="Inside V2" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 block mb-2">Tema del Sistema</label>
+                            <select id="tema" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="light">Claro</option>
+                                <option value="dark">Oscuro</option>
+                                <option value="auto">Automático</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Tablas de Referencia -->
+        <div id="content-tablas" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Departamentos -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Departamentos</h3>
+                        <button onclick="abrirModalTabla('departamentos')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-departamentos" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Puestos de Trabajo -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Puestos de Trabajo</h3>
+                        <button onclick="abrirModalTabla('puestos_trabajo')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-puestos_trabajo" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Proyectos -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Proyectos</h3>
+                        <button onclick="abrirModalTabla('proyectos')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-proyectos" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Ocupaciones -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Ocupaciones</h3>
+                        <button onclick="abrirModalTabla('ocupaciones')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-ocupaciones" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Instituciones Educativas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Instituciones Educativas</h3>
+                        <button onclick="abrirModalTabla('instituciones_educativas')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-instituciones_educativas" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Niveles de Estudio -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Niveles de Estudio</h3>
+                        <button onclick="abrirModalTabla('niveles_estudio')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-niveles_estudio" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Entidades Federativas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Entidades Federativas</h3>
+                        <button onclick="abrirModalTabla('entidades_federativas')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-entidades_federativas" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Municipios -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Municipios</h3>
+                        <button onclick="abrirModalTabla('municipios')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-municipios" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Estatus de Usuario -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Estatus de Usuario</h3>
+                        <button onclick="abrirModalTabla('estatus_usuarios')" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-estatus_usuarios" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Tab: Permisos de Sistema -->
+        <div id="content-permisos" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Permisos de Gestión de Usuarios</h3>
+                
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-600">Selecciona qué puestos de trabajo pueden acceder a la gestión de usuarios:</p>
+                    
+                    <div id="permisos-puestos" class="space-y-3">
+                        {% for puesto in puestos_trabajo %}
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div>
+                                <span class="font-medium text-gray-900">{{ puesto.nombre }}</span>
+                                {% if puesto.descripcion %}
+                                <p class="text-sm text-gray-500">{{ puesto.descripcion }}</p>
+                                {% endif %}
+                            </div>
+                            <input type="checkbox" 
+                                   id="permiso-{{ puesto.id }}" 
+                                   value="{{ puesto.id }}"
+                                   data-puesto-id="{{ puesto.id }}"
+                                   {% if puesto.id == 7 %}checked{% endif %}
+                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 permiso-checkbox">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-200">
+                        <button onclick="guardarPermisos()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Guardar Permisos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Logs del Sistema -->
+        <div id="content-logs" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Logs del Sistema</h3>
+                    <div class="flex space-x-3">
+                        <select id="logLevel" class="rounded-lg border-gray-300 text-sm">
+                            <option value="INFO">INFO</option>
+                            <option value="DEBUG">DEBUG</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                        <button onclick="actualizarLogs()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                            Actualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="logsContainer" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-auto max-h-96">
+                    <div class="text-center text-gray-400 py-8">
+                        <p>Cargando logs del sistema...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+<!-- Modal para Gestión de Tablas -->
+<div id="modalTabla" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modalTitulo" class="text-lg font-semibold">Gestionar Tabla</h3>
+            <button onclick="cerrarModalTabla()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Formulario para Agregar/Editar -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 block mb-2">Nombre</label>
+                    <input type="text" id="itemNombre" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700 block mb-2">Descripción</label>
+                    <textarea id="itemDescripcion" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                </div>
+                <div id="entidadSelect" class="hidden">
+                    <label class="text-sm font-medium text-gray-700 block mb-2">Entidad Federativa</label>
+                    <select id="itemEntidad" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Seleccionar entidad...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex space-x-3 mt-4">
+                <button onclick="guardarItem()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Guardar
+                </button>
+                <button onclick="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                    Limpiar
+                </button>
+            </div>
+        </div>
+        
+        <!-- Lista de Items -->
+        <div class="border-t border-gray-200 pt-4">
+            <div id="listaItems" class="space-y-2 max-h-60 overflow-y-auto">
+                <!-- Se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let tablaActual = '';
+let itemEditando = null;
+
+// Gestión de pestañas
+function cambiarTab(tab) {
+    // Ocultar todos los contenidos
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Remover clases activas de las pestañas
+    document.querySelectorAll('[id^="tab-"]').forEach(tabBtn => {
+        tabBtn.classList.remove('border-blue-500', 'text-blue-600');
+        tabBtn.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Mostrar contenido seleccionado
+    document.getElementById(`content-${tab}`).classList.remove('hidden');
+    
+    // Activar pestaña seleccionada
+    const activeTab = document.getElementById(`tab-${tab}`);
+    activeTab.classList.remove('border-transparent', 'text-gray-500');
+    activeTab.classList.add('border-blue-500', 'text-blue-600');
+    
+    // Cargar datos específicos según la pestaña
+    if (tab === 'tablas') {
+        cargarTodasLasTablas();
+    } else if (tab === 'logs') {
+        actualizarLogs();
+    } else if (tab === 'permisos') {
+        cargarPermisos();
+    }
+}
+
+// Subir imagen de login con manejo de errores mejorado
+function subirImagenLogin() {
+    const file = document.getElementById('loginImageInput').files[0];
+    if (!file) return;
+    
+    // Validaciones del cliente
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+        showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
+        return;
+    }
+    
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+        showAlert('Tipo de archivo no permitido. Use PNG, JPG, JPEG o GIF.', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('login_image', file);
+    
+    // Mostrar indicador de carga
+    showAlert('Subiendo imagen...', 'info');
+    
+    fetch('/auth/actualizar_configuracion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Actualizar la imagen mostrada
+            const img = document.getElementById('currentLoginImage');
+            if (img && data.new_image) {
+                img.src = `/auth/static/${data.new_image}?t=${new Date().getTime()}`;
+            }
+            showAlert('Imagen de login actualizada exitosamente', 'success');
+        } else {
+            showAlert(data.error || 'Error al actualizar imagen', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión: ' + error.message, 'error');
+    });
+}
+
+// Subir logo del sistema
+function subirLogo() {
+    const file = document.getElementById('logoImageInput').files[0];
+    if (!file) return;
+    
+    // Validaciones del cliente
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+        showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
+        return;
+    }
+    
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+        showAlert('Tipo de archivo no permitido. Use PNG, JPG, JPEG, GIF o SVG.', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('logo_image', file);
+    
+    // Mostrar indicador de carga
+    showAlert('Subiendo logo...', 'info');
+    
+    fetch('/auth/actualizar_configuracion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Actualizar el logo mostrado
+            const img = document.getElementById('currentLogo');
+            if (img && data.new_logo) {
+                img.src = `/static/${data.new_logo}?t=${new Date().getTime()}`;
+            }
+            showAlert('Logo actualizado exitosamente', 'success');
+            
+            // Actualizar todos los logos en la página si existen
+            const allLogos = document.querySelectorAll('img[src*="logo_"], img[src*="logo_inside.png"]');
+            allLogos.forEach(logoImg => {
+                if (data.new_logo) {
+                    logoImg.src = `/static/${data.new_logo}?t=${new Date().getTime()}`;
+                }
+            });
+        } else {
+            showAlert(data.error || 'Error al actualizar logo', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión: ' + error.message, 'error');
+    });
+}
+
+// Gestión de tablas de referencia
+function cargarTodasLasTablas() {
+    const tablas = [
+        'departamentos', 'puestos_trabajo', 'proyectos', 'ocupaciones',
+        'instituciones_educativas', 'niveles_estudio', 'entidades_federativas',
+        'municipios', 'estatus_usuarios'
+    ];
+    
+    tablas.forEach(tabla => {
+        cargarTabla(tabla);
+    });
+}
+
+function cargarTabla(tabla) {
+    fetch(`/auth/api/tabla/${tabla}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            mostrarItems(tabla, data.items);
+        } else {
+            console.error(`Error cargando ${tabla}:`, data.error);
+        }
+    })
+    .catch(error => {
+        console.error(`Error cargando ${tabla}:`, error);
+    });
+}
+
+function mostrarItems(tabla, items) {
+    const lista = document.getElementById(`lista-${tabla}`);
+    if (!lista) return;
+    
+    lista.innerHTML = '';
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-2 bg-gray-50 rounded text-sm';
+        div.innerHTML = `
+            <span class="font-medium">${item.nombre}</span>
+            <button onclick="confirmarEliminar('${tabla}', ${item.id}, '${item.nombre}')" class="text-red-600 hover:text-red-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        `;
+        lista.appendChild(div);
+    });
+}
+
+function abrirModalTabla(tabla) {
+    tablaActual = tabla;
+    document.getElementById('modalTitulo').textContent = `Gestionar ${tabla.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+    document.getElementById('modalTabla').classList.remove('hidden');
+    document.getElementById('modalTabla').classList.add('flex');
+    
+    // Mostrar selector de entidad solo para municipios
+    if (tabla === 'municipios') {
+        document.getElementById('entidadSelect').classList.remove('hidden');
+        cargarEntidades();
+    } else {
+        document.getElementById('entidadSelect').classList.add('hidden');
+    }
+    
+    cargarItemsModal(tabla);
+}
+
+function cargarEntidades() {
+    fetch('/auth/api/tabla/entidades_federativas')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('itemEntidad');
+            select.innerHTML = '<option value="">Seleccionar entidad...</option>';
+            data.items.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.nombre}</option>`;
+            });
+        }
+    });
+}
+
+function cargarItemsModal(tabla) {
+    fetch(`/auth/api/tabla/${tabla}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarItemsModal(data.items);
+        }
+    });
+}
+
+function mostrarItemsModal(items) {
+    const lista = document.getElementById('listaItems');
+    lista.innerHTML = '';
+    
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-3 border border-gray-200 rounded-lg';
+        div.innerHTML = `
+            <div>
+                <div class="font-medium">${item.nombre}</div>
+                ${item.descripcion ? `<div class="text-sm text-gray-500">${item.descripcion}</div>` : ''}
+                ${item.entidad_federativa ? `<div class="text-xs text-blue-600">Entidad: ${item.entidad_federativa}</div>` : ''}
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="editarItem(${item.id})" class="text-blue-600 hover:text-blue-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </button>
+                <button onclick="confirmarEliminar('${tablaActual}', ${item.id}, '${item.nombre}')" class="text-red-600 hover:text-red-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        lista.appendChild(div);
+    });
+}
+
+function editarItem(itemId) {
+    // Buscar el item en la lista actual
+    fetch(`/auth/api/tabla/${tablaActual}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const item = data.items.find(i => i.id === itemId);
+            if (item) {
+                itemEditando = item;
+                document.getElementById('itemNombre').value = item.nombre;
+                document.getElementById('itemDescripcion').value = item.descripcion || '';
+                if (item.entidad_federativa_id) {
+                    document.getElementById('itemEntidad').value = item.entidad_federativa_id;
+                }
+            }
+        }
+    })
+    .catch(error => {
+        showAlert('Error al cargar datos del item', 'error');
+    });
+}
+
+function limpiarFormulario() {
+    itemEditando = null;
+    document.getElementById('itemNombre').value = '';
+    document.getElementById('itemDescripcion').value = '';
+    document.getElementById('itemEntidad').value = '';
+}
+
+function guardarItem() {
+    const nombre = document.getElementById('itemNombre').value.trim();
+    if (!nombre) {
+        showAlert('El nombre es requerido', 'error');
+        return;
+    }
+    
+    const data = {
+        nombre: nombre,
+        descripcion: document.getElementById('itemDescripcion').value.trim(),
+        tabla: tablaActual
+    };
+    
+    if (tablaActual === 'municipios') {
+        data.entidad_federativa_id = document.getElementById('itemEntidad').value;
+        if (!data.entidad_federativa_id) {
+            showAlert('Debe seleccionar una entidad federativa', 'error');
+            return;
+        }
+    }
+    
+    const url = itemEditando ? 
+        `/auth/api/tabla/${tablaActual}/${itemEditando.id}` : 
+        `/auth/api/tabla/${tablaActual}`;
+    
+    const method = itemEditando ? 'PUT' : 'POST';
+    
+    // Mostrar indicador de carga
+    showAlert(itemEditando ? 'Actualizando...' : 'Guardando...', 'info');
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showAlert(itemEditando ? 'Item actualizado exitosamente' : 'Item creado exitosamente', 'success');
+            limpiarFormulario();
+            cargarItemsModal(tablaActual);
+            cargarTabla(tablaActual);
+        } else {
+            showAlert(data.error || 'Error al guardar item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión: ' + error.message, 'error');
+    });
+}
+
+function confirmarEliminar(tabla, id, nombre) {
+    // Crear modal de confirmación bonito
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 transform transition-all">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <div class="text-center">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Confirmar Eliminación</h3>
+                <p class="text-sm text-gray-500 mb-6">¿Estás seguro de que deseas eliminar "<strong>${nombre}</strong>"? Esta acción no se puede deshacer.</p>
+                <div class="flex space-x-3 justify-center">
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancelar
+                    </button>
+                    <button onclick="eliminarItem('${tabla}', ${id}); this.closest('.fixed').remove();" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function eliminarItem(tabla, id) {
+    fetch(`/auth/api/tabla/${tabla}/${id}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showAlert('Item eliminado exitosamente', 'success');
+            cargarItemsModal(tabla);
+            cargarTabla(tabla);
+        } else {
+            showAlert(data.error || 'Error al eliminar item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión: ' + error.message, 'error');
+    });
+}
+
+function cerrarModalTabla() {
+    document.getElementById('modalTabla').classList.add('hidden');
+    document.getElementById('modalTabla').classList.remove('flex');
+    limpiarFormulario();
+}
+
+// Gestión de permisos
+let isGuardandoPermisos = false;
+
+function actualizarPermisos(puestoId, granted) {
+    // Esta función se ejecuta al cambiar los checkboxes
+    console.log(`Permiso ${granted ? 'otorgado' : 'revocado'} para puesto ${puestoId}`);
+}
+
+function cargarPermisos() {
+    fetch('/auth/api/permisos', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.puestos) {
+            const container = document.getElementById('permisos-puestos');
+            if (container) {
+                container.innerHTML = '';
+                
+                data.puestos.forEach(puesto => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                    div.innerHTML = `
+                        <span class="text-sm font-medium text-gray-700">${puesto.nombre}</span>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" value="${puesto.id}" 
+                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                   ${puesto.autorizado ? 'checked' : ''}>
+                            <span class="ml-2 text-sm text-gray-600">Autorizado</span>
+                        </label>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        } else {
+            console.error('Error al cargar permisos:', data.error || 'Error desconocido');
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar permisos:', error);
+        showAlert('Error al cargar permisos: ' + error.message, 'error');
+    });
+}
+
+// Guardar permisos cuando se presiona el botón
+function guardarPermisos() {
+    // Prevenir múltiples llamadas simultáneas
+    if (isGuardandoPermisos) {
+        console.log('Ya se está guardando, ignorando llamada duplicada...');
+        showAlert('Ya se está guardando, espere un momento...', 'warning');
+        return;
+    }
+    
+    // Activar lock
+    isGuardandoPermisos = true;
+    
+    const permisos = [];
+    document.querySelectorAll('#permisos-puestos input[type="checkbox"]:checked').forEach(checkbox => {
+        permisos.push(parseInt(checkbox.value));
+    });
+    
+    console.log('Guardando permisos:', permisos);
+    showAlert('Guardando permisos...', 'info');
+    
+    fetch('/auth/api/permisos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ puestos_autorizados: permisos })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showAlert('Permisos actualizados exitosamente', 'success');
+        } else {
+            showAlert(data.error || 'Error al actualizar permisos', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Liberar lock después de completar la operación
+        setTimeout(() => {
+            isGuardandoPermisos = false;
+        }, 2000); // Esperar 2 segundos antes de permitir nuevas operaciones
+    });
+}
+
+// Logs del sistema
+function actualizarLogs() {
+    const nivel = document.getElementById('logLevel').value;
+    
+    document.getElementById('logsContainer').innerHTML = '<div class="text-center text-gray-400 py-8"><p>Cargando logs...</p></div>';
+    
+    fetch(`/auth/api/logs?level=${nivel}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const logsHtml = data.logs.map(log => 
+                `<div class="mb-1">[${log.timestamp}] ${log.level}: ${log.message}</div>`
+            ).join('');
+            
+            document.getElementById('logsContainer').innerHTML = logsHtml || '<div class="text-center text-gray-400 py-8"><p>No hay logs disponibles</p></div>';
+        } else {
+            document.getElementById('logsContainer').innerHTML = '<div class="text-center text-red-400 py-8"><p>Error al cargar logs: ' + (data.error || 'Error desconocido') + '</p></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('logsContainer').innerHTML = '<div class="text-center text-red-400 py-8"><p>Error de conexión: ' + error.message + '</p></div>';
+    });
+}
+
+// Función de alertas
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all transform translate-x-full opacity-0`;
+    
+    const colors = {
+        success: 'bg-green-100 text-green-800 border border-green-200',
+        error: 'bg-red-100 text-red-800 border border-red-200',
+        warning: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+        info: 'bg-blue-100 text-blue-800 border border-blue-200'
+    };
+    
+    alertDiv.className += ` ${colors[type] || colors.info}`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <span class="mr-2">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-500 hover:text-gray-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.classList.remove('translate-x-full', 'opacity-0');
+        alertDiv.classList.add('translate-x-0', 'opacity-100');
+    }, 100);
+    
+    setTimeout(() => {
+        alertDiv.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => alertDiv.remove(), 300);
+    }, 5000);
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar tab inicial
+    cambiarTab('personalizacion');
+    
+    // Agregar event listeners para checkboxes de permisos
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('permiso-checkbox')) {
+            const puestoId = parseInt(e.target.dataset.puestoId);
+            const granted = e.target.checked;
+            actualizarPermisos(puestoId, granted);
+        }
+    });
+});
+</script>
+{% endblock %}

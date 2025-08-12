@@ -14,6 +14,7 @@ class UserForm(FlaskForm):
     
     curp = StringField('CURP', validators=[DataRequired(), Length(min=18, max=18)])
     email = StringField('Correo electrónico', validators=[DataRequired(), Email(), Length(max=120)])
+    telefono = StringField('Teléfono', validators=[Optional(), Length(max=15)])
     
     departamento_id = SelectField('Departamento', coerce=int, validators=[Optional()])
     proyecto_id = SelectField('Proyecto', coerce=int, validators=[Optional()])

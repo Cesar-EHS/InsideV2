@@ -19,6 +19,11 @@ load_dotenv(dotenv_path)
 
 # Inicialización de extensiones
 db = SQLAlchemy()
+
+# Asegurarnos que db.Model está disponible como clase base
+class BaseModel(db.Model):  # type: ignore
+    __abstract__ = True
+
 login_manager = LoginManager()
 mail = Mail()
 cors = CORS()
@@ -40,8 +45,9 @@ def create_app(config_name=None):
     # Inicializar extensiones con la app
     db.init_app(app)
     migrate = Migrate(app, db)
+    
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'  # Cambia 'auth.login' si tu endpoint de login tiene otro nombre
+    login_manager.login_view = 'auth.login'  # type: ignore
     login_manager.login_message = "Por favor, inicia sesión para continuar."
     login_manager.login_message_category = "warning"
     mail.init_app(app)
@@ -49,6 +55,18 @@ def create_app(config_name=None):
     socketio.init_app(app)
     jwt.init_app(app)
     csrf.init_app(app)
+    
+    # Eximir rutas API del CSRF
+    csrf.exempt('app.auth.routes.api_get_tabla')
+    csrf.exempt('app.auth.routes.api_create_tabla')
+    csrf.exempt('app.auth.routes.api_update_tabla')
+    csrf.exempt('app.auth.routes.api_delete_tabla')
+    csrf.exempt('app.auth.routes.api_update_permisos')
+    csrf.exempt('app.auth.routes.api_get_logs')
+    csrf.exempt('app.auth.routes.crear_usuario')
+    csrf.exempt('app.auth.routes.toggle_user_status')
+    csrf.exempt('app.auth.routes.actualizar_usuario')
+    csrf.exempt('app.auth.routes.actualizar_configuracion')
 
     # IMPORTANTE: importar modelo User aquí para evitar importaciones circulares
     from app.auth.models import User
@@ -91,5 +109,27 @@ def create_app(config_name=None):
     @app.route('/')
     def root():
         return redirect(url_for('home.home'))
+
+    # Contexto global para templates - configuraciones del sistema
+    @app.context_processor
+    def inject_system_config():
+        """Inyectar configuraciones del sistema en todos los templates."""
+        try:
+            from app.auth.models import Configuracion
+            
+            # Obtener configuraciones de imágenes
+            login_image = Configuracion.get_valor('login_image', 'img/m.jpg')
+            logo_sistema = Configuracion.get_valor('logo_sistema', 'logo_inside.png')
+            
+            return {
+                'system_login_image': login_image,
+                'system_logo': logo_sistema
+            }
+        except:
+            # En caso de error (DB no inicializada, etc.), usar valores por defecto
+            return {
+                'system_login_image': 'img/m.jpg',
+                'system_logo': 'logo_inside.png'
+            }
 
     return app

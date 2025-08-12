@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Inside - Intranet{% endblock %}</title>
-  <link rel="icon" type="image/webp" href="{{ url_for('static', filename='logo_inside.png') }}" />
+  <link rel="icon" type="image/webp" href="{{ url_for('static', filename=system_logo) }}" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -96,7 +96,7 @@
 <body class="min-h-screen bg-[var(--inside-light)]">
   <header class="w-full bg-white apple-shadow flex items-center px-6 py-2 fixed top-0 left-0 z-50 rounded-b-2xl" style="box-shadow: var(--inside-shadow);">
     <a href="/" class="flex items-center mr-6">
-      <img src="{{ url_for('static', filename='logo_inside.png') }}" alt="Inside" class="h-10 max-w-[160px] object-contain" style="border-radius: 0.7rem; box-shadow: none;" />
+      <img src="{{ url_for('static', filename=system_logo) }}" alt="Inside" class="h-10 max-w-[160px] object-contain" style="border-radius: 0.7rem; box-shadow: none;" />
     </a>
     <form role="search" action="{{ url_for('search.search') }}" method="GET" class="flex-1 max-w-lg relative">
       <input type="search" name="q" placeholder="Buscar..." aria-label="Buscar" value="{{ request.args.get('q', '') }}" class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[var(--inside-yellow)] focus:bg-white bg-gray-50 text-gray-700 shadow-sm" />

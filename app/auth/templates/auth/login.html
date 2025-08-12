@@ -3,75 +3,176 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portal de inicio de sesión de Inside" />
   <title>Iniciar sesión - Inside</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Tipografía Poppins -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'apple-blue': '#007AFF',
+            'apple-gray': '#F2F2F7',
+            'apple-dark': '#1C1C1E'
+          },
+          fontFamily: {
+            'sf': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
     }
-  </style>
-
-  <!-- Phosphor Icons -->
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script defer src="{{ url_for('auth.static', filename='js/login.js') }}"></script>
+  </script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100">
 
-  <div class="flex min-h-screen">
-    <!-- LADO IZQUIERDO -->
-    <div class="hidden md:flex w-1/2 bg-gray-100 items-center justify-center">
-      <img src="{{ url_for('auth.static', filename='img/m.jpg') }}" alt="Inside" class="w-full h-screen object-cover" />
+<body class="font-sf bg-white overflow-hidden">
+  <div class="h-screen flex">
+    
+    <!-- Imagen lateral - 65% en desktop, oculta en móvil -->
+    <div class="hidden lg:block lg:w-[65%] relative">
+      <div class="absolute inset-0 bg-gradient-to-br from-apple-blue/10 via-transparent to-black/30"></div>
+      <img 
+        src="{{ url_for('auth.static', filename=system_login_image) }}" 
+        alt="Inside Background" 
+        class="w-full h-full object-cover object-center"
+        style="min-height: 100vh;"
+      />
     </div>
 
-    <!-- LADO DERECHO -->
-    <div class="w-full md:w-1/2 bg-white flex items-center justify-center p-6">
-      <div class="w-full max-w-sm">
+    <!-- Panel de login - 35% en desktop, 100% en móvil -->
+    <div class="w-full lg:w-[35%] flex items-center justify-center p-6 lg:p-12 bg-white overflow-y-auto">
+      <div class="w-full max-w-md space-y-8 my-auto">
+        
+        <!-- Logo -->
+        <div class="text-center">
+          <img 
+            src="{{ url_for('static', filename=system_logo) }}" 
+            alt="Inside Logo" 
+            class="h-16 mx-auto mb-8"
+          />
+        </div>
 
-        <img src="{{ url_for('auth.static', filename='img/logo_inside.png') }}" alt="Inside" class="h-20 mb-6 mx-auto" />
+        <!-- Título -->
+        <div class="text-center space-y-2">
+          <h1 class="text-3xl font-semibold text-apple-dark">Bienvenido</h1>
+          <p class="text-base text-gray-500">Inicia sesión en tu cuenta</p>
+        </div>
 
-        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-2">Bienvenido</h2>
-        <p class="text-sm text-gray-500 text-center mb-4">Accede a la plataforma EHStandard</p>
-
+        <!-- Mensajes flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            {% for category, message in messages %}
-              <div class="bg-red-100 text-red-700 text-sm px-4 py-2 rounded-md mb-4">
-                {{ message }}
-              </div>
-            {% endfor %}
+            <div class="space-y-3">
+              {% for category, message in messages %}
+                <div class="p-4 rounded-xl {% if category == 'danger' or category == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200{% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                  <div class="flex items-center space-x-2">
+                    <i class="fas {% if category == 'danger' or category == 'error' %}fa-exclamation-circle{% elif category == 'success' %}fa-check-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                    <p class="text-sm font-medium">{{ message }}</p>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
           {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-4">
+        <!-- Formulario -->
+        <form method="POST" class="space-y-6">
           {{ form.hidden_tag() }}
-
-          <div>
-            {{ form.email(class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400", id="email", placeholder="Correo electrónico") }}
-          </div>
           
-          <div>
+          <!-- Email -->
+          <div class="space-y-2">
+            {{ form.email.label(class="block text-sm font-medium text-gray-700") }}
             <div class="relative">
-              {{ form.password(class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400", id="password", placeholder="Contraseña") }}
-              <i class="ph ph-eye text-lg absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer transition duration-200 ease-in-out" id="eyeIcon"></i>
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-envelope text-gray-400"></i>
+              </div>
+              {{ form.email(
+                class="w-full pl-12 pr-4 py-4 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-apple-blue focus:border-transparent transition-all duration-200 bg-apple-gray/50 focus:bg-white",
+                placeholder="correo@ejemplo.com"
+              ) }}
             </div>
+            {% if form.email.errors %}
+              {% for error in form.email.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            {% endif %}
           </div>
 
-          <div>
-            {{ form.submit(class_="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition duration-200 ease-in-out", id="loginBtn") }}
+          <!-- Contraseña -->
+          <div class="space-y-2">
+            {{ form.password.label(class="block text-sm font-medium text-gray-700") }}
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-lock text-gray-400"></i>
+              </div>
+              {{ form.password(
+                class="w-full pl-12 pr-12 py-4 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-apple-blue focus:border-transparent transition-all duration-200 bg-apple-gray/50 focus:bg-white",
+                placeholder="Contraseña"
+              ) }}
+              <button 
+                type="button" 
+                class="absolute inset-y-0 right-0 pr-4 flex items-center"
+                onclick="togglePassword()"
+              >
+                <i id="password-icon" class="fas fa-eye text-gray-400 hover:text-gray-600 transition-colors"></i>
+              </button>
+            </div>
+            {% if form.password.errors %}
+              {% for error in form.password.errors %}
+                <p class="text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            {% endif %}
           </div>
 
-          <div class="text-center">
-            <a href="{{ url_for('auth.reset_password_request') }}" class="text-sm text-blue-500 hover:underline">¿Olvidaste tu contraseña?</a>
+          <!-- Recordar sesión -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              {{ form.remember(class="h-4 w-4 text-apple-blue focus:ring-apple-blue border-gray-300 rounded") }}
+              {{ form.remember.label(class="ml-3 block text-sm text-gray-700") }}
+            </div>
+            <a href="{{ url_for('auth.reset_password_request') }}" 
+               class="text-sm text-apple-blue hover:text-blue-600 transition-colors">
+              ¿Olvidaste tu contraseña?
+            </a>
           </div>
+
+          <!-- Botón de login -->
+          <button 
+            type="submit"
+            class="w-full bg-apple-blue hover:bg-blue-600 text-white font-semibold py-4 px-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform active:scale-[0.99]"
+          >
+            Iniciar sesión
+          </button>
         </form>
 
+        <!-- Footer -->
+        <div class="text-center pt-6">
+          <p class="text-sm text-gray-500">
+            © 2025 Inside. Todos los derechos reservados.
+          </p>
+        </div>
       </div>
     </div>
   </div>
+
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const passwordIcon = document.getElementById('password-icon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+      }
+    }
+  </script>
 </body>
 </html>

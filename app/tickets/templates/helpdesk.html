@@ -1004,7 +1004,7 @@
 </div>
 
 <!-- Modal para nuevo ticket -->
-<div id="modal-nuevo-ticket" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 p-4">
+<div id="modal-nuevo-ticket" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" style="display: none;">
   <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
@@ -1597,27 +1597,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalNuevo) {
         const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
         const btnCerrarNuevo = document.getElementById('btn-cerrar-modal-nuevo');
-        const formNuevoTicket = document.getElementById('form-nuevo-ticket');
         
         if (btnNuevoTicket) {
             btnNuevoTicket.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Botón nuevo ticket clickeado');
-                modalNuevo.classList.remove('hidden');
-                console.log('Modal abierto');
+                modalNuevo.style.display = 'flex';
+                console.log('Modal mostrado');
             });
         }
         
         if (btnCerrarNuevo) {
             btnCerrarNuevo.addEventListener('click', function() {
-                modalNuevo.classList.add('hidden');
+                modalNuevo.style.display = 'none';
+                console.log('Modal cerrado');
             });
         }
         
         // Cerrar modal al hacer clic fuera
         modalNuevo.addEventListener('click', function(e) {
             if (e.target === modalNuevo) {
-                modalNuevo.classList.add('hidden');
+                modalNuevo.style.display = 'none';
+                console.log('Modal cerrado por click fuera');
             }
         });
     }

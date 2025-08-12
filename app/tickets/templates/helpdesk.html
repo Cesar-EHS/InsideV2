@@ -1594,26 +1594,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Crear nuevo ticket ---
-    const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
-    const modalNuevo = document.getElementById('modal-nuevo-ticket');
-    const btnCerrarNuevo = document.getElementById('btn-cerrar-modal-nuevo');
-    const formNuevoTicket = document.getElementById('form-nuevo-ticket');
-    
-    if (btnNuevoTicket && modalNuevo) {
-        btnNuevoTicket.addEventListener('click', function(e) {
-            e.preventDefault();
-            modalNuevo.classList.remove('hidden');
-        });
-    }
-    
-    if (btnCerrarNuevo && modalNuevo) {
-        btnCerrarNuevo.addEventListener('click', function() {
-            modalNuevo.classList.add('hidden');
-        });
-    }
-    
-    // Cerrar modal al hacer clic fuera
     if (modalNuevo) {
+        const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
+        const btnCerrarNuevo = document.getElementById('btn-cerrar-modal-nuevo');
+        const formNuevoTicket = document.getElementById('form-nuevo-ticket');
+        
+        if (btnNuevoTicket) {
+            btnNuevoTicket.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Botón nuevo ticket clickeado');
+                modalNuevo.classList.remove('hidden');
+                console.log('Modal abierto');
+            });
+        }
+        
+        if (btnCerrarNuevo) {
+            btnCerrarNuevo.addEventListener('click', function() {
+                modalNuevo.classList.add('hidden');
+            });
+        }
+        
+        // Cerrar modal al hacer clic fuera
         modalNuevo.addEventListener('click', function(e) {
             if (e.target === modalNuevo) {
                 modalNuevo.classList.add('hidden');

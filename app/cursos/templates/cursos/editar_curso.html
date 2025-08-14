@@ -1,24 +1,225 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mx-auto p-6 max-w-xl">
+{% extends 'base.html' %} {% block content %}
 
-  <h1 class="text-3xl font-bold mb-6">Editar Curso</h1>
-
-  <form method="POST" action="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}" enctype="multipart/form-data" class="space-y-6">
-    {{ form.hidden_tag() }}
-    <!-- ...existing code... -->
-    <div>
-      {{ form.imagen.label(class="block font-semibold mb-1") }}
-      {{ form.imagen(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.imagen.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.imagen.errors[0] }}</p>
-      {% endif %}
-      {% if curso.imagen %}
-        <img src="{{ url_for('static', filename=curso.imagen) }}" alt="Imagen actual" class="mt-2 w-32 h-20 object-cover rounded">
-      {% endif %}
+<div class="flex justify-center items-center min-h-[80vh]">
+  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-2xl p-10">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
+    >
+      <a
+        href="{{ url_for('cursos.index') }}"
+        class="inline-flex items-center gap-2"
+      >
+        <!-- Icono de flecha (puedes usar un SVG o una fuente de iconos) -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-gray-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        <span class="text-base text-gray-700 font-semibold">Regresar</span>
+      </a>
     </div>
-    <!-- ...existing code... -->
-  </form>
-
+    <!-- Ubicación -->
+    <h4 class="pb-4 pt-4 pr-4 text-gray-800">
+      {{ curso.nombre }} > Configuración del curso
+    </h4>
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="flex space-x-8" aria-label="Tabs">
+        <button
+          id="tab-generales"
+          class="py-2 px-1 border-b-2 font-semibold text-sm focus:outline-none text-gray-700 border-yellow-400"
+          onclick="showTab('generales')"
+        >
+          Generales del curso
+        </button>
+        <button
+          id="tab-participantes"
+          class="py-2 px-1 border-b-2 font-semibold text-sm focus:outline-none text-gray-700 border-transparent hover:text-yellow-500 hover:border-yellow-400"
+          onclick="showTab('participantes')"
+        >
+          Participantes
+        </button>
+        <button
+          id="tab-actividades"
+          class="py-2 px-1 border-b-2 font-semibold text-sm focus:outline-none text-gray-700 border-transparent hover:text-yellow-500 hover:border-yellow-400"
+          onclick="showTab('actividades')"
+        >
+          Actividades
+        </button>
+      </nav>
+    </div>
+    <!-- Contenido de la pestaña Generales del curso -->
+    <div id="tab-content-generales" class="mt-8">
+      <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-4">
+          <!-- Foto de portada -->
+          <div class="md:col-span-1 flex flex-col items-center">
+            <label class="mb-2 text-sm font-semibold text-gray-800"
+              >Foto de portada</label
+            >
+            <div class="relative">
+              {% if curso.imagen %}
+              <img
+                src="{{ url_for('static', filename=curso.imagen) }}"
+                alt="Imagen actual"
+                class="rounded-xl w-96 h-48 object-cover"
+              />
+              {% else %}
+              <div
+                class="rounded-xl w-96 h-48 bg-gray-100 flex items-center justify-center text-gray-400"
+              >
+                Sin imagen
+              </div>
+              {% endif %}
+              <!-- Botones editar/eliminar sobre la imagen -->
+              <div
+                class="absolute inset-0 flex items-center justify-center gap-4 opacity-0 hover:opacity-100 transition-opacity"
+              >
+                <button
+                  type="button"
+                  class="bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                  title="Editar imagen"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-gray-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm0 0L4 19l5-5z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                  title="Eliminar imagen"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-gray-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Datos generales -->
+          <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="text-sm font-bold text-gray-800">Nombre</label>
+              {{ form.nombre(class="text-sm w-full border border-gray-300
+              rounded px-3 py-2") }}
+            </div>
+            <div>
+              <label
+                class="text-sm font-bold text-gray-800 flex items-center gap-1"
+                >Duración
+                <span class="material-icons text-gray-400 text-base"
+                  >schedule</span
+                >
+              </label>
+              {{ form.duracion(class="text-sm text-gray-800 w-full border
+              border-gray-300 rounded px-3 py-2") }}
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-800">Creador</label>
+              <input
+                type="text"
+                class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                value="{{ curso.creador.nombre }} {{curso.creador.apellido_paterno}} {{curso.creador.apellido_materno}}"
+                readonly
+              />
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-800">Categoría</label>
+              {{ form.categoria(class="text-sm text-gray-800 w-full border
+              border-gray-300 rounded px-3 py-2") }}
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-800">Modalidad</label>
+              {{ form.modalidad(class="text-sm text-gray-800 w-full border
+              border-gray-300 rounded px-3 py-2") }}
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-800"
+                >Área temática</label
+              >
+              {{ form.area_tematica(class="text-sm text-gray-800 w-full border
+              border-gray-300 rounded px-3 py-2") }}
+            </div>
+            <div class="md:col-span-3">
+              <label class="text-sm font-bold text-gray-800">Objetivo</label>
+              {{ form.objetivo(class="text-sm text-gray-800 w-full border
+              border-gray-300 rounded px-3 py-2") }}
+            </div>
+          </div>
+          <!-- Recursos -->
+          <div class="md:col-start-2 md:col-span-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label class="text-sm font-bold text-gray-800 mb-2 block">Recursos</label>
+                <!-- Ejemplo de recurso -->
+                <div class="flex gap-4">
+                  <div
+                    class="bg-white rounded-xl shadow p-4 flex flex-col items-center"
+                  >
+                    <img
+                      src="{{ url_for('static', filename='img/pdf.png') }}"
+                      alt="PDF"
+                      class="w-12 h-12 mb-2"
+                    />
+                    <span class="text-xs text-gray-700">Lorem_ipsum.pdf</span>
+                    <span class="text-xs text-gray-400">000 kb</span>
+                  </div>
+                  <div
+                    class="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center w-32 h-32 text-gray-400 cursor-pointer"
+                  >
+                    <span class="material-icons text-3xl">add</span>
+                    <span class="text-xs">Cargar recurso</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Botón guardar -->
+              <div class="flex flex-col h-full justify-end mt-2">
+                <div class="flex-1"></div>
+                <div class="flex justify-end">
+                  <button
+                    type="submit"
+                    class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-3 rounded-lg shadow"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

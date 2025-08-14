@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root {
       --inside-yellow: #fab522;
@@ -17,7 +18,13 @@
       --inside-white: #fff;
       --inside-shadow: 0 4px 24px 0 #0001;
     }
-    body { font-family: 'Poppins', sans-serif; background: var(--inside-light); color: var(--inside-dark); }
+    body { font-family: 'Poppins', sans-serif; background: transparent; color: var(--inside-dark);
+      background-image: url('/static/img/BACKGROUND.svg');
+      background-repeat: no-repeat;
+      background-size: cover; /* o contain, según prefieras */
+      background-position: center;
+      background-attachment: fixed;
+    }
     .header-icon {
       transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
       border-radius: 1.2rem;
@@ -92,7 +99,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-[var(--inside-light)]">
+<body class="min-h-screen">
   <header class="w-full bg-white apple-shadow flex items-center px-6 py-2 fixed top-0 left-0 z-50 rounded-b-2xl" style="box-shadow: var(--inside-shadow);">
     <a href="/" class="flex items-center mr-6">
       <img src="{{ url_for('static', filename='logo_inside.png') }}" alt="Inside" class="h-10 max-w-[160px] object-contain" style="border-radius: 0.7rem; box-shadow: none;" />

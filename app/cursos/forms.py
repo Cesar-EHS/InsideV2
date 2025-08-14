@@ -5,7 +5,8 @@ from wtforms import (
 )
 from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, Length, Optional, URL
-from app.cursos.models import CategoriaCurso
+from app.cursos.models import CategoriaCurso, Modalidad, Objetivo, AreaTematica, TipoAgente
+from app import db
 
 def get_categorias_para_form():
     """
@@ -39,34 +40,33 @@ class CursoForm(FlaskForm):
         blank_text='Selecciona una categoría',
         validators=[DataRequired()] # El validador DataRequired asegura que el usuario seleccione una opción válida (no la en blanco).
     )
-    
-    modalidad = SelectField(
+
+    modalidad = QuerySelectField(
         'Modalidad',
-        choices=[('Presencial', 'Presencial'), ('En línea', 'En línea'), ('Mixta', 'Mixta')],
+        query_factory=lambda: Modalidad.query.order_by(Modalidad.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona la modalidad',
         validators=[DataRequired()]
     )
-    objetivo = SelectField(
+
+    objetivo = QuerySelectField(
         'Objetivo',
-        choices=[
-            ('Actualizar y perfeccionar conocimientos y habilidades', 'Actualizar y perfeccionar conocimientos y habilidades'),
-            ('Proporcionar información de nuevas tecnologías', 'Proporcionar información de nuevas tecnologías'),
-            ('Preparar para ocupar vacantes o puestos de nueva creación', 'Preparar para ocupar vacantes o puestos de nueva creación'),
-            ('Prevenir riesgos de trabajo', 'Prevenir riesgos de trabajo'),
-            ('Incremento a la Productividad', 'Incremento a la Productividad'),
-        ],
+        query_factory=lambda: Objetivo.query.order_by(Objetivo.descripcion).all(),
+        get_label='descripcion',
+        allow_blank=True,
+        blank_text='Selecciona el objetivo',
         validators=[DataRequired()]
     )
+
     nombre = StringField('Nombre del curso', validators=[DataRequired(), Length(max=150)])
-    contenido = TextAreaField('Contenido', validators=[DataRequired()])
-    area_tematica = SelectField(
+    
+    area_tematica = QuerySelectField(
         'Área temática',
-        choices=[
-            ('6400-Higiene y seguridad en el trabajo', '6400-Higiene y seguridad en el trabajo'),
-            ('5405-Ambientales', '5405-Ambientales'),
-            ('3133-Formación y actualización de instructores', '3133-Formación y actualización de instructores'),
-            ('7100-Relaciones humanas', '7100-Relaciones humanas'),
-            ('8000-Uso de tecnologías de la información y comunicación', '8000-Uso de tecnologías de la información y comunicación'),
-        ],
+        query_factory=lambda: AreaTematica.query.order_by(AreaTematica.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona el área temática',
         validators=[DataRequired()]
     )
     duracion = SelectField(
@@ -80,17 +80,20 @@ class CursoForm(FlaskForm):
         ],
         validators=[DataRequired()]
     )
-    tipo_agente = SelectField(
+
+    tipo_agente = QuerySelectField(
         'Tipo de agente capacitador',
-        choices=[('Interno', 'Interno'), ('Externo', 'Externo'), ('Otro', 'Otro')],
+        query_factory=lambda: TipoAgente.query.order_by(TipoAgente.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona el tipo de agente',
         validators=[DataRequired()]
     )
+    
     imagen = FileField('Imagen del curso', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Solo imágenes')])
+    video_url = StringField('URL del Video', validators=[Optional(), URL(message='Ingrese una URL válida')])
     submit = SubmitField('Guardar')
 
-    """ def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.categoria.choices = [(c.id, c.nombre) for c in Categoria.query.all()] """
 
 class ExamenForm(FlaskForm):
     titulo = StringField('Título del examen', validators=[DataRequired(), Length(max=150)])
@@ -117,3 +120,4 @@ class ActividadForm(FlaskForm):
     descripcion = TextAreaField('Descripción')
     video_url = StringField('URL del Video', validators=[Optional(), URL(message='Ingrese una URL válida')])
     submit = SubmitField('Guardar')
+

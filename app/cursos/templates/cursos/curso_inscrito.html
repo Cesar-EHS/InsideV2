@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex flex-col md:flex-row gap-6 min-h-[80vh]">
+  <!-- Sección 1: Video y descripción -->
+  <div class="basis-[65%] bg-white rounded-2xl shadow-lg p-6 mb-6 md:mb-0">
+    <h2 class="text-2xl font-bold mb-4 text-[#3b3b3c] font-sfpro">{{ curso.nombre }}</h2>
+    <div class="aspect-video mb-4 rounded-lg overflow-hidden">
+      <iframe id="youtube-player"
+        width="100%" height="100%"
+        src="https://www.youtube.com/embed/{{ curso.video_url|replace('https://youtu.be/', '')|replace('https://www.youtube.com/watch?v=', '') }}"
+        title="YouTube video player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div class="mb-4">
+      <span class="text-sm text-gray-500">Avance del curso</span>
+      <input type="range" id="video-progress" min="0" max="100" value="0" class="w-full accent-[#fab522] mt-1">
+      <div id="progress-text" class="text-right text-xs text-gray-500 mt-1">0%</div>
+    </div>
+  </div>
+  <!-- Sección 2: Recuadro adicional -->
+  <div class="basis-[35%] bg-white rounded-2xl shadow-lg p-6 h-fit">
+    <!-- Aquí puedes agregar el contenido que desees -->
+    <h3 class="text-lg font-bold mb-4 text-[#3b3b3c] font-sfpro">Otra sección</h3>
+    <div>
+      <!-- Tu contenido aquí -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const progress = document.getElementById('video-progress');
+  const progressText = document.getElementById('progress-text');
+  progress.addEventListener('input', function() {
+    progressText.textContent = `${this.value}%`;
+  });
+</script>
+
+{% endblock %}

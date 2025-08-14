@@ -128,9 +128,9 @@ def create_app(config_name=None):
             from app.auth.models import Configuracion
             
             # Obtener configuraciones de imágenes
-            login_image = Configuracion.get_valor('login_image', 'img/m.jpg')
+            login_image = Configuracion.get_valor('login_image', 'auth/static/img/m.jpg')
             logo_sistema = Configuracion.get_valor('logo_sistema', 'logo_inside.png')
-            background_image = Configuracion.get_valor('background_image', 'default_bg.png')
+            background_image = Configuracion.get_valor('background_image', 'default_bg.svg')
             
             return {
                 'system_login_image': login_image,
@@ -140,9 +140,9 @@ def create_app(config_name=None):
         except:
             # En caso de error (DB no inicializada, etc.), usar valores por defecto
             return {
-                'system_login_image': 'img/m.jpg',
+                'system_login_image': 'auth/static/img/m.jpg',
                 'system_logo': 'logo_inside.png',
-                'background_image': 'default_bg.png'
+                'background_image': 'default_bg.svg'
             }
 
     return app

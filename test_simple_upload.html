@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple de Subida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-4">Test Simple de Subida</h1>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Imagen de Login:</label>
+            <input type="file" id="loginImageInput" accept="image/*" class="mb-2">
+            <button onclick="subirImagenLogin()" class="bg-blue-500 text-white px-4 py-2 rounded">
+                Subir Imagen Login
+            </button>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Logo:</label>
+            <input type="file" id="logoImageInput" accept="image/*" class="mb-2">
+            <button onclick="subirLogo()" class="bg-green-500 text-white px-4 py-2 rounded">
+                Subir Logo
+            </button>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Background:</label>
+            <input type="file" id="backgroundImageInput" accept="image/*" class="mb-2">
+            <button onclick="subirImagenFondo()" class="bg-purple-500 text-white px-4 py-2 rounded">
+                Subir Background
+            </button>
+        </div>
+
+        <div id="log" class="mt-4 p-3 bg-gray-100 rounded text-sm h-32 overflow-y-auto"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function showAlert(message, type = 'info') {
+            log(`ALERT [${type}]: ${message}`);
+            alert(message);
+        }
+
+        // Función para subir imagen de login
+        function subirImagenLogin() {
+            log('🚀 Función subirImagenLogin iniciada');
+            const file = document.getElementById('loginImageInput').files[0];
+            if (!file) {
+                log('❌ No se seleccionó archivo');
+                return;
+            }
+            
+            log(`📁 Archivo seleccionado: ${file.name} (${file.size} bytes)`);
+            
+            // Validaciones del cliente
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            if (file.size > maxSize) {
+                showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
+                return;
+            }
+            
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                showAlert('Tipo de archivo no permitido. Use PNG, JPG, JPEG o GIF.', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('login_image', file);
+            
+            log('📡 Enviando request a /auth/actualizar_configuracion');
+            
+            showAlert('Subiendo imagen...', 'info');
+            
+            fetch('/auth/actualizar_configuracion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                log(`📡 Response status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                log(`✅ Response data: ${JSON.stringify(data)}`);
+                if (data.success) {
+                    showAlert('Imagen de login actualizada exitosamente', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showAlert(data.error || 'Error al actualizar imagen', 'error');
+                }
+            })
+            .catch(error => {
+                log(`❌ Error: ${error.message}`);
+                showAlert('Error de conexión: ' + error.message, 'error');
+            });
+        }
+
+        // Función para subir logo
+        function subirLogo() {
+            log('🚀 Función subirLogo iniciada');
+            const file = document.getElementById('logoImageInput').files[0];
+            if (!file) {
+                log('❌ No se seleccionó archivo');
+                return;
+            }
+            
+            log(`📁 Archivo seleccionado: ${file.name} (${file.size} bytes)`);
+            
+            const formData = new FormData();
+            formData.append('logo_image', file);
+            
+            log('📡 Enviando request a /auth/actualizar_configuracion');
+            
+            fetch('/auth/actualizar_configuracion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                log(`📡 Response status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                log(`✅ Response data: ${JSON.stringify(data)}`);
+                if (data.success) {
+                    showAlert('Logo actualizado exitosamente', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showAlert(data.error || 'Error al actualizar logo', 'error');
+                }
+            })
+            .catch(error => {
+                log(`❌ Error: ${error.message}`);
+                showAlert('Error de conexión: ' + error.message, 'error');
+            });
+        }
+
+        // Función para subir imagen de fondo
+        function subirImagenFondo() {
+            log('🚀 Función subirImagenFondo iniciada');
+            const file = document.getElementById('backgroundImageInput').files[0];
+            if (!file) {
+                log('❌ No se seleccionó archivo');
+                return;
+            }
+            
+            log(`📁 Archivo seleccionado: ${file.name} (${file.size} bytes)`);
+            
+            const formData = new FormData();
+            formData.append('background_image', file);
+            
+            log('📡 Enviando request a /auth/actualizar_configuracion');
+            
+            fetch('/auth/actualizar_configuracion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                log(`📡 Response status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                log(`✅ Response data: ${JSON.stringify(data)}`);
+                if (data.success) {
+                    showAlert('Imagen de fondo actualizada exitosamente', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showAlert(data.error || 'Error al actualizar imagen de fondo', 'error');
+                }
+            })
+            .catch(error => {
+                log(`❌ Error: ${error.message}`);
+                showAlert('Error de conexión: ' + error.message, 'error');
+            });
+        }
+
+        // Test inicial
+        log('🚀 Página cargada, funciones definidas');
+        log(`✅ subirImagenLogin: ${typeof subirImagenLogin}`);
+        log(`✅ subirLogo: ${typeof subirLogo}`);
+        log(`✅ subirImagenFondo: ${typeof subirImagenFondo}`);
+    </script>
+</body>
+</html>

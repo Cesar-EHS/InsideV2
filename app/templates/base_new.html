@@ -78,7 +78,7 @@
       width: 100%;
       height: 100%;
       z-index: -1;
-      opacity: 1;
+      opacity: 0.05;
       background-image: url('{{ url_for("static", filename=background_image or "default_bg.png") }}');
       background-size: cover;
       background-position: center;
@@ -112,20 +112,16 @@
     .nav-container {
       display: flex;
       align-items: center;
-      gap: var(--spacing-lg);
-      margin-left: auto;
-      margin-right: var(--spacing-xl);
+      gap: var(--spacing-xs);
     }
 
     .nav-item {
       position: relative;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-width: 70px;
+      width: 44px;
       height: 44px;
-      padding: var(--spacing-xs) var(--spacing-sm);
       border-radius: var(--radius-md);
       color: var(--ios-label-secondary);
       text-decoration: none;
@@ -149,57 +145,9 @@
     }
 
     .nav-item svg {
-      width: 20px;
-      height: 20px;
-      stroke-width: 2;
-      margin-bottom: 2px;
-    }
-
-    .nav-item-text {
-      font-size: 11px;
-      font-weight: 500;
-      line-height: 1;
-      white-space: nowrap;
-    }
-
-    /* Notification Button */
-    .notification-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-md);
-      color: var(--ios-label-secondary);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      outline: none;
-    }
-
-    .notification-btn:hover {
-      background: rgba(0, 122, 255, 0.1);
-      color: var(--ios-primary);
-      transform: scale(1.05);
-    }
-
-    .notification-btn svg {
       width: 22px;
       height: 22px;
       stroke-width: 2;
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 8px;
-      height: 8px;
-      background: var(--ios-error);
-      border-radius: 50%;
-      border: 2px solid var(--ios-surface);
     }
 
     /* Tooltip - iOS Style */
@@ -332,34 +280,14 @@
       .nav-container {
         gap: var(--spacing-xs);
         justify-content: center;
-        margin-left: 0;
-        margin-right: 0;
       }
 
       .nav-item {
         width: 40px;
         height: 40px;
-        min-width: 40px;
-        flex-direction: row;
-        padding: 0;
       }
 
       .nav-item svg {
-        width: 20px;
-        height: 20px;
-        margin-bottom: 0;
-      }
-
-      .nav-item-text {
-        display: none;
-      }
-
-      .notification-btn {
-        width: 40px;
-        height: 40px;
-      }
-
-      .notification-btn svg {
         width: 20px;
         height: 20px;
       }
@@ -518,18 +446,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                 </svg>
               {% endif %}
-              <span class="nav-item-text">{{ item.label }}</span>
             </a>
           {% endfor %}
         </nav>
-
-        <!-- Notifications Button -->
-        <button class="notification-btn" aria-label="Notificaciones" title="Notificaciones">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-          </svg>
-          <!-- <div class="notification-badge"></div> -->
-        </button>
 
         <!-- User Menu -->
         <div class="user-menu">
@@ -611,7 +530,6 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                 </svg>
               {% endif %}
-              <span class="nav-item-text">{{ item.label }}</span>
             </a>
           {% endfor %}
         </nav>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Minimal</title>
+</head>
+<body>
+    <h1>Test Minimal de Upload</h1>
+    
+    <div>
+        <h3>Test Very Simple Upload</h3>
+        <input type="file" id="file" accept="image/*">
+        <button onclick="uploadFile()">Subir Archivo</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            console.log(`${new Date().toLocaleTimeString()}: ${message}`);
+            document.getElementById('result').innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
+        }
+
+        async function uploadFile() {
+            try {
+                const fileInput = document.getElementById('file');
+                if (!fileInput.files.length) {
+                    log('❌ No file selected');
+                    return;
+                }
+
+                log('🚀 Starting upload...');
+                
+                const formData = new FormData();
+                formData.append('background_image', fileInput.files[0]);
+                
+                log('📦 FormData created');
+                
+                const response = await fetch('/auth/actualizar_configuracion', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                log(`📡 Response status: ${response.status}`);
+                log(`📡 Response headers: ${JSON.stringify([...response.headers.entries()])}`);
+                
+                const responseText = await response.text();
+                log(`📋 Raw response: ${responseText.substring(0, 200)}...`);
+                
+                if (response.ok) {
+                    try {
+                        const result = JSON.parse(responseText);
+                        log(`✅ Success: ${JSON.stringify(result)}`);
+                    } catch (e) {
+                        log(`❌ Failed to parse JSON: ${e.message}`);
+                        log(`📋 Response was: ${responseText}`);
+                    }
+                } else {
+                    log(`❌ Request failed with status: ${response.status}`);
+                    log(`📋 Response: ${responseText}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                console.error('Error details:', error);
+            }
+        }
+        
+        log('🚀 Page loaded, minimal test ready');
+    </script>
+</body>
+</html>

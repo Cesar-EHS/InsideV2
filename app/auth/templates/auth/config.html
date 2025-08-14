@@ -487,15 +487,151 @@
     </div>
 </div>
 
+<!-- Script de funciones de upload -->
+<script src="{{ url_for('static', filename='upload-functions.js') }}"></script>
+
 <script>
+// FUNCIONES DE UPLOAD DIRECTAS - Para asegurar disponibilidad inmediata
+function subirImagenLogin() {
+    console.log('🚀 subirImagenLogin iniciada');
+    const file = document.getElementById('loginImageInput').files[0];
+    if (!file) {
+        return;
+    }
+    
+    // Validación de tamaño
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Archivo muy grande. Máximo 2MB');
+        return;
+    }
+    
+    // Validación de tipo
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de archivo no permitido. Use PNG, JPG, JPEG o GIF.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('login_image', file);
+    
+    fetch('/auth/actualizar_configuracion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar imagen mostrada sin alertas
+            const img = document.getElementById('currentLoginImage');
+            if (img && data.new_image) {
+                img.src = `/auth/static/${data.new_image}?t=${Date.now()}`;
+            }
+            // Recargar página silenciosamente
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function subirLogo() {
+    console.log('🚀 subirLogo iniciada');
+    const file = document.getElementById('logoImageInput').files[0];
+    if (!file) {
+        return;
+    }
+    
+    // Validación de tamaño
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Archivo muy grande. Máximo 2MB');
+        return;
+    }
+    
+    // Validación de tipo
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de archivo no permitido. Use PNG, JPG, JPEG, GIF o SVG.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('logo_image', file);
+    
+    fetch('/auth/actualizar_configuracion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar logo mostrado sin alertas
+            const img = document.getElementById('currentLogo');
+            if (img && data.new_logo) {
+                img.src = `/static/${data.new_logo}?t=${Date.now()}`;
+            }
+            // Recargar página silenciosamente
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function subirImagenFondo() {
+    console.log('🚀 subirImagenFondo iniciada');
+    const file = document.getElementById('backgroundImageInput').files[0];
+    if (!file) {
+        return;
+    }
+    
+    // Validación de tamaño
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Archivo muy grande. Máximo 2MB');
+        return;
+    }
+    
+    // Validación de tipo
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de archivo no permitido. Use PNG, JPG o JPEG.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('background_image', file);
+    
+    fetch('/auth/actualizar_configuracion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Recargar página silenciosamente para aplicar cambios
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+console.log('✅ Funciones de upload definidas directamente en HTML');
+
 // Variables globales
 let tablaActual = '';
 let itemEditando = null;
 
 // Gestión de pestañas
 function cambiarTab(tab) {
+    console.log('Cambiando a tab:', tab);
+    
     // Ocultar todos los contenidos
     document.querySelectorAll('.tab-content').forEach(content => {
+        console.log('Ocultando contenido:', content.id);
         content.classList.add('hidden');
     });
     
@@ -506,12 +642,23 @@ function cambiarTab(tab) {
     });
     
     // Mostrar contenido seleccionado
-    document.getElementById(`content-${tab}`).classList.remove('hidden');
+    const targetContent = document.getElementById(`content-${tab}`);
+    if (targetContent) {
+        console.log('Mostrando contenido:', `content-${tab}`);
+        targetContent.classList.remove('hidden');
+    } else {
+        console.error('No se encontró el contenido:', `content-${tab}`);
+    }
     
     // Activar pestaña seleccionada
     const activeTab = document.getElementById(`tab-${tab}`);
-    activeTab.classList.remove('border-transparent', 'text-gray-500');
-    activeTab.classList.add('border-blue-500', 'text-blue-600');
+    if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+        activeTab.classList.add('border-blue-500', 'text-blue-600');
+        console.log('Tab activada:', `tab-${tab}`);
+    } else {
+        console.error('No se encontró la pestaña:', `tab-${tab}`);
+    }
     
     // Cargar datos específicos según la pestaña
     if (tab === 'tablas') {
@@ -522,13 +669,21 @@ function cambiarTab(tab) {
         cargarPermisos();
         cargarPermisosTickets();
         cargarPermisosHome();
+        cargarUsuariosActivos();
     }
 }
 
-// Subir imagen de login con manejo de errores mejorado
+// FUNCIONES MOVIDAS A upload-functions.js - COMENTADAS PARA EVITAR DUPLICADOS
+/*
 function subirImagenLogin() {
+    console.log('Función subirImagenLogin iniciada');
     const file = document.getElementById('loginImageInput').files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No se seleccionó archivo');
+        return;
+    }
+    
+    console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
     
     // Validaciones del cliente
     const maxSize = 2 * 1024 * 1024; // 2MB
@@ -546,6 +701,8 @@ function subirImagenLogin() {
     const formData = new FormData();
     formData.append('login_image', file);
     
+    console.log('Enviando request a /auth/actualizar_configuracion');
+    
     // Mostrar indicador de carga
     showAlert('Subiendo imagen...', 'info');
     
@@ -554,19 +711,26 @@ function subirImagenLogin() {
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             // Actualizar la imagen mostrada
             const img = document.getElementById('currentLoginImage');
             if (img && data.new_image) {
-                img.src = `/auth/static/${data.new_image}?t=${new Date().getTime()}`;
+                img.src = `/${data.new_image}?t=${new Date().getTime()}`;
             }
             showAlert('Imagen de login actualizada exitosamente', 'success');
+            
+            // Recargar la página para aplicar cambios globalmente
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } else {
             showAlert(data.error || 'Error al actualizar imagen', 'error');
         }
@@ -576,11 +740,19 @@ function subirImagenLogin() {
         showAlert('Error de conexión: ' + error.message, 'error');
     });
 }
+*/
 
+/*
 // Subir logo del sistema
 function subirLogo() {
+    console.log('Función subirLogo iniciada');
     const file = document.getElementById('logoImageInput').files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No se seleccionó archivo');
+        return;
+    }
+    
+    console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
     
     // Validaciones del cliente
     const maxSize = 2 * 1024 * 1024; // 2MB
@@ -598,6 +770,8 @@ function subirLogo() {
     const formData = new FormData();
     formData.append('logo_image', file);
     
+    console.log('Enviando request a /auth/actualizar_configuracion');
+    
     // Mostrar indicador de carga
     showAlert('Subiendo logo...', 'info');
     
@@ -606,12 +780,14 @@ function subirLogo() {
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             // Actualizar el logo mostrado
             const img = document.getElementById('currentLogo');
@@ -620,13 +796,10 @@ function subirLogo() {
             }
             showAlert('Logo actualizado exitosamente', 'success');
             
-            // Actualizar todos los logos en la página si existen
-            const allLogos = document.querySelectorAll('img[src*="logo_"], img[src*="logo_inside.png"]');
-            allLogos.forEach(logoImg => {
-                if (data.new_logo) {
-                    logoImg.src = `/static/${data.new_logo}?t=${new Date().getTime()}`;
-                }
-            });
+            // Recargar la página para aplicar cambios globalmente
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } else {
             showAlert(data.error || 'Error al actualizar logo', 'error');
         }
@@ -636,11 +809,19 @@ function subirLogo() {
         showAlert('Error de conexión: ' + error.message, 'error');
     });
 }
+*/
 
+/*
 // Subir imagen de fondo del sistema
 function subirImagenFondo() {
+    console.log('Función subirImagenFondo iniciada');
     const file = document.getElementById('backgroundImageInput').files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No se seleccionó archivo');
+        return;
+    }
+    
+    console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
     
     // Validaciones del cliente
     const maxSize = 2 * 1024 * 1024; // 2MB
@@ -658,6 +839,8 @@ function subirImagenFondo() {
     const formData = new FormData();
     formData.append('background_image', file);
     
+    console.log('Enviando request a /auth/actualizar_configuracion');
+    
     // Mostrar indicador de carga
     showAlert('Subiendo imagen de fondo...', 'info');
     
@@ -666,27 +849,21 @@ function subirImagenFondo() {
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
-            // Actualizar la imagen de fondo mostrada
-            const img = document.getElementById('currentBackgroundImage');
-            if (img && data.new_background) {
-                img.src = `/static/${data.new_background}?t=${new Date().getTime()}`;
-            }
             showAlert('Imagen de fondo actualizada exitosamente', 'success');
             
-            // Actualizar el fondo de la página inmediatamente
-            if (data.new_background) {
-                const bgPattern = document.querySelector('.bg-pattern');
-                if (bgPattern) {
-                    bgPattern.style.backgroundImage = `url('/static/${data.new_background}?t=${new Date().getTime()}')`;
-                }
-            }
+            // Recargar la página para aplicar la nueva imagen de fondo
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } else {
             showAlert(data.error || 'Error al actualizar imagen de fondo', 'error');
         }
@@ -696,6 +873,7 @@ function subirImagenFondo() {
         showAlert('Error de conexión: ' + error.message, 'error');
     });
 }
+*/
 
 // Gestión de tablas de referencia
 function cargarTodasLasTablas() {
@@ -1315,6 +1493,8 @@ function cargarPermisosHome() {
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - main initialization');
+    
     // Cargar tab inicial
     cambiarTab('personalizacion');
     
@@ -1330,8 +1510,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // CSRF Token para las peticiones AJAX
 window.csrfToken = '{{ csrf_token() }}';
+
+// Variables globales
+let usuariosActivos = [];
+
+// ====== GESTIÓN DE USUARIOS ACTIVOS ======
+async function cargarUsuariosActivos() {
+    try {
+        const response = await fetch('/auth/api/usuarios-activos');
+        const data = await response.json();
+        
+        if (data.success) {
+            usuariosActivos = data.usuarios;
+            console.log('Usuarios activos cargados:', usuariosActivos);
+        } else {
+            console.error('Error al cargar usuarios:', data.error);
+        }
+    } catch (error) {
+        console.error('Error de conexión al cargar usuarios:', error);
+    }
+}
+
 </script>
 
-<!-- Script para configuración -->
-<script src="{{ url_for('auth.static', filename='config.js') }}"></script>
+<!-- Scripts están integrados en el HTML principal -->
 {% endblock %}

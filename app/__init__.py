@@ -67,6 +67,10 @@ def create_app(config_name=None):
     csrf.exempt('app.auth.routes.toggle_user_status')
     csrf.exempt('app.auth.routes.actualizar_usuario')
     csrf.exempt('app.auth.routes.actualizar_configuracion')
+    
+    # Eximir endpoints de tickets del CSRF
+    csrf.exempt('app.tickets.routes.test_comentario')
+    csrf.exempt('app.tickets.routes.comentario_nuevo')
 
     # IMPORTANTE: importar modelo User aquí para evitar importaciones circulares
     from app.auth.models import User

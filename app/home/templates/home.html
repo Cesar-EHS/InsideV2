@@ -126,7 +126,7 @@
       <!-- Nueva publicación -->
       {% if usuario.puesto_trabajo and usuario.puesto_trabajo.id in [2, 5, 7, 8, 23, 24] %}
       <div class="flex items-center bg-white rounded-xl shadow-sm p-4 mb-6 gap-4">
-        <img src="{{ url_for('auth.static', filename='fotos/' + usuario.foto) }}" alt="Foto de {{ usuario.nombre }}" class="w-10 h-10 rounded-full object-cover">
+        <img src="{{ usuario.foto_url }}" alt="Foto de {{ usuario.nombre }}" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
         <button id="btn-abrir-modal-post" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-200 transition font-medium text-sm" aria-label="¿Listo para publicar?" type="button">
           ¿Listo para publicar, {{ usuario.nombre.split(' ')[0] }}?
         </button>

@@ -16,7 +16,8 @@ from urllib.parse import urlparse, urljoin
 from app.auth.forms import LoginForm, ResetRequestForm, ResetPasswordForm, UserForm
 from app.auth.models import (User, Departamento, PuestoTrabajo, Proyecto, Ocupacion, 
                             InstitucionEducativa, NivelEstudio, EntidadFederativa, 
-                            Municipio, EstatusUsuario, Configuracion, PermisosGestion)
+                            Municipio, EstatusUsuario, Configuracion, PermisosGestion,
+                            PermisosTickets, PermisosHome)
 from app import db, mail, csrf
 from werkzeug.utils import secure_filename
 from typing import Optional, cast, Sequence, Any, TypeVar, Callable, Union, Protocol, List, Tuple
@@ -1139,8 +1140,8 @@ def api_get_usuario(user_id):
 def serve_foto(filename):
     """Servir archivos de fotos de usuarios."""
     try:
-        # Verificar si el archivo existe en uploads/auth/
-        uploads_dir = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), 'auth')
+        # Verificar si el archivo existe en UPLOAD_FOLDER directamente
+        uploads_dir = current_app.config.get('UPLOAD_FOLDER', 'uploads')
         file_path = os.path.join(uploads_dir, filename)
         
         if os.path.exists(file_path):
@@ -1355,3 +1356,200 @@ def api_get_logs():
         
     except Exception as e:
         return jsonify({'error': f'Error al obtener logs: {str(e)}'}), 500
+
+
+@auth_bp.route('/api/usuarios-activos', methods=['GET'])
+@login_required
+def api_usuarios_activos():
+    """API para obtener lista de usuarios activos"""
+    try:
+        # Verificar permisos de administrador
+        es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
+        if not es_administrador:
+            return jsonify({'success': False, 'error': 'No tienes permisos para acceder a esta información'}), 403
+        
+        # Obtener usuarios activos
+        usuarios = User.query.filter_by(activo=True).order_by(User.nombre, User.apellido_paterno).all()
+        
+        usuarios_data = []
+        for usuario in usuarios:
+            usuarios_data.append({
+                'id': usuario.id,
+                'nombre': f"{usuario.nombre} {usuario.apellido_paterno}",
+                'email': usuario.email,
+                'puesto_trabajo_id': usuario.puesto_trabajo_id,
+                'puesto_trabajo': usuario.puesto_trabajo.nombre if usuario.puesto_trabajo else None
+            })
+        
+        return jsonify({'success': True, 'usuarios': usuarios_data})
+        
+    except Exception as e:
+        print(f"Error en api_usuarios_activos: {e}")
+        return jsonify({'success': False, 'error': 'Error al obtener usuarios activos'}), 500
+
+
+@auth_bp.route('/api/departamentos', methods=['GET'])
+@login_required
+def api_departamentos():
+    """API para obtener lista de departamentos"""
+    try:
+        # Verificar permisos de administrador
+        es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
+        if not es_administrador:
+            return jsonify({'success': False, 'error': 'No tienes permisos para acceder a esta información'}), 403
+        
+        # Obtener departamentos
+        departamentos = Departamento.query.order_by(Departamento.nombre).all()
+        
+        departamentos_data = []
+        for departamento in departamentos:
+            departamentos_data.append({
+                'id': departamento.id,
+                'nombre': departamento.nombre,
+                'descripcion': departamento.descripcion
+            })
+        
+        return jsonify({'success': True, 'departamentos': departamentos_data})
+        
+    except Exception as e:
+        print(f"Error en api_departamentos: {e}")
+        return jsonify({'success': False, 'error': 'Error al obtener departamentos'}), 500
+
+
+@auth_bp.route('/api/permisos-tickets', methods=['GET', 'POST'])
+@login_required
+def api_permisos_tickets():
+    """API para gestionar permisos de tickets por departamento"""
+    try:
+        # Verificar permisos de administrador
+        es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
+        if not es_administrador:
+            return jsonify({'success': False, 'error': 'No tienes permisos para acceder a esta información'}), 403
+        
+        if request.method == 'GET':
+            # Obtener permisos actuales por departamento
+            permisos_db = PermisosTickets.query.filter_by(activo=True).all()
+            permisos = {}
+            
+            for permiso in permisos_db:
+                permisos[str(permiso.departamento_id)] = permiso.usuario_id
+            
+            return jsonify({
+                'success': True, 
+                'permisos': permisos
+            })
+        
+        elif request.method == 'POST':
+            # Guardar configuración de permisos
+            data = request.get_json()
+            nuevos_permisos = data or {}
+            
+            try:
+                # Desactivar todos los permisos existentes
+                PermisosTickets.query.update({'activo': False})
+                
+                # Crear nuevos permisos
+                for dept_id, usuario_id in nuevos_permisos.items():
+                    if usuario_id:  # Solo si se asignó un usuario
+                        # Verificar si ya existe y reactivarlo, o crear uno nuevo
+                        permiso_existente = PermisosTickets.query.filter_by(
+                            departamento_id=int(dept_id), 
+                            usuario_id=int(usuario_id)
+                        ).first()
+                        
+                        if permiso_existente:
+                            permiso_existente.activo = True
+                            permiso_existente.actualizado_por = current_user.id
+                        else:
+                            nuevo_permiso = PermisosTickets()
+                            nuevo_permiso.departamento_id = int(dept_id)
+                            nuevo_permiso.usuario_id = int(usuario_id)
+                            nuevo_permiso.actualizado_por = current_user.id
+                            nuevo_permiso.activo = True
+                            db.session.add(nuevo_permiso)
+                
+                db.session.commit()
+                return jsonify({'success': True, 'message': 'Permisos guardados correctamente'})
+                
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error al guardar permisos: {e}")
+                return jsonify({'success': False, 'error': 'Error al guardar permisos'}), 500
+        
+        # Return por defecto para cualquier método no manejado
+        return jsonify({'success': False, 'error': 'Método no permitido'}), 405
+        
+    except Exception as e:
+        print(f"Error en api_permisos_tickets: {e}")
+        return jsonify({'success': False, 'error': 'Error al procesar permisos de tickets'}), 500
+
+
+@auth_bp.route('/api/permisos-home', methods=['GET', 'POST'])
+@login_required  
+def api_permisos_home():
+    """API para gestionar permisos de publicaciones en Home"""
+    try:
+        # Verificar permisos de administrador
+        es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
+        if not es_administrador:
+            return jsonify({'success': False, 'error': 'No tienes permisos para acceder a esta información'}), 403
+        
+        if request.method == 'GET':
+            # Obtener configuración actual de permisos de home
+            permisos_db = PermisosHome.query.filter_by(activo=True).all()
+            
+            permisos_actuales = {
+                'crear_posts': [p.usuario_id for p in permisos_db if p.tipo_permiso == 'crear_posts'],
+                'crear_eventos': [p.usuario_id for p in permisos_db if p.tipo_permiso == 'crear_eventos'],
+                'moderar_contenido': [p.usuario_id for p in permisos_db if p.tipo_permiso == 'moderar_contenido']
+            }
+            
+            return jsonify({
+                'success': True,
+                'permisos': permisos_actuales
+            })
+        
+        elif request.method == 'POST':
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({'success': False, 'message': 'No se recibieron datos'}), 400
+                
+                # Primero desactivar todos los permisos existentes para este tipo
+                tipo_permiso = data.get('tipo_permiso')
+                if not tipo_permiso:
+                    return jsonify({'success': False, 'message': 'Tipo de permiso requerido'}), 400
+                
+                # Desactivar permisos existentes
+                PermisosHome.query.filter_by(tipo_permiso=tipo_permiso, activo=True).update({'activo': False})
+                
+                # Crear nuevos permisos
+                usuarios_ids = data.get('usuarios_ids', [])
+                for usuario_id in usuarios_ids:
+                    nuevo_permiso = PermisosHome(  # type: ignore
+                        usuario_id=usuario_id,  # type: ignore
+                        tipo_permiso=tipo_permiso,  # type: ignore
+                        activo=True  # type: ignore
+                    )
+                    db.session.add(nuevo_permiso)
+                
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Permisos de {tipo_permiso} actualizados correctamente'
+                })
+                
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({
+                    'success': False,
+                    'message': f'Error al actualizar permisos: {str(e)}'
+                }), 500
+        
+        # Return por defecto para cualquier método no manejado
+        return jsonify({'success': False, 'error': 'Método no permitido'}), 405
+        
+    except Exception as e:
+        print(f"Error en api_permisos_home: {e}")
+        return jsonify({'success': False, 'error': 'Error al gestionar permisos de Home'}), 500

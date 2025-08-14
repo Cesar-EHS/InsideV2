@@ -1,89 +1,191 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mx-auto p-6 max-w-xl">
+<h1 class="text-3xl font-bold mb-6">Nuevo curso</h1>
 
-  <h1 class="text-3xl font-bold mb-6">Agregar Nuevo Curso</h1>
+<form id="formNuevoCurso" method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-8">
+  {{ form.hidden_tag() }}
 
-  <form method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-6">
-    {{ form.hidden_tag() }}
+  <!-- Primera fila: imagen y datos principales -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Imagen del curso -->
+    <div class="md:row-span-2 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full relative min-h-[192px] h-[192px] overflow-hidden">
+      <label for="{{ form.imagen.id }}" id="label-imagen" class="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+        <span id="icono-imagen" class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+          <i class="fas fa-image text-4xl mb-2"></i>
+          <span class="block mt-1 font-semibold">+ Añadir imagen</span>
+        </span>
+        {{ form.imagen(class="hidden") }}
+      </label>
+      <div id="preview-img" class="absolute inset-0 flex items-center justify-center w-full h-full pointer-events-none"></div>
+    </div>
+    <!-- Nombre del curso -->
+    <div>
+      {{ form.nombre.label(class="block font-semibold mb-1") }}
+      {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+      {% if form.nombre.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
+      {% endif %}
+      <!-- Creador debajo del nombre -->
+      <label class="block font-semibold mb-1 mt-4">Creador</label>
+      <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 text-sm" value="{{ current_user.nombre }}" readonly>
 
+      <label for="{{ form.video_url.id }}" class="block font-semibold mt-4 mb-1">URL del video (YouTube)</label>
+      {{ form.video_url(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", placeholder="https://www.youtube.com/watch?v=...") }}
+      {% if form.video_url.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.video_url.errors[0] }}</p>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Segunda fila: grid de 3 columnas para los campos select -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Opciones para las categorías de los cursos -->
     <div>
       {{ form.categoria.label(class="block font-semibold mb-1") }}
-      {{ form.categoria(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {{ form.categoria(class="w-full border border-gray-300 rounded px-3 py-2 font-light text-sm", required=True) }}
       {% if form.categoria.errors %}
         <p class="text-red-600 text-sm mt-1">{{ form.categoria.errors[0] }}</p>
       {% endif %}
     </div>
 
+    <!-- Campo de Área temática en formulario -->
     <div>
-      {{ form.modalidad.label(class="block font-semibold mb-1") }}
-      {{ form.modalidad(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.modalidad.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
+      {{ form.area_tematica.label(class="block font-semibold mb-1") }}
+      {{ form.area_tematica(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
+      {% if form.area_tematica.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.area_tematica.errors[0] }}</p>
       {% endif %}
     </div>
-
+    
+    <!-- Campo de Objetivo en formulario -->
     <div>
       {{ form.objetivo.label(class="block font-semibold mb-1") }}
-      {{ form.objetivo(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {{ form.objetivo(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
       {% if form.objetivo.errors %}
         <p class="text-red-600 text-sm mt-1">{{ form.objetivo.errors[0] }}</p>
       {% endif %}
     </div>
 
+    <!-- Campo de Modalidad en formulario -->
     <div>
-      {{ form.nombre.label(class="block font-semibold mb-1") }}
-      {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.nombre.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
+      {{ form.modalidad.label(class="block font-semibold mb-1") }}
+      {{ form.modalidad(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
+      {% if form.modalidad.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
       {% endif %}
     </div>
-
-    <div>
-      {{ form.contenido.label(class="block font-semibold mb-1") }}
-      {{ form.contenido(class="w-full border border-gray-300 rounded px-3 py-2 h-32 resize-y") }}
-      {% if form.contenido.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.contenido.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      {{ form.area_tematica.label(class="block font-semibold mb-1") }}
-      {{ form.area_tematica(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.area_tematica.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.area_tematica.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      {{ form.duracion.label(class="block font-semibold mb-1") }}
-      {{ form.duracion(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.duracion.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
-      {% endif %}
-    </div>
-
+    
+    <!-- Campo de Tipo de Agente en formulario -->
     <div>
       {{ form.tipo_agente.label(class="block font-semibold mb-1") }}
-      {{ form.tipo_agente(class="w-full border border-gray-300 rounded px-3 py-2") }}
+      {{ form.tipo_agente(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True ) }}
       {% if form.tipo_agente.errors %}
         <p class="text-red-600 text-sm mt-1">{{ form.tipo_agente.errors[0] }}</p>
       {% endif %}
     </div>
-
+    
+    <!-- Campo de Duración en formulario -->
     <div>
-      {{ form.imagen.label(class="block font-semibold mb-1") }}
-      {{ form.imagen(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.imagen.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.imagen.errors[0] }}</p>
+      {{ form.duracion.label(class="block font-semibold mb-1") }}
+      <select name="{{ form.duracion.name }}" id="{{ form.duracion.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        <option value="" disabled selected>Selecciona la duración</option>
+        {% for value, label in form.duracion.choices if value %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if form.duracion.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
       {% endif %}
     </div>
+  </div>
 
-    <div class="text-right">
-      {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded") }}
+  <!-- Sección de recursos -->
+  <div>
+    <label class="block text-xl font-bold mb-2">Cargar recursos</label>
+    <div id="contenedor-archivos" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Recuadro de archivo 1 -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+        <label for="archivo1" id="label-archivo1" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-file-upload text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Recurso</span>
+          </span>
+          <input type="file" id="archivo1" name="archivo1" class="hidden">
+        </label>
+        <div id="preview-archivo1" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      </div>
+      <!-- Recuadro de archivo 2 -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+        <label for="archivo2" id="label-archivo2" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-file-upload text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Recurso</span>
+          </span>
+          <input type="file" id="archivo2" name="archivo2" class="hidden">
+        </label>
+        <div id="preview-archivo2" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      </div>
+      <!-- Recuadro de archivo 3 -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+        <label for="archivo3" id="label-archivo3" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-file-upload text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Recurso</span>
+          </span>
+          <input type="file" id="archivo3" name="archivo3" class="hidden">
+        </label>
+        <div id="preview-archivo3" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      </div>
+      <!-- Recuadro visual para Formulario -->
+      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 transition group h-full min-h-[140px] h-[140px] overflow-hidden">
+        <div class="w-full flex flex-col items-center justify-center text-center">
+          <span class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-list-alt text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">Formulario</span>
+          </span>
+          <span class="mt-2 text-xs text-gray-500">Próximamente</span>
+        </div>
+      </div>
     </div>
+    <div class="mt-4">
+      <button type="button" id="btnAgregarArchivo" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition">+ Añadir otro archivo</button>
+    </div>
+  </div>
 
-  </form>
+  <!-- Botones -->
+  <div class="flex justify-end gap-2 mt-4">
+    <button type="button" id="btnCancelarFormCurso" class="bg-[#5e5e5e] hover:bg-[#3b3b3c]/10 text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none">Cancelar</button>
+    {{ form.submit(class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none") }}
+  </div>
+</form>
 
-</div>
-{% endblock %}
+<script>
+let archivoCount = 3; // Ya tienes archivo1, archivo2, archivo3
+
+document.getElementById('btnAgregarArchivo').addEventListener('click', function() {
+  archivoCount++;
+  const contenedor = document.getElementById('contenedor-archivos');
+  const nuevoDiv = document.createElement('div');
+  nuevoDiv.className = "flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative archivo-extra";
+  nuevoDiv.innerHTML = `
+    <button type="button" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold btn-eliminar-archivo" title="Eliminar este archivo" style="z-index:10;">&times;</button>
+    <label for="archivo${archivoCount}" id="label-archivo${archivoCount}" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+      <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+        <i class="fas fa-file-upload text-4xl mb-2"></i>
+        <span class="block mt-1 font-semibold">+ Recurso</span>
+      </span>
+      <input type="file" id="archivo${archivoCount}" name="archivo${archivoCount}" class="hidden">
+    </label>
+    <div id="preview-archivo${archivoCount}" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+  `;
+  contenedor.appendChild(nuevoDiv);
+});
+
+// Delegación de eventos para eliminar solo los campos agregados dinámicamente
+document.getElementById('contenedor-archivos').addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-eliminar-archivo')) {
+    e.preventDefault();
+    const div = e.target.closest('.archivo-extra');
+    if (div) div.remove();
+  }
+});
+</script>

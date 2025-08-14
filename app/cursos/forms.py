@@ -3,56 +3,97 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
     StringField, TextAreaField, SelectField, SubmitField
 )
+from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, Length, Optional, URL
-from app.cursos.models import Categoria
+from app.cursos.models import CategoriaCurso, Modalidad, Objetivo, AreaTematica, TipoAgente
+from app import db
+
+def get_categorias_para_form():
+    """
+    Esta función se utiliza para obtener las categorías de la base de datos
+    y las imprime en la consola para depuración.
+    """
+    categorias = CategoriaCurso.query.order_by(CategoriaCurso.nombre).all()
+    print(f"\n--- Depuración de Categorías para el Formulario ---")
+    if categorias:
+        print(f"Se encontraron {len(categorias)} categorías en la base de datos:")
+        for cat in categorias:
+            print(f"  - ID: {cat.id}, Nombre: {cat.nombre}")
+    else:
+        print("¡ADVERTENCIA: No se encontraron categorías en la base de datos 'categorias_cursos'!")
+        print("Asegúrate de que la tabla 'categorias_cursos' existe y contiene datos.")
+    print(f"---------------------------------------------------\n")
+    return categorias
 
 class CursoForm(FlaskForm):
-    categoria = SelectField(
+    # Campo para la categoría del curso
+    categoria = QuerySelectField(
         'Categoría',
-        choices=[],  # Se llenará dinámicamente
-        validators=[DataRequired()]
+        # query_factory es una función que SQLAlchemy usará para obtener las opciones.
+        # Aquí, obtenemos todas las categorías de la tabla 'categorias_cursos' ordenadas alfabéticamente por su nombre.
+        query_factory=get_categorias_para_form,
+        # get_label especifica qué atributo del objeto CategoriaCurso se usará como el texto visible en el desplegable.
+        get_label='nombre',
+        # allow_blank=True permite que el SelectField tenga una opción en blanco al inicio.
+        allow_blank=True,
+        # blank_text es el texto que se mostrará para esa opción en blanco.
+        blank_text='Selecciona una categoría',
+        validators=[DataRequired()] # El validador DataRequired asegura que el usuario seleccione una opción válida (no la en blanco).
     )
-    modalidad = SelectField(
+
+    modalidad = QuerySelectField(
         'Modalidad',
-        choices=[('Presencial', 'Presencial'), ('En línea', 'En línea'), ('Mixta', 'Mixta')],
+        query_factory=lambda: Modalidad.query.order_by(Modalidad.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona la modalidad',
         validators=[DataRequired()]
     )
-    objetivo = SelectField(
+
+    objetivo = QuerySelectField(
         'Objetivo',
-        choices=[
-            ('Actualizar y perfeccionar conocimientos y habilidades', 'Actualizar y perfeccionar conocimientos y habilidades'),
-            ('Proporcionar información de nuevas tecnologías', 'Proporcionar información de nuevas tecnologías'),
-            ('Preparar para ocupar vacantes o puestos de nueva creación', 'Preparar para ocupar vacantes o puestos de nueva creación'),
-            ('Prevenir riesgos de trabajo', 'Prevenir riesgos de trabajo'),
-            ('Incremento a la Productividad', 'Incremento a la Productividad'),
-        ],
+        query_factory=lambda: Objetivo.query.order_by(Objetivo.descripcion).all(),
+        get_label='descripcion',
+        allow_blank=True,
+        blank_text='Selecciona el objetivo',
         validators=[DataRequired()]
     )
+
     nombre = StringField('Nombre del curso', validators=[DataRequired(), Length(max=150)])
-    contenido = TextAreaField('Contenido', validators=[DataRequired()])
-    area_tematica = SelectField(
+    
+    area_tematica = QuerySelectField(
         'Área temática',
+        query_factory=lambda: AreaTematica.query.order_by(AreaTematica.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona el área temática',
+        validators=[DataRequired()]
+    )
+    duracion = SelectField(
+        'Duración',
         choices=[
-            ('6400-Higiene y seguridad en el trabajo', '6400-Higiene y seguridad en el trabajo'),
-            ('5405-Ambientales', '5405-Ambientales'),
-            ('3133-Formación y actualización de instructores', '3133-Formación y actualización de instructores'),
-            ('7100-Relaciones humanas', '7100-Relaciones humanas'),
-            ('8000-Uso de tecnologías de la información y comunicación', '8000-Uso de tecnologías de la información y comunicación'),
+            ('', 'Selecciona la duración'),
+            ('00:30', '30 minutos'),
+            ('01:00', '1 hora'),
+            ('01:30', '1 hora 30 minutos'),
+            ('02:00', '2 horas')
         ],
         validators=[DataRequired()]
     )
-    duracion = StringField('Duración', validators=[DataRequired(), Length(max=50)])
-    tipo_agente = SelectField(
+
+    tipo_agente = QuerySelectField(
         'Tipo de agente capacitador',
-        choices=[('Interno', 'Interno'), ('Externo', 'Externo'), ('Otro', 'Otro')],
+        query_factory=lambda: TipoAgente.query.order_by(TipoAgente.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona el tipo de agente',
         validators=[DataRequired()]
     )
+    
     imagen = FileField('Imagen del curso', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Solo imágenes')])
+    video_url = StringField('URL del Video', validators=[Optional(), URL(message='Ingrese una URL válida')])
     submit = SubmitField('Guardar')
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.categoria.choices = [(c.id, c.nombre) for c in Categoria.query.all()]
 
 class ExamenForm(FlaskForm):
     titulo = StringField('Título del examen', validators=[DataRequired(), Length(max=150)])
@@ -79,3 +120,4 @@ class ActividadForm(FlaskForm):
     descripcion = TextAreaField('Descripción')
     video_url = StringField('URL del Video', validators=[Optional(), URL(message='Ingrese una URL válida')])
     submit = SubmitField('Guardar')
+

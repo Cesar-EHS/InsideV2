@@ -5,229 +5,641 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Inside - Intranet{% endblock %}</title>
   <link rel="icon" type="image/webp" href="{{ url_for('static', filename=system_logo) }}" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
     :root {
-      --inside-yellow: #fab522;
-      --inside-dark: #232323;
-      --inside-gray: #5e5e5e;
-      --inside-light: #f8f8f8;
-      --inside-white: #fff;
-      --inside-shadow: 0 4px 24px 0 #0001;
+      /* Colores principales */
+      --inside-primary: #374151;
+      --inside-primary-light: #6b7280;
+      --inside-primary-dark: #1f2937;
+      --inside-accent: #059669;
+      --inside-accent-light: #10b981;
+      --inside-gray: #64748b;
+      --inside-gray-light: #f1f5f9;
+      --inside-gray-dark: #334155;
+      --inside-white: #ffffff;
+      --inside-black: #0f172a;
+      --inside-success: #10b981;
+      --inside-warning: #f59e0b;
+      --inside-error: #ef4444;
+      
+      /* Sombras Apple-style */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      
+      /* Blur y backdrop */
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --glass-border: rgba(255, 255, 255, 0.2);
     }
-    body { font-family: 'Poppins', sans-serif; background: var(--inside-light); color: var(--inside-dark); }
-    .header-icon {
-      transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
-      border-radius: 1.2rem;
-      box-shadow: 0 1px 4px #eaeaea44;
-      padding: 0.4rem 0.7rem;
-      margin: 0 0.1rem;
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: var(--inside-black);
+      line-height: 1.6;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header Styles */
+    .main-header {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .logo-container {
+      transition: transform 0.2s ease;
+    }
+
+    .logo-container:hover {
+      transform: scale(1.05);
+    }
+
+    .search-container {
       position: relative;
-      background: transparent;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 16px 0 44px;
+      border: 2px solid transparent;
+      border-radius: 22px;
+      background: rgba(248, 250, 252, 0.8);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--inside-black);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       outline: none;
-      border: none;
-      cursor: pointer;
+    }
+
+    .search-input:focus {
+      background: var(--inside-white);
+      border-color: var(--inside-blue);
+      box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+    }
+
+    .search-input::placeholder {
+      color: var(--inside-gray);
+      font-weight: 400;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--inside-gray);
+      transition: color 0.3s ease;
+    }
+
+    .search-input:focus + .search-icon {
+      color: var(--inside-blue);
+    }
+
+    /* Navigation Styles */
+    .nav-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-item {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .header-icon:hover {
-      background: #fffbe9;
-      color: var(--inside-yellow);
-      box-shadow: 0 2px 12px #fab52222;
-      transform: scale(1.08);
-    }
-    .header-icon svg {
-      display: block;
-      filter: drop-shadow(0 1px 2px #0001);
-    }
-    .user-menu-dropdown {
-      min-width: 11rem;
-      right: 0;
-      left: auto;
-      position: absolute;
-      z-index: 100;
-      margin-top: 0.5rem;
-      background: rgba(255,255,255,0.97);
-      border: 1px solid #f3f3f3;
-      border-radius: 1.2rem;
-      box-shadow: 0 8px 32px #fab52233;
-      overflow: hidden;
-      display: none;
-      backdrop-filter: blur(12px) saturate(120%);
-      -webkit-backdrop-filter: blur(12px) saturate(120%);
-      animation: fadeIn 0.18s;
-    }
-    .user-menu-dropdown.show { display: block; }
-    .user-menu-dropdown a {
-      display: block;
-      padding: 1.1rem 2rem;
-      color: var(--inside-dark);
-      font-weight: 500;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      color: var(--inside-gray);
       text-decoration: none;
-      transition: background 0.15s, color 0.15s, transform 0.15s;
-      border-radius: 0.8rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      outline: none;
     }
-    .user-menu-dropdown a:hover {
-      background: #fffbe9;
-      color: var(--inside-yellow);
-      transform: scale(1.04);
+
+    .nav-item:hover {
+      background: rgba(30, 58, 138, 0.1);
+      color: var(--inside-blue);
+      transform: translateY(-1px);
     }
-    .user-menu-dropdown .text-red-600 { color: #e53e3e !important; }
-    .user-menu-dropdown .text-red-600:hover { color: #fff; background: #e53e3e !important; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .nav-item.active {
+      background: var(--inside-blue);
+      color: var(--inside-white);
+      box-shadow: var(--shadow-md);
     }
-    .apple-shadow {
-      box-shadow: 0 4px 24px 0 #0000000a, 0 1.5px 6px 0 #fab52222;
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
     }
-    @media (max-width: 900px) {
-      header { flex-wrap: wrap; padding: 0.5rem 0.5rem; }
-      .header-icon { padding: 0.3rem 0.5rem; }
-      .user-menu-dropdown { right: 0.5rem; }
-      main { padding-top: 4.5rem !important; }
+
+    /* Tooltip */
+    .nav-item::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      background: var(--inside-black);
+      color: var(--inside-white);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 8px;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .nav-item:hover::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    /* User Menu */
+    .user-menu {
+      position: relative;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      border: 2px solid transparent;
+      object-fit: cover;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .user-menu-btn {
+      padding: 2px;
+      border-radius: 22px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .user-menu-btn:hover .user-avatar {
+      border-color: var(--inside-blue);
+      box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 200px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-xl);
+      padding: 8px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+
+    .user-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      color: var(--inside-black);
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      border: none;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(30, 58, 138, 0.1);
+      color: var(--inside-blue);
+    }
+
+    .dropdown-item.danger {
+      color: var(--inside-error);
+    }
+
+    .dropdown-item.danger:hover {
+      background: var(--inside-error);
+      color: var(--inside-white);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--glass-border);
+      margin: 8px 0;
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      .main-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .header-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      .header-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 12px;
+      }
+
+      .search-container {
+        flex: 1;
+        max-width: none;
+      }
+
+      .nav-container {
+        gap: 2px;
+      }
+
+      .nav-item {
+        width: 40px;
+        height: 40px;
+      }
+
+      .nav-item svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .nav-item::after {
+        display: none;
+      }
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+      }
+
+      main {
+        padding-top: 120px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-header {
+        padding: 8px 12px;
+      }
+
+      .search-input {
+        font-size: 16px; /* Evita zoom en iOS */
+      }
+
+      .nav-container {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+
+    /* Content Area */
+    main {
+      padding-top: 80px;
+      min-height: 100vh;
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Focus styles for accessibility */
+    .nav-item:focus-visible,
+    .user-menu-btn:focus-visible {
+      outline: 2px solid var(--inside-blue);
+      outline-offset: 2px;
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="min-h-screen bg-[var(--inside-light)]">
-  <header class="w-full bg-white apple-shadow flex items-center px-6 py-2 fixed top-0 left-0 z-50 rounded-b-2xl" style="box-shadow: var(--inside-shadow);">
-    <a href="/" class="flex items-center mr-6">
-      <img src="{{ url_for('static', filename=system_logo) }}" alt="Inside" class="h-10 max-w-[160px] object-contain" style="border-radius: 0.7rem; box-shadow: none;" />
-    </a>
-    <form role="search" action="{{ url_for('search.search') }}" method="GET" class="flex-1 max-w-lg relative">
-      <input type="search" name="q" placeholder="Buscar..." aria-label="Buscar" value="{{ request.args.get('q', '') }}" class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[var(--inside-yellow)] focus:bg-white bg-gray-50 text-gray-700 shadow-sm" />
-      <svg class="absolute left-3 top-2.5 text-gray-400" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </form>
-    <nav class="flex items-center gap-1 ml-8">
-      {% set nav_items = [
-        {'endpoint': 'home.home', 'icon': 'icon-home', 'label': 'Inicio'},
-        {'endpoint': 'tickets.index', 'icon': 'icon-lifebuoy', 'label': 'Soporte'},
-        {'endpoint': 'cursos.index', 'icon': 'icon-book-open', 'label': 'CrecEHS'},
-        {'endpoint': 'logros.index', 'icon': 'icon-star', 'label': 'EHSfuerzate'},
-        {'endpoint': 'knowledge.index', 'icon': 'icon-folder', 'label': 'Recursos'}
-      ] %}
-      {% for item in nav_items %}
-        <a href="{{ url_for(item.endpoint) }}" class="header-icon {% if request.endpoint == item.endpoint %}active text-[var(--inside-yellow)]{% else %}text-[var(--inside-gray)]{% endif %}" tabindex="0">
-          <svg class="h-6 w-6" aria-hidden="true"><use xlink:href="#{{ item.icon }}" /></svg>
-          <span class="tooltip">{{ item.label }}</span>
-        </a>
-      {% endfor %}
-    </nav>
-    <div class="relative ml-6">
-      <button id="user-menu-btn" type="button" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-50 hover:bg-yellow-50 border border-gray-100 shadow-none transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--inside-yellow)]">
-        {% if current_user.foto %}
-          <img src="{{ url_for('auth.static', filename='fotos/' ~ current_user.foto) }}" alt="Foto de perfil" class="w-9 h-9 rounded-full object-cover" style="border: none; box-shadow: none; background: #f3f3f3;" />
-        {% else %}
-          <img src="{{ url_for('static', filename='default_user.png') }}" alt="Foto de perfil" class="w-9 h-9 rounded-full object-cover" style="border: none; box-shadow: none; background: #f3f3f3;" />
-        {% endif %}
-      </button>
-      <div id="user-menu-dropdown" class="user-menu-dropdown">
-        <a href="{{ url_for('perfil.perfil') }}">Mi perfil</a>
-        <div class="border-t border-yellow-100"></div>
-        <a href="{{ url_for('auth.logout') }}" class="text-red-600 font-bold">Cerrar sesión</a>
+<body>
+  <header class="main-header fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Desktop Layout -->
+      <div class="hidden md:flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="logo-container">
+          <a href="/" class="flex items-center">
+            <img src="{{ url_for('static', filename=system_logo) }}" 
+                 alt="Inside" 
+                 class="h-8 w-auto object-contain" />
+          </a>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container mx-8">
+          <form role="search" action="{{ url_for('search.search') }}" method="GET">
+            <input type="search" 
+                   name="q" 
+                   placeholder="Buscar en Inside..." 
+                   aria-label="Buscar" 
+                   value="{{ request.args.get('q', '') }}" 
+                   class="search-input" />
+            <svg class="search-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </form>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav-container">
+          {% set nav_items = [
+            {'endpoint': 'home.home', 'icon': 'home', 'label': 'Inicio'},
+            {'endpoint': 'tickets.index', 'icon': 'life-buoy', 'label': 'Soporte'},
+            {'endpoint': 'cursos.index', 'icon': 'book-open', 'label': 'CrecEHS'},
+            {'endpoint': 'logros.index', 'icon': 'star', 'label': 'EHSfuerzate'},
+            {'endpoint': 'knowledge.index', 'icon': 'folder', 'label': 'Recursos'}
+          ] %}
+          {% for item in nav_items %}
+            <a href="{{ url_for(item.endpoint) }}" 
+               class="nav-item {% if request.endpoint == item.endpoint %}active{% endif %}" 
+               data-tooltip="{{ item.label }}"
+               aria-label="{{ item.label }}">
+              {% if item.icon == 'home' %}
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+              {% elif item.icon == 'life-buoy' %}
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/>
+                </svg>
+              {% elif item.icon == 'book-open' %}
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              {% elif item.icon == 'star' %}
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+              {% elif item.icon == 'folder' %}
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </nav>
+
+        <!-- User Menu -->
+        <div class="user-menu ml-4">
+          <button id="user-menu-btn" class="user-menu-btn" aria-label="Menú de usuario">
+            {% if current_user.foto %}
+              <img src="{{ url_for('auth.static', filename='fotos/' ~ current_user.foto) }}" 
+                   alt="Foto de perfil" 
+                   class="user-avatar" />
+            {% else %}
+              <img src="{{ url_for('static', filename='default_user.png') }}" 
+                   alt="Foto de perfil" 
+                   class="user-avatar" />
+            {% endif %}
+          </button>
+          <div id="user-menu-dropdown" class="user-dropdown">
+            <a href="{{ url_for('perfil.perfil') }}" class="dropdown-item">Mi perfil</a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('auth.logout') }}" class="dropdown-item danger">Cerrar sesión</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Layout -->
+      <div class="md:hidden">
+        <div class="header-top py-2">
+          <div class="logo-container">
+            <a href="/" class="flex items-center">
+              <img src="{{ url_for('static', filename=system_logo) }}" 
+                   alt="Inside" 
+                   class="h-7 w-auto object-contain" />
+            </a>
+          </div>
+          <div class="user-menu">
+            <button id="user-menu-btn-mobile" class="user-menu-btn" aria-label="Menú de usuario">
+              {% if current_user.foto %}
+                <img src="{{ url_for('auth.static', filename='fotos/' ~ current_user.foto) }}" 
+                     alt="Foto de perfil" 
+                     class="user-avatar" />
+              {% else %}
+                <img src="{{ url_for('static', filename='default_user.png') }}" 
+                     alt="Foto de perfil" 
+                     class="user-avatar" />
+              {% endif %}
+            </button>
+            <div id="user-menu-dropdown-mobile" class="user-dropdown">
+              <a href="{{ url_for('perfil.perfil') }}" class="dropdown-item">Mi perfil</a>
+              <div class="dropdown-divider"></div>
+              <a href="{{ url_for('auth.logout') }}" class="dropdown-item danger">Cerrar sesión</a>
+            </div>
+          </div>
+        </div>
+        <div class="header-bottom py-2">
+          <div class="search-container">
+            <form role="search" action="{{ url_for('search.search') }}" method="GET">
+              <input type="search" 
+                     name="q" 
+                     placeholder="Buscar..." 
+                     aria-label="Buscar" 
+                     value="{{ request.args.get('q', '') }}" 
+                     class="search-input" />
+              <svg class="search-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </form>
+          </div>
+          <nav class="nav-container ml-4">
+            {% for item in nav_items %}
+              <a href="{{ url_for(item.endpoint) }}" 
+                 class="nav-item {% if request.endpoint == item.endpoint %}active{% endif %}" 
+                 aria-label="{{ item.label }}">
+                {% if item.icon == 'home' %}
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                  </svg>
+                {% elif item.icon == 'life-buoy' %}
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/>
+                  </svg>
+                {% elif item.icon == 'book-open' %}
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                {% elif item.icon == 'star' %}
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                  </svg>
+                {% elif item.icon == 'folder' %}
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                  </svg>
+                {% endif %}
+              </a>
+            {% endfor %}
+          </nav>
+        </div>
       </div>
     </div>
   </header>
-  <main class="pt-20 px-2 sm:px-4 max-w-7xl mx-auto w-full">
-    {% block content %}{% endblock %}
+
+  <main class="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    {% block content %}
+    <!-- Content will be inserted here -->
+    <div class="py-12">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-semibold text-center mb-8" style="color: var(--inside-blue);">
+          Bienvenido a Inside
+        </h1>
+        <p class="text-lg text-center" style="color: var(--inside-gray);">
+          Tu intranet corporativa rediseñada con un enfoque minimalista y moderno
+        </p>
+      </div>
+    </div>
+    {% endblock %}
   </main>
-  <svg style="display: none;">
-    <symbol id="icon-home" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3l-10-9-10 9h3v8z"/></symbol>
-    <symbol id="icon-book-open" viewBox="0 0 24 24"><path d="M12 20l-4-2-4 2V4l4-2 4 2 4-2 4 2v16l-4-2-4 2z"/></symbol>
-    <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></symbol>
-    <symbol id="icon-lifebuoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/></symbol>
-    <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 10h16"/></symbol>
-  </svg>
+
   <script>
-    // User menu
-    const userMenuBtn = document.getElementById('user-menu-btn');
-    const userMenuDropdown = document.getElementById('user-menu-dropdown');
-    userMenuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      userMenuDropdown.classList.toggle('show');
+    // User menu functionality for both desktop and mobile
+    function initUserMenu(btnId, dropdownId) {
+      const userMenuBtn = document.getElementById(btnId);
+      const userMenuDropdown = document.getElementById(dropdownId);
+      
+      if (!userMenuBtn || !userMenuDropdown) return;
+      
+      userMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenuDropdown.classList.toggle('show');
+        userMenuDropdown.classList.add('animate-slide-in');
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+          userMenuDropdown.classList.remove('show');
+        }
+      });
+      
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          userMenuDropdown.classList.remove('show');
+        }
+      });
+    }
+    
+    // Initialize user menus
+    document.addEventListener('DOMContentLoaded', () => {
+      initUserMenu('user-menu-btn', 'user-menu-dropdown');
+      initUserMenu('user-menu-btn-mobile', 'user-menu-dropdown-mobile');
     });
-    document.addEventListener('click', (e) => {
-      if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-        userMenuDropdown.classList.remove('show');
-      }
-    });
+    
+    // Global current user ID for chat functionality
+    window.currentUserId = "{{ current_user.id }}";
   </script>
-  <script>
-  window.currentUserId = "{{ current_user.id }}";
-  </script>
+
+  <!-- Chat Widget (manteniendo la funcionalidad original) -->
   {% include 'chat/chat_widget.html' %}
   <script src="{{ url_for('chat.static', filename='chat/js/chat.js') }}"></script>
+  
+  <!-- Original chat functionality -->
   <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Chat Widget JS seguro
-  var chatWidget = document.getElementById('chat-widget');
-  var chatFab = document.getElementById('chat-fab');
-  var chatClose = document.getElementById('chat-close');
-  var chatUsers = document.getElementById('chat-users');
-  var chatMessages = document.getElementById('chat-messages');
-  var chatInput = document.getElementById('chat-input');
-  var chatSend = document.getElementById('chat-send');
-  var currentConversationId = null;
-  var currentUserId = null;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Chat Widget JS seguro
+      var chatWidget = document.getElementById('chat-widget');
+      var chatFab = document.getElementById('chat-fab');
+      var chatClose = document.getElementById('chat-close');
+      var chatUsers = document.getElementById('chat-users');
+      var chatMessages = document.getElementById('chat-messages');
+      var chatInput = document.getElementById('chat-input');
+      var chatSend = document.getElementById('chat-send');
+      var currentConversationId = null;
+      var currentUserId = null;
 
-  if(chatFab) chatFab.onclick = function() {
-    if(chatWidget) chatWidget.style.display = 'flex';
-    chatFab.style.display = 'none';
-    if(typeof loadUsers === 'function') loadUsers();
-  };
-  if(chatClose) chatClose.onclick = function() {
-    if(chatWidget) chatWidget.style.display = 'none';
-    chatFab.style.display = 'flex';
-  };
-  if(chatSend) chatSend.onclick = function() { sendMessage(); };
-  if(chatInput) chatInput.addEventListener('keydown', function(e){ if(e.key==='Enter'){ sendMessage(); }});
-
-  window.loadUsers = function() {
-    fetch('/chat/list_users').then(function(r){ return r.json(); }).then(function(users) {
-      if(!chatUsers) return;
-      chatUsers.innerHTML = '';
-      users.forEach(function(u) {
-        var btn = document.createElement('button');
-        btn.className = 'w-full flex flex-col items-center py-2 hover:bg-inside-yellow/30 transition';
-        btn.innerHTML = '<img src="'+(u.foto||'/static/img/user.png')+'" class="w-8 h-8 rounded-full mb-1"><span class="text-xs text-inside-blue font-sfpro">'+u.nombre+'</span>';
-        btn.onclick = function() { loadConversation(u.id); };
-        chatUsers.appendChild(btn);
-      });
-    });
-  };
-  window.loadConversation = function(userId) {
-    fetch('/chat/conversation/' + userId).then(function(r){ return r.json(); }).then(function(data) {
-      currentConversationId = data.conversation_id;
-      currentUserId = userId;
-      if(!chatMessages) return;
-      chatMessages.innerHTML = '';
-      data.messages.forEach(function(m) {
-        var div = document.createElement('div');
-        div.className = 'flex flex-col mb-1 ' + (m.sender_id === currentUserId ? 'items-end' : 'items-start');
-        div.innerHTML = '<div class="rounded-xl px-3 py-2 ' + (m.sender_id === currentUserId ? 'bg-inside-yellow text-inside-blue' : 'bg-inside-blue text-white') + ' max-w-xs font-sfpro">' + (m.content||'') + '</div><span class="text-xs text-gray-400 mt-1">' + m.timestamp + '</span>';
-        chatMessages.appendChild(div);
-      });
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    });
-  };
-  window.sendMessage = function() {
-    if(!chatInput.value.trim() || !currentConversationId) return;
-    var form = new FormData();
-    form.append('conversation_id', currentConversationId);
-    form.append('message', chatInput.value);
-    fetch('/chat/send', {method:'POST', body:form}).then(function(r){ return r.json(); }).then(function(resp) {
-      if(resp.status==='ok'){
-        loadConversation(currentUserId);
-        chatInput.value = '';
-      }
-    });
-  };
-});
-</script>
-{% block extra_js %}{% endblock %}
-</body>
-</html>
+      if(chatFab) chatFab.onclick = function() {
+        if(chatWidget) chatWidget.style.display = 'flex';
+        chatFab.style.display = 'none';
+        if(typeof loadUsers === 'function') loadUsers();
+      };
+      if(chatClose) chatClose.onclick = function() {
+        if(chatWidget) chatWidget.style.display = 'none';
+        chatFab.style.display = 'flex';
+      };
+      if(chatSend) chat

@@ -45,7 +45,7 @@ def db_retry_operation(operation, max_retries=5, base_delay=0.1):
             else:
                 raise e
     
-    raise OperationalError("Database locked después de todos los intentos", None, None)
+    raise OperationalError("Database locked después de todos los intentos", None, None)  # type: ignore
 
 # Base model para todos los modelos
 class BaseModel(db.Model):  # type: ignore[misc,valid-type]
@@ -77,6 +77,7 @@ class Departamento(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False, unique=True)
     descripcion = db.Column(db.String(200))
+    activo = db.Column(db.Boolean, default=True, nullable=False)
 
 class Proyecto(BaseModel):
     """Model for projects."""
@@ -166,6 +167,8 @@ class User(BaseModel, UserMixin, TimestampMixin):
     password_hash = db.Column(db.String(256))
     foto = db.Column(db.String(255))
     fecha_ingreso = db.Column(db.Date)
+    rol = db.Column(db.String(50), default='usuario')
+    activo = db.Column(db.Boolean, default=True)
     
     # Foreign Keys
     estatus_id = db.Column(db.Integer, db.ForeignKey('estatus_usuarios.id'), nullable=False)
@@ -230,10 +233,22 @@ class User(BaseModel, UserMixin, TimestampMixin):
     @property
     def foto_url(self):
         """Get the user photo URL or default image."""
-        from flask import url_for
-        if self.foto:
-            return url_for('auth.serve_foto', filename=self.foto)
-        return url_for('static', filename='default_user.png')
+        from flask import url_for, has_request_context
+        try:
+            if self.foto:
+                if has_request_context():
+                    return url_for('auth.serve_foto', filename=self.foto)
+                else:
+                    # Construir URL manualmente cuando no hay contexto de petición
+                    return f'/auth/static/fotos/{self.foto}'
+            
+            if has_request_context():
+                return url_for('static', filename='default_user.png')
+            else:
+                return '/static/default_user.png'
+        except Exception:
+            # Fallback en caso de cualquier error
+            return '/static/default_user.png'
 
     @property
     def nombre_completo(self):
@@ -317,12 +332,12 @@ class Configuracion(BaseModel):
                 config.actualizado_por = usuario_id
                 config.fecha_actualizacion = datetime.utcnow()
             else:
-                config = cls(
-                    clave=clave,
-                    valor=valor,
-                    descripcion=descripcion,
-                    tipo=tipo,
-                    actualizado_por=usuario_id
+                config = cls(  # type: ignore
+                    clave=clave,  # type: ignore
+                    valor=valor,  # type: ignore
+                    descripcion=descripcion,  # type: ignore
+                    tipo=tipo,  # type: ignore
+                    actualizado_por=usuario_id  # type: ignore
                 )
                 db.session.add(config)
             
@@ -354,5 +369,63 @@ class PermisosGestion(BaseModel):
             'puesto_trabajo_id': self.puesto_trabajo_id,
             'puesto_nombre': self.puesto.nombre if self.puesto else None,
             'puede_gestionar_usuarios': self.puede_gestionar_usuarios,
+            'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None
+        }
+
+
+class PermisosTickets(BaseModel):
+    """Model for tickets permissions by department."""
+    __tablename__ = 'permisos_tickets'
+    __allow_unmapped__ = True
+    
+    id = db.Column(db.Integer, primary_key=True)
+    departamento_id = db.Column(db.Integer, db.ForeignKey('departamentos.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha_creacion = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    actualizado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+    
+    # Relaciones
+    usuario = db.relationship('User', foreign_keys=[usuario_id], backref='permisos_tickets_asignados')
+    departamento = db.relationship('Departamento', backref='permisos_asignados')
+    actualizado_por_usuario = db.relationship('User', foreign_keys=[actualizado_por])
+    
+    def to_dict(self):
+        """Convert to dictionary."""
+        return {
+            'id': self.id,
+            'usuario_id': self.usuario_id,
+            'usuario_nombre': f"{self.usuario.nombre} {self.usuario.apellido_paterno}" if self.usuario else None,
+            'departamento_id': self.departamento_id,
+            'departamento_nombre': self.departamento.nombre if self.departamento else None,
+            'activo': self.activo,
+            'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None
+        }
+
+
+class PermisosHome(BaseModel):
+    """Model for home permissions."""
+    __tablename__ = 'permisos_home'
+    __allow_unmapped__ = True
+    
+    id = db.Column(db.Integer, primary_key=True)
+    tipo_permiso = db.Column(db.String(50), nullable=False)  # crear_posts, crear_eventos, moderar_contenido
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha_creacion = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    actualizado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+    
+    # Relación con User
+    usuario = db.relationship('User', foreign_keys=[usuario_id], backref='permisos_home_asignados')
+    actualizado_por_usuario = db.relationship('User', foreign_keys=[actualizado_por])
+    
+    def to_dict(self):
+        """Convert to dictionary."""
+        return {
+            'id': self.id,
+            'tipo_permiso': self.tipo_permiso,
+            'usuario_id': self.usuario_id,
+            'usuario_nombre': f"{self.usuario.nombre} {self.usuario.apellido_paterno}" if self.usuario else None,
+            'activo': self.activo,
             'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None
         }

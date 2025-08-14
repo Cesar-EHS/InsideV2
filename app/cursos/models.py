@@ -6,22 +6,31 @@ class Curso(db.Model):
     __tablename__ = 'cursos'
 
     id = db.Column(db.Integer, primary_key=True)
-    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)  # Relación con Categoría
-    categoria = db.relationship('Categoria', back_populates='cursos')
-    modalidad = db.Column(db.String(20), nullable=False)  # Presencial, En línea, Mixta
-    objetivo = db.Column(db.String(255), nullable=False)
-    nombre = db.Column(db.String(150), nullable=False)
-    contenido = db.Column(db.Text, nullable=False)
-    area_tematica = db.Column(db.String(100), nullable=False)
-    duracion = db.Column(db.String(50), nullable=False)
-    tipo_agente = db.Column(db.String(50), nullable=False)  # Interno, Externo, Otro
     creador_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    nombre = db.Column(db.String(150), nullable=False)
+    modalidad_id = db.Column(db.Integer, db.ForeignKey('modalidades.id'), nullable=False)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias_cursos.id'), nullable=False)
+    objetivo_id = db.Column(db.Integer, db.ForeignKey('objetivos.id'), nullable=False)
+    area_tematica_id = db.Column(db.Integer, db.ForeignKey('areas_tematicas.id'), nullable=False)
+    tipo_agente_id = db.Column(db.Integer, db.ForeignKey('tipos_agente.id'), nullable=False)
+    duracion = db.Column(db.String(50), nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    imagen = db.Column(db.String(255), nullable=True)  # Ruta de la imagen del curso
+    imagen = db.Column(db.String(255))
+    estado = db.Column(db.String(50), default='Activo', nullable=True)  # Activo, Inactivo
+    video_url = db.Column(db.String(255))
+    eliminado = db.Column(db.Integer, default=0)  # 0 = no eliminado, 1 = eliminado
 
-    inscripciones = db.relationship('Inscripcion', back_populates='curso', cascade='all, delete-orphan')
+    #Relaciones de todas las tablas, relacion en cuanto a modelos ORM no de 
+    modalidad = db.relationship('Modalidad', backref='cursos')
+    objetivo = db.relationship('Objetivo', backref='cursos')
+    area_tematica = db.relationship('AreaTematica', backref='cursos')
+    tipo_agente = db.relationship('TipoAgente', backref='cursos')
+    categoria = db.relationship('CategoriaCurso', backref='cursos')
+    creador = db.relationship('User', backref='cursos')
     examenes = db.relationship('Examen', back_populates='curso', cascade='all, delete-orphan')
     actividades = db.relationship('Actividad', back_populates='curso', cascade='all, delete-orphan')
+    inscripciones = db.relationship('Inscripcion', back_populates='curso', cascade='all, delete-orphan')
+    archivos = db.relationship('Archivo', back_populates='curso', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Curso {self.nombre}>'
@@ -130,14 +139,62 @@ class ActividadResultado(db.Model):
         return f'<ActividadResultado actividad {self.actividad_id} inscripcion {self.inscripcion_id}>'
 
 
-class Categoria(db.Model):
-    __tablename__ = 'categorias'
+class CategoriaCurso(db.Model):
+    __tablename__ = 'categorias_cursos'
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
     descripcion = db.Column(db.Text, nullable=True)
 
-    cursos = db.relationship('Curso', back_populates='categoria')
+    # Aqui hacemos la relacion con el modelo de Curso
+    # cursos = db.relationship('Curso', back_populates='categoria')
 
     def __repr__(self):
-        return f'<Categoria {self.nombre}>'
+        return f'<CategoriaCurso {self.nombre}>'
+
+class Modalidad(db.Model):
+    __tablename__ = 'modalidades'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(20), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f'<Modalidad {self.nombre}>'
+    
+class Objetivo(db.Model):
+    __tablename__ = 'objetivos'
+    id = db.Column(db.Integer, primary_key=True)
+    descripcion = db.Column(db.String(255), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f'<Objetivo {self.descripcion}>'
+
+class AreaTematica(db.Model):
+    __tablename__ = 'areas_tematicas'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f'<AreaTematica {self.nombre}>'
+
+class TipoAgente(db.Model):
+    __tablename__ = 'tipos_agente'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(20), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f'<TipoAgente {self.nombre}>'
+
+class Archivo(db.Model):
+    __tablename__ = 'archivos'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(255), nullable=False)
+    ruta = db.Column(db.String(255), nullable=False)  # Ruta del archivo en el sistema
+    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
+    fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
+
+    curso = db.relationship('Curso', back_populates='archivos')
+
+    def __repr__(self):
+        return f'<Archivo {self.nombre}>'

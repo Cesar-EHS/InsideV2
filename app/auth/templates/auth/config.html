@@ -85,10 +85,10 @@
                                     <img id="currentLoginImage" src="{{ url_for('auth.static', filename=login_image) }}" alt="Login Background" class="w-full h-full object-cover">
                                 </div>
                                 <div class="flex flex-col space-y-2">
-                                    <button type="button" onclick="document.getElementById('loginImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                    <button type="button" title="Cambiar imagen de fondo del login" onclick="document.getElementById('loginImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                         Cambiar Imagen
                                     </button>
-                                    <input type="file" id="loginImageInput" accept="image/*" style="display: none;" onchange="subirImagenLogin()">
+                                    <input type="file" id="loginImageInput" accept="image/*" title="Seleccionar imagen de fondo para el login" class="hidden" onchange="subirImagenLogin()">
                                     <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max 2MB)</p>
                                 </div>
                             </div>
@@ -101,10 +101,10 @@
                                     <img id="currentLogo" src="{{ url_for('static', filename=logo_sistema) }}" alt="Sistema Logo" class="w-full h-full object-contain">
                                 </div>
                                 <div class="flex flex-col space-y-2">
-                                    <button type="button" onclick="document.getElementById('logoImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                    <button type="button" title="Cambiar logo del sistema" onclick="document.getElementById('logoImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                         Cambiar Logo
                                     </button>
-                                    <input type="file" id="logoImageInput" accept="image/*" style="display: none;" onchange="subirLogo()">
+                                    <input type="file" id="logoImageInput" accept="image/*" title="Seleccionar logo del sistema" class="hidden" onchange="subirLogo()">
                                     <p class="text-xs text-gray-500">PNG, JPG, JPEG, SVG (Max 2MB)</p>
                                 </div>
                             </div>
@@ -118,13 +118,13 @@
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="text-sm font-medium text-gray-700 block mb-2">Nombre de la Empresa</label>
-                            <input type="text" id="empresaNombre" value="Inside V2" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label for="empresaNombre" class="text-sm font-medium text-gray-700 block mb-2">Nombre de la Empresa</label>
+                            <input type="text" id="empresaNombre" value="Inside V2" title="Nombre de la empresa" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         
                         <div>
-                            <label class="text-sm font-medium text-gray-700 block mb-2">Tema del Sistema</label>
-                            <select id="tema" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label for="tema" class="text-sm font-medium text-gray-700 block mb-2">Tema del Sistema</label>
+                            <select id="tema" title="Selecciona el tema del sistema" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="light">Claro</option>
                                 <option value="dark">Oscuro</option>
                                 <option value="auto">Automático</option>
@@ -143,7 +143,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Departamentos</h3>
-                        <button onclick="abrirModalTabla('departamentos')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('departamentos')" title="Agregar nuevo departamento" aria-label="Agregar nuevo departamento" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -158,7 +158,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Puestos de Trabajo</h3>
-                        <button onclick="abrirModalTabla('puestos_trabajo')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('puestos_trabajo')" title="Agregar nuevo puesto de trabajo" aria-label="Agregar nuevo puesto de trabajo" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -173,7 +173,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Proyectos</h3>
-                        <button onclick="abrirModalTabla('proyectos')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('proyectos')" title="Agregar nuevo proyecto" aria-label="Agregar nuevo proyecto" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -188,7 +188,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Ocupaciones</h3>
-                        <button onclick="abrirModalTabla('ocupaciones')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('ocupaciones')" title="Agregar nueva ocupación" aria-label="Agregar nueva ocupación" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -203,7 +203,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Instituciones Educativas</h3>
-                        <button onclick="abrirModalTabla('instituciones_educativas')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('instituciones_educativas')" title="Agregar nueva institución educativa" aria-label="Agregar nueva institución educativa" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -218,7 +218,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Niveles de Estudio</h3>
-                        <button onclick="abrirModalTabla('niveles_estudio')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('niveles_estudio')" title="Agregar nuevo nivel de estudio" aria-label="Agregar nuevo nivel de estudio" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -233,7 +233,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Entidades Federativas</h3>
-                        <button onclick="abrirModalTabla('entidades_federativas')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('entidades_federativas')" title="Agregar nueva entidad federativa" aria-label="Agregar nueva entidad federativa" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -248,7 +248,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Municipios</h3>
-                        <button onclick="abrirModalTabla('municipios')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('municipios')" title="Agregar nuevo municipio" aria-label="Agregar nuevo municipio" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m-6 0H6"></path>
                             </svg>
@@ -263,13 +263,28 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Estatus de Usuario</h3>
-                        <button onclick="abrirModalTabla('estatus_usuarios')" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('estatus_usuarios')" title="Agregar nuevo estatus de usuario" aria-label="Agregar nuevo estatus de usuario" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                         </button>
                     </div>
                     <div id="lista-estatus_usuarios" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Categorías de Tickets -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Categorías de Tickets</h3>
+                        <button onclick="abrirModalTabla('categorias_tickets')" title="Agregar nueva categoría de ticket" aria-label="Agregar nueva categoría de ticket" class="text-blue-600 hover:text-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="lista-categorias_tickets" class="space-y-2 max-h-40 overflow-y-auto">
                         <!-- Se carga dinámicamente -->
                     </div>
                 </div>
@@ -298,6 +313,8 @@
                                    id="permiso-{{ puesto.id }}" 
                                    value="{{ puesto.id }}"
                                    data-puesto-id="{{ puesto.id }}"
+                                   title="Permiso para {{ puesto.nombre }}"
+                                   aria-label="Permiso para {{ puesto.nombre }}"
                                    {% if puesto.id == 7 %}checked{% endif %}
                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 permiso-checkbox">
                         </div>
@@ -311,6 +328,67 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Permisos para Tickets -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Permisos de Tickets</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Gestores de Departamentos</h4>
+                        <p class="text-sm text-gray-600 mb-4">Asigna qué usuarios pueden gestionar los tickets de cada departamento:</p>
+                        
+                        <div class="space-y-4">
+                            <div id="permisos-departamentos-tickets" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Se cargará dinámicamente con los departamentos -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-200">
+                        <button onclick="guardarPermisosTickets()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Guardar Permisos de Departamentos
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Permisos para Home -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Permisos de Home</h3>
+                
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-600">Selecciona qué puestos pueden crear y publicar contenido en el home:</p>
+                    
+                    <div id="permisos-home" class="space-y-3">
+                        {% for puesto in puestos_trabajo %}
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div>
+                                <span class="font-medium text-gray-900">{{ puesto.nombre }}</span>
+                                <div class="text-sm text-gray-500 space-x-4 mt-1">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                                               id="home-crear-{{ puesto.id }}" value="{{ puesto.id }}">
+                                        <span class="ml-2">Crear posts</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                                               id="home-videos-{{ puesto.id }}" value="{{ puesto.id }}">
+                                        <span class="ml-2">Crear videos</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-200">
+                        <button onclick="guardarPermisosHome()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Guardar Permisos de Home
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Tab: Logs del Sistema -->
@@ -319,7 +397,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">Logs del Sistema</h3>
                     <div class="flex space-x-3">
-                        <select id="logLevel" class="rounded-lg border-gray-300 text-sm">
+                        <select id="logLevel" title="Seleccionar nivel de log" aria-label="Nivel de log" class="rounded-lg border-gray-300 text-sm">
                             <option value="INFO">INFO</option>
                             <option value="DEBUG">DEBUG</option>
                             <option value="WARNING">WARNING</option>
@@ -349,7 +427,7 @@
     <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
         <div class="flex justify-between items-center mb-4">
             <h3 id="modalTitulo" class="text-lg font-semibold">Gestionar Tabla</h3>
-            <button onclick="cerrarModalTabla()" class="text-gray-500 hover:text-gray-700">
+            <button onclick="cerrarModalTabla()" title="Cerrar modal" aria-label="Cerrar modal" class="text-gray-500 hover:text-gray-700">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -360,16 +438,16 @@
         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
             <div class="grid grid-cols-1 gap-4">
                 <div>
-                    <label class="text-sm font-medium text-gray-700 block mb-2">Nombre</label>
-                    <input type="text" id="itemNombre" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label for="itemNombre" class="text-sm font-medium text-gray-700 block mb-2">Nombre</label>
+                    <input type="text" id="itemNombre" title="Nombre del elemento" placeholder="Ingrese el nombre" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="text-sm font-medium text-gray-700 block mb-2">Descripción</label>
-                    <textarea id="itemDescripcion" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    <label for="itemDescripcion" class="text-sm font-medium text-gray-700 block mb-2">Descripción</label>
+                    <textarea id="itemDescripcion" rows="2" title="Descripción del elemento" placeholder="Ingrese la descripción" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                 </div>
                 <div id="entidadSelect" class="hidden">
-                    <label class="text-sm font-medium text-gray-700 block mb-2">Entidad Federativa</label>
-                    <select id="itemEntidad" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label for="itemEntidad" class="text-sm font-medium text-gray-700 block mb-2">Entidad Federativa</label>
+                    <select id="itemEntidad" title="Seleccionar entidad federativa" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Seleccionar entidad...</option>
                     </select>
                 </div>
@@ -426,6 +504,8 @@ function cambiarTab(tab) {
         actualizarLogs();
     } else if (tab === 'permisos') {
         cargarPermisos();
+        cargarPermisosTickets();
+        cargarPermisosHome();
     }
 }
 
@@ -983,6 +1063,180 @@ function showAlert(message, type = 'info') {
     }, 5000);
 }
 
+// Funciones para permisos de tickets
+function guardarPermisosTickets() {
+    const permisosTickets = {};
+    
+    // Recopilar permisos de todos los selectores de departamentos
+    const selectores = document.querySelectorAll('[id^="dept-"]');
+    selectores.forEach(select => {
+        const deptId = select.id.replace('dept-', '');
+        const usuarioId = select.value;
+        if (usuarioId) {
+            permisosTickets[deptId] = usuarioId;
+        }
+    });
+    
+    fetch('/auth/api/permisos-tickets', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(permisosTickets)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Permisos de departamentos guardados exitosamente', 'success');
+        } else {
+            showAlert('Error al guardar permisos de tickets: ' + (data.error || 'Error desconocido'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error al guardar permisos de tickets: ' + error.message, 'error');
+    });
+}
+
+function cargarPermisosTickets() {
+    // Primero cargar departamentos
+    fetch('/auth/api/departamentos')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const departamentos = data.departamentos;
+            const container = document.getElementById('permisos-departamentos-tickets');
+            
+            if (container) {
+                container.innerHTML = ''; // Limpiar contenido existente
+                
+                // Crear un selector para cada departamento
+                departamentos.forEach(departamento => {
+                    const divContainer = document.createElement('div');
+                    divContainer.className = 'border border-gray-200 rounded-lg p-4';
+                    
+                    divContainer.innerHTML = `
+                        <label class="block text-sm font-medium text-gray-700 mb-2">${departamento.nombre}</label>
+                        <select class="w-full p-2 border border-gray-300 rounded-lg" id="dept-${departamento.id}">
+                            <option value="">Sin asignar</option>
+                        </select>
+                    `;
+                    
+                    container.appendChild(divContainer);
+                });
+            }
+            
+            // Cargar usuarios para los selectores
+            return fetch('/auth/api/usuarios-activos');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const usuarios = data.usuarios;
+            
+            // Llenar todos los selectores de departamentos con usuarios
+            const selectores = document.querySelectorAll('[id^="dept-"]');
+            selectores.forEach(select => {
+                usuarios.forEach(usuario => {
+                    const option = document.createElement('option');
+                    option.value = usuario.id;
+                    option.textContent = `${usuario.nombre} ${usuario.apellido_paterno}`;
+                    select.appendChild(option);
+                });
+            });
+            
+            // Cargar permisos actuales
+            return fetch('/auth/api/permisos-tickets');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.permisos) {
+            // Cargar permisos existentes en los selectores
+            Object.keys(data.permisos).forEach(deptId => {
+                const select = document.getElementById(`dept-${deptId}`);
+                if (select && data.permisos[deptId]) {
+                    select.value = data.permisos[deptId];
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar permisos de tickets:', error);
+        showAlert('Error al cargar permisos de tickets', 'error');
+    });
+}
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar permisos de tickets:', error);
+    });
+}
+
+// Funciones para permisos de home
+function guardarPermisosHome() {
+    const permisosHome = [];
+    
+    document.querySelectorAll('[id^="home-"]').forEach(checkbox => {
+        if (checkbox.checked) {
+            const [tipo, puestoId] = checkbox.id.replace('home-', '').split('-');
+            permisosHome.push({
+                puesto_id: parseInt(puestoId),
+                tipo: tipo // 'crear' o 'videos'
+            });
+        }
+    });
+    
+    fetch('/auth/api/permisos-home', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ permisos: permisosHome })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Permisos de home guardados exitosamente', 'success');
+        } else {
+            showAlert('Error al guardar permisos de home: ' + (data.error || 'Error desconocido'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error al guardar permisos de home: ' + error.message, 'error');
+    });
+}
+
+function cargarPermisosHome() {
+    fetch('/auth/api/permisos-home')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.permisos) {
+            // Limpiar todos los checkboxes
+            document.querySelectorAll('[id^="home-"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Marcar los permisos actuales
+            data.permisos.forEach(permiso => {
+                const checkbox = document.getElementById(`home-${permiso.tipo}-${permiso.puesto_id}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar permisos de home:', error);
+    });
+}
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     // Cargar tab inicial
@@ -997,5 +1251,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// CSRF Token para las peticiones AJAX
+window.csrfToken = '{{ csrf_token() }}';
 </script>
+
+<!-- Script para configuración -->
+<script src="{{ url_for('auth.static', filename='config.js') }}"></script>
 {% endblock %}

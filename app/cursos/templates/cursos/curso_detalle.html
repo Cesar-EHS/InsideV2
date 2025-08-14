@@ -1,150 +1,138 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mx-auto p-6 max-w-4xl space-y-6">
+<div class="flex justify-center items-center min-h-[80vh]">
+  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-2xl p-10">
+    <!-- Flexbox para la barra de arriba "sm:justify-between" -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4" >
+      <a href="{{ url_for('cursos.index') }}" class="inline-flex items-center gap-2">
+        <!-- Icono de flecha (puedes usar un SVG o una fuente de iconos) -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base text-gray-700 font-semibold">Regresar</span>
+      </a>
+      <form method="POST" action="{{ url_for('cursos.inscribirse', curso_id=curso.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+          Inscribirme
+        </button>
+      </form>
+    </div>
+    <div class="w-full max-w-7xl mx-auto px-2 sm:px-6 pt-2 pb-2">
+      <div class="flex flex-column flex-row sm:items-center sm:justify-between gap-2">
+        <h1 class="text-3xl font-bold p-2 text-left"> {{ curso.nombre }} </h1>
+        <p class="text-base text-gray-700 px-2 text-left sm:text-rigth">
+          <span class="font-semibold text-gray-700">Capacitador:</span>
+          {{ curso.creador.nombre }} {{ curso.creador.apellido_paterno }} {{ curso.creador.apellido_materno }}
+        </p>
+      </div>
+    </div>
+    <!-- Información del curso -->
+    <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+      <div class="md:w-1/2 p-4 flex items-center justify-center">
+        {% if curso.video_url %}
+          <div class="w-full aspect-video rounded mb-4 overflow-hidden">
+            <iframe
+              class="w-full h-full rounded"
+              src="https://www.youtube.com/embed/{{ curso.video_url | youtube_id }}"
+              frameborder="0"
+              allowfullscreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
+          </div>
+        {% else %}
+          <img src="{{ url_for('static', filename=curso.imagen if curso.imagen else 'cursos/img/default-curso.png') }}"
+              alt="Imagen curso"
+              class="object-cover rounded mb-4 w-full h-auto max-h-96">
+        {% endif %}
+      </div>
 
-  <h1 class="text-4xl font-bold text-gray-800 mb-2">{{ curso.nombre }}</h1>
-
-  <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-    <div class="text-gray-600 space-y-1">
-      <img src="{{ url_for('static', filename=curso.imagen if curso.imagen else 'cursos/img/default-curso.png') }}" alt="Imagen curso" class="w-48 h-32 object-cover rounded mb-4">
-      <p><strong>Categoría:</strong> {{ curso.categoria }}</p>
-      <p><strong>Modalidad:</strong> {{ curso.modalidad }}</p>
-      <p><strong>Objetivo:</strong> {{ curso.objetivo }}</p>
-      <p><strong>Área temática:</strong> {{ curso.area_tematica }}</p>
-      <p><strong>Duración:</strong> {{ curso.duracion }}</p>
-      <p><strong>Tipo de agente capacitador:</strong> {{ curso.tipo_agente }}</p>
-      <p><strong>Fecha creación:</strong> {{ curso.fecha_creacion.strftime('%d/%m/%Y') }}</p>
-    </div>
-    {% if current_user.id == curso.creador_id %}
-    <div>
-      <a href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}" 
-         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">Editar</a>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- Barra de progreso visual -->
-  {% set insc = curso.inscripciones | selectattr('usuario_id', 'equalto', current_user.id) | list | first %}
-  {% set avance = insc.avance if insc else 0 %}
-  <div class="my-6">
-    <div class="flex items-center justify-between mb-1">
-      <span class="text-base font-medium text-blue-700">Progreso del curso</span>
-      <span class="text-sm font-semibold text-blue-700">{{ avance }}%</span>
-    </div>
-    <div class="w-full bg-gray-200 rounded-full h-4">
-      <progress class="w-full h-4 bg-gradient-to-r from-blue-500 to-green-400 rounded-full" value="{{ avance }}" max="100"></progress>
-    </div>
-    {% if avance == 100 %}
-      <div class="mt-2 text-green-600 font-semibold flex items-center gap-2"><svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>¡Curso completado!</div>
-    {% endif %}
-  </div>
-
-  <!-- Tabs visuales -->
-  <div>
-    <ul class="flex border-b mb-6" id="tabs">
-      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold active" href="#tab-materiales">Materiales</a></li>
-      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold" href="#tab-actividades">Actividades</a></li>
-      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold" href="#tab-examenes">Exámenes</a></li>
-      <li class="-mb-px mr-1"><a class="tab-link bg-white inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold" href="#tab-progreso">Progreso</a></li>
-    </ul>
-    <div id="tab-materiales" class="tab-content">
-      <h2 class="text-2xl font-semibold mb-4">Materiales</h2>
-      {% if curso.materiales %}
-        <ul class="space-y-2">
-          {% for mat in curso.materiales %}
-            <li class="flex items-center gap-3 bg-gray-50 rounded p-3">
-              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              <span>{{ mat.nombre }}</span>
-              <a href="{{ url_for('static', filename='uploads/' ~ mat.archivo) }}" class="ml-auto bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" download>Descargar</a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-gray-500 italic">No hay materiales disponibles.</p>
-      {% endif %}
-    </div>
-    <div id="tab-actividades" class="tab-content hidden">
-      <h2 class="text-2xl font-semibold mb-4">Actividades</h2>
-      {% if current_user.id == curso.creador_id %}
-        <a href="{{ url_for('cursos.agregar_actividad', curso_id=curso.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow mb-4 inline-block">Agregar Actividad</a>
-      {% endif %}
-      {% if curso.actividades %}
-        <ul class="list-disc list-inside space-y-2">
-          {% for actividad in curso.actividades %}
-            <li class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                onclick="window.location.href='{{ url_for('cursos.editar_actividad', actividad_id=actividad.id) }}'">
-              <strong>{{ actividad.titulo }}</strong><br>
-              <span class="text-gray-600 text-sm">{{ actividad.descripcion or 'Sin descripción' }}</span>
-              {% if actividad.entrega %}
-                <span class="ml-2 text-green-600 font-semibold">Entregado</span>
+      <div class="md:w-1/2 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Fila 1 para categoría -->
+          <div>
+            <label for="categoriaCurso" class="block font-bold text-gray-700 mb-1">
+              <span class="material-icons text-yellow-500 text-base align-middle mr-1">category</span>
+              Categoría:
+            </label>
+            <div>
+              <p class="text-gray-600 leading-relaxed">
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                {{ curso.categoria.nombre }}
+              </p>
+            </div>
+          </div>
+          <!-- Fila 1: Modalidad -->
+          <div>
+            <label for="modalidadCurso" class="block font-bold text-gray-700 mb-1 flex items-center gap-2">
+              <span class="material-icons text-yellow-500 text-base align-middle">computer</span>
+              Modalidad:
+            </label>
+            <div>
+              <p class="text-gray-600 leading-relaxed">
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                {{ curso.modalidad.nombre }}
+              </p>
+            </div>
+          </div>
+          <!-- Fila 2: Agente capacitador -->
+          <div>
+            <label for="agenteCurso" class="block font-bold text-gray-700 mb-1 flex items-center gap-2">
+              <span class="material-icons text-yellow-500 text-base align-middle">person</span>
+              Agente capacitador:
+            </label>
+            <div>
+              <p class="text-gray-600 leading-relaxed">
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                {{ curso.tipo_agente.nombre }}
+              </p>
+            </div>
+          </div>
+          <!-- Fila 2: Duración -->
+          <div>
+            <label for="duracionCurso" class="block font-bold text-gray-700 mb-1 flex items-center gap-2">
+              <span class="material-icons text-yellow-500 text-base align-middle">schedule</span>
+              Duración:
+            </label>
+            <p class="text-gray-600 leading-relaxed">
+              {% set h, m = curso.duracion.split(':') %}
+              {% if h == '00' and m != '00' %}
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                {{ m|int }} minutos
+              {% elif h == '01' and m == '00' %}
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                1 hora
+              {% elif h != '00' and m == '00' %}
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                {{ h|int }} horas
+              {% elif h != '00' and m != '00' %}
+                <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+                {{ h|int }} hora{{ 's' if h|int > 1 else '' }} y {{ m|int }} minutos
               {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-gray-500 italic">No hay actividades disponibles.</p>
-      {% endif %}
-    </div>
-    <div id="tab-examenes" class="tab-content hidden">
-      <h2 class="text-2xl font-semibold mb-4">Exámenes</h2>
-      {% if current_user.id == curso.creador_id %}
-        <a href="{{ url_for('cursos.agregar_examen', curso_id=curso.id) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow mb-4 inline-block">Agregar Examen</a>
-      {% endif %}
-      {% if curso.examenes %}
-        <ul class="list-disc list-inside space-y-2">
-          {% for examen in curso.examenes %}
-            <li class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                onclick="window.location.href='{{ url_for('cursos.editar_examen', examen_id=examen.id) }}'">
-              <strong>{{ examen.titulo }}</strong><br>
-              <span class="text-gray-600 text-sm">{{ examen.descripcion or 'Sin descripción' }}</span>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-gray-500 italic">No hay exámenes disponibles.</p>
-      {% endif %}
-    </div>
-    <div id="tab-progreso" class="tab-content hidden">
-      <h2 class="text-2xl font-semibold mb-4">Progreso y Resultados</h2>
-      {% if insc %}
-        <div class="mb-4">
-          <h3 class="font-bold text-lg mb-2">Exámenes</h3>
-          {% if insc.examenes_realizados %}
-            <ul class="divide-y">
-              {% for res in insc.examenes_realizados %}
-                <li class="py-2 flex items-center">
-                  <span class="font-semibold">{{ res.examen.titulo }}</span>
-                  <span class="ml-auto">Calificación: <span class="font-mono">{{ res.calificacion if res.calificacion is not none else 'Pendiente' }}</span></span>
-                  <span class="ml-4 text-xs text-gray-500">{{ res.fecha_realizado.strftime('%d/%m/%Y') }}</span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-gray-500 italic">No has realizado exámenes aún.</p>
-          {% endif %}
+            </p>
+          </div>
+          <!-- Fila 3: Objetivo (ocupa toda la fila) -->
+          <div class="md:col-span-2">
+            <label for="objetivoCurso" class="block font-bold text-gray-700 mb-1 flex items-center gap-2">
+              <span class="material-icons text-yellow-500 text-base align-middle">flag</span>
+              Objetivo:
+            </label>
+            <p class="text-gray-600 leading-relaxed">
+              <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+              {{ curso.objetivo.descripcion }}</p>
+          </div>
+          <!-- Fila 4: Área temática (ocupa toda la fila) -->
+          <div class="md:col-span-2">
+            <label for="areaCurso" class="block font-bold text-gray-700 mb-1 flex items-center gap-2">
+              <span class="material-icons text-yellow-500 text-base align-middle">school</span>
+              Área temática:
+            </label>
+            <p class="text-gray-600 leading-relaxed">
+              <span class="text-yellow-500 font-bold pl-2 ml-6">-</span>
+              {{ curso.area_tematica.nombre }}</p>
+          </div>
         </div>
-        <div class="mb-4">
-          <h3 class="font-bold text-lg mb-2">Actividades</h3>
-          {% if insc.actividades_realizadas %}
-            <ul class="divide-y">
-              {% for res in insc.actividades_realizadas %}
-                <li class="py-2 flex items-center">
-                  <span class="font-semibold">{{ res.actividad.titulo }}</span>
-                  <span class="ml-auto">Calificación: <span class="font-mono">{{ res.calificacion if res.calificacion is not none else 'Pendiente' }}</span></span>
-                  {% if res.retroalimentacion %}
-                    <span class="ml-4 text-xs text-green-600">{{ res.retroalimentacion }}</span>
-                  {% endif %}
-                  <span class="ml-4 text-xs text-gray-500">{{ res.fecha_entregado.strftime('%d/%m/%Y') if res.fecha_entregado else '' }}</span>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-gray-500 italic">No has entregado actividades aún.</p>
-          {% endif %}
-        </div>
-      {% else %}
-        <p class="text-gray-500 italic">No hay progreso registrado.</p>
-      {% endif %}
+      </div>
     </div>
   </div>
 

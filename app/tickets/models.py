@@ -4,12 +4,28 @@ from flask_login import UserMixin
 from app.auth.models import User
 
 
+class CategoriaTicket(db.Model):
+    __tablename__ = 'categorias_ticket'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
+    descripcion = db.Column(db.String(200))
+    activo = db.Column(db.Boolean, default=True)
+
+    # Relación con tickets
+    tickets = db.relationship('Ticket', backref='categoria_obj', lazy='dynamic')
+
+    def __repr__(self):
+        return f'<CategoriaTicket {self.nombre}>'
+
+
 class Ticket(db.Model):
     __tablename__ = 'tickets'
 
     id = db.Column(db.Integer, primary_key=True)
-    area = db.Column(db.String(100), nullable=True)  # Nuevo campo área
-    categoria = db.Column(db.String(100), nullable=False)
+    departamento_id = db.Column(db.Integer, db.ForeignKey('departamentos.id'), nullable=True)  # Cambio a departamento
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias_ticket.id'), nullable=False)  # Cambio a FK
+    categoria = db.Column(db.String(100), nullable=True)  # Mantener temporalmente para migración
     titulo = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
     prioridad = db.Column(db.String(20), nullable=False)  # Baja, Media, Alta, Urgente
@@ -26,6 +42,9 @@ class Ticket(db.Model):
 
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     usuario = db.relationship(User, backref='tickets_creados')
+
+    # Relación con departamento (importada desde auth)
+    departamento = db.relationship('Departamento', backref='tickets_departamento', lazy='select')
 
     comentarios = db.relationship('ComentarioTicket', backref='ticket', cascade='all, delete-orphan')
     aprobacion = db.relationship('AprobacionTicket', uselist=False, backref='ticket')
@@ -51,6 +70,12 @@ class Ticket(db.Model):
         if self.archivo:
             evidencias.append(self.archivo)
         return evidencias
+    
+    @property
+    def puede_archivar(self):
+        """Determina si el ticket puede ser archivado por el usuario actual"""
+        from flask_login import current_user
+        return self.usuario_id == current_user.id if current_user.is_authenticated else False
 
 
 class ComentarioTicket(db.Model):

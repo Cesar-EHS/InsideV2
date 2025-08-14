@@ -1,11 +1,11 @@
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, abort
+    Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify
 )
 from flask_login import login_required, current_user
 from app import db
 from app.cursos.models import (
-    Curso, Inscripcion, Examen, Pregunta,
-    ExamenResultado, Actividad, ActividadResultado
+    CategoriaCurso, Curso, Inscripcion, Examen, Pregunta,
+    ExamenResultado, Actividad, ActividadResultado, Archivo
 )
 from app.cursos.forms import CursoForm, ExamenForm, PreguntaForm, ActividadForm
 from werkzeug.utils import secure_filename
@@ -13,6 +13,16 @@ import os
 from flask import current_app
 
 bp_cursos = Blueprint('cursos', __name__, template_folder='templates', static_folder='static')
+
+encargados = {
+    10: 'Soporte Sistemas',
+    3: 'Requisición Compras',
+    24: 'Desarrollo Organizacional',
+    7: 'Capacitación Técnica',
+    9: 'Diseño Institucional',
+    2: 'Recursos Humanos',
+    6: 'Soporte EHSmart'
+}
 
 # --- Utilidad para actualizar avance ---
 def actualizar_avance(inscripcion):
@@ -39,16 +49,32 @@ def actualizar_avance(inscripcion):
 @login_required
 def index():
     categoria_filtro = request.args.get('categoria', None)
+    creados = request.args.get('creados')
+    inactivos = request.args.get('inactivos')
     page = request.args.get('page', 1, type=int)
 
-    mis_cursos = Curso.query.join(Inscripcion).filter(
+    query = Curso.query.filter_by(eliminado=0)
+
+    if categoria_filtro:
+        query = query.filter(Curso.categoria.has(CategoriaCurso.nombre == categoria_filtro))
+
+    if creados and current_user.puesto_trabajo_id in encargados:
+        query = query.filter(Curso.creador_id == current_user.id)
+
+    if inactivos and current_user.puesto_trabajo_id in encargados:
+        query = query.filter(Curso.estado == 'Inactivo', Curso.creador_id == current_user.id)
+    
+    #Cursos en los que el usuario ya está inscrito
+    mis_cursos_inscrito = Curso.query.join(Inscripcion).filter(
         Inscripcion.usuario_id == current_user.id,
         Inscripcion.activo == True
-    ).limit(4).all()
+    ).order_by(Curso.fecha_creacion.desc()).all()
 
-    query = Curso.query
-    if categoria_filtro:
-        query = query.filter(Curso.categoria == categoria_filtro)
+    #Instancia del formulario para pasarla a la plantilla principal
+    form_curso = CursoForm()
+
+    catalogo_cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=9)
+    mis_cursos_creados = Curso.query.filter_by(creador_id=current_user.id).order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=9)
 
     subq = db.session.query(Inscripcion.curso_id).filter(
         Inscripcion.usuario_id == current_user.id,
@@ -59,13 +85,20 @@ def index():
     cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=16)
 
     categorias = [
-        'Protección Civil', 'Seguridad Industrial', 'Salud Ocupacional',
-        'Protección Medioambiente', 'Herramientas Digitales', 'Desarrollo Humano'
+        'Protección Civil', 'Seguridad y Salud en el Trabajo', 'Soporte IT',
+        'Protección del Medio Ambiente', 'Técnico EHSmart', 'Desarrollo Organizacional'
     ]
 
+    #Verficar si el usuario es encargado de cursos
+    es_encargado = current_user.puesto_trabajo_id in encargados
+    print("Encargado:", es_encargado)
+
     return render_template('cursos/index.html',
-                           mis_cursos=mis_cursos, cursos=cursos,
-                           categorias=categorias, categoria_filtro=categoria_filtro)
+                           mis_cursos_inscrito=mis_cursos_inscrito, cursos=cursos,
+                           mis_cursos_creados=mis_cursos_creados,
+                           catalogo_cursos=catalogo_cursos,
+                           categorias=categorias, categoria_filtro=categoria_filtro,
+                           es_encargado=es_encargado, form=form_curso)
 
 
 @bp_cursos.route('/curso/<int:curso_id>')
@@ -73,24 +106,33 @@ def index():
 def curso_detalle(curso_id):
     curso = Curso.query.get_or_404(curso_id)
 
-    if curso.creador_id != current_user.id:
+    """ if curso.creador_id != current_user.id:
         inscripcion = Inscripcion.query.filter_by(
             usuario_id=current_user.id,
             curso_id=curso.id,
             activo=True
         ).first()
         if not inscripcion:
-            abort(403)
+            abort(403) """
+    
+    if curso.creador_id != current_user.id:
+        #Nos traerá datos del curso que se seleccionó.
+        curso = Curso.query.get_or_404(curso_id)
+    
+    
+        
 
     return render_template('cursos/curso_detalle.html', curso=curso)
 
 
-@bp_cursos.route('/agregar', methods=['GET', 'POST'])
+@bp_cursos.route('/agregar', methods=['GET', 'POST']) #Dejar solo POST (antes tambien tenia get)
 @login_required
 def agregar_curso():
     # Ajusta los puestos permitidos según tu lógica
     puestos_permitidos = [2, 5, 7, 8, 23, 24]
     if current_user.puesto_trabajo_id not in puestos_permitidos:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': 'Permiso denegado.'}), 403
         abort(403)
 
     form = CursoForm()
@@ -98,58 +140,96 @@ def agregar_curso():
         filename = None
         if form.imagen.data:
             filename = secure_filename(form.imagen.data.filename)
-            ruta = os.path.join('cursos/img', filename)
+            # Define la ruta absoluta donde guardar la imagen
             abs_path = os.path.join(current_app.static_folder, 'cursos', 'img')
-            os.makedirs(abs_path, exist_ok=True)
+            os.makedirs(abs_path, exist_ok=True) # Crea el directorio si no existe
             form.imagen.data.save(os.path.join(abs_path, filename))
+            ruta = ruta = f'cursos/img/{filename}' # Ruta relativa para guardar en la DB
+        else:
+            ruta = None # Si no se sube imagen, la ruta es None
+
         curso = Curso(
-            categoria=form.categoria.data,
-            modalidad=form.modalidad.data,
-            objetivo=form.objetivo.data,
             nombre=form.nombre.data,
-            contenido=form.contenido.data,
-            area_tematica=form.area_tematica.data,
+            modalidad_id=form.modalidad.data.id,
+            categoria_id=form.categoria.data.id,
+            objetivo_id=form.objetivo.data.id,
+            area_tematica_id=form.area_tematica.data.id,
+            tipo_agente_id=form.tipo_agente.data.id,
             duracion=form.duracion.data,
-            tipo_agente=form.tipo_agente.data,
             creador_id=current_user.id,
-            imagen=ruta if filename else None
+            imagen=ruta,
+            video_url=form.video_url.data,
+            eliminado=0
         )
         db.session.add(curso)
+        db.session.commit()  # Necesario para obtener el ID del curso
+
+        # --- Guardar archivos adjuntos ---
+        archivos_guardados = 0
+        for key in request.files:
+            if key.startswith('archivo'):
+                archivo = request.files[key]
+                if archivo and archivo.filename:
+                    filename = secure_filename(archivo.filename)
+                    ruta_relativa = os.path.join('cursos', 'recursos', filename)
+                    ruta_absoluta = os.path.join(current_app.static_folder, 'cursos', 'recursos')
+                    os.makedirs(ruta_absoluta, exist_ok=True)
+                    archivo.save(os.path.join(ruta_absoluta, filename))
+                    nuevo_archivo = Archivo(
+                        nombre=filename,
+                        ruta=ruta_relativa,
+                        curso_id=curso.id
+                    )
+                    db.session.add(nuevo_archivo)
+                    archivos_guardados += 1
         db.session.commit()
-        flash('Curso agregado correctamente.', 'success')
+        flash(f'Curso guardado. {archivos_guardados} archivo(s) adjunto(s) guardado(s).', 'success')
         return redirect(url_for('cursos.index'))
+
     return render_template('cursos/agregar_curso.html', form=form)
 
 
-@bp_cursos.route('/editar/<int:curso_id>', methods=['GET', 'POST'])
+@bp_cursos.route('/eliminar/<int:curso_id>', methods=['DELETE'])
+@login_required
+def eliminar_curso(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+    # Aquí antes probablemente hacías: db.session.delete(curso)
+    # Cambia por soft delete, porque #prevenido
+    curso.eliminado = 1
+    db.session.commit()
+    return jsonify({'message': 'Curso eliminado correctamente.'}), 200
+
+@bp_cursos.route('/curso/<int:curso_id>/editar', methods=['GET', 'POST'])
 @login_required
 def editar_curso(curso_id):
     curso = Curso.query.get_or_404(curso_id)
     if curso.creador_id != current_user.id:
-        abort(403)
+        abort(403)  # Solo el creador puede editar
 
     form = CursoForm(obj=curso)
     if form.validate_on_submit():
+        curso.nombre = form.nombre.data
+        curso.modalidad_id = form.modalidad.data.id
+        curso.categoria_id = form.categoria.data.id
+        curso.objetivo_id = form.objetivo.data.id
+        curso.area_tematica_id = form.area_tematica.data.id
+        curso.tipo_agente_id = form.tipo_agente.data.id
+        curso.duracion = form.duracion.data
+        curso.video_url = form.video_url.data
+
+        # Si se sube una nueva imagen
         if form.imagen.data:
             filename = secure_filename(form.imagen.data.filename)
-            ruta = os.path.join('cursos/img', filename)
             abs_path = os.path.join(current_app.static_folder, 'cursos', 'img')
             os.makedirs(abs_path, exist_ok=True)
             form.imagen.data.save(os.path.join(abs_path, filename))
-            curso.imagen = ruta
-        curso.categoria = form.categoria.data
-        curso.modalidad = form.modalidad.data
-        curso.objetivo = form.objetivo.data
-        curso.nombre = form.nombre.data
-        curso.contenido = form.contenido.data
-        curso.area_tematica = form.area_tematica.data
-        curso.duracion = form.duracion.data
-        curso.tipo_agente = form.tipo_agente.data
+            curso.imagen = f'cursos/img/{filename}'
+
         db.session.commit()
         flash('Curso actualizado correctamente.', 'success')
-        return redirect(url_for('cursos.curso_detalle', curso_id=curso.id))
-    return render_template('cursos/editar_curso.html', form=form, curso=curso)
+        return redirect(url_for('cursos.index'))
 
+    return render_template('cursos/editar_curso.html', form=form, curso=curso)
 
 @bp_cursos.route('/inscribirse/<int:curso_id>', methods=['POST'])
 @login_required
@@ -162,7 +242,7 @@ def inscribirse(curso_id):
     ).first()
     if inscripcion:
         flash('Ya estás inscrito en este curso.', 'info')
-        return redirect(url_for('cursos.index'))
+        return redirect(url_for('cursos.curso_inscrito', curso_id=curso.id))
     nueva_inscripcion = Inscripcion(
         usuario_id=current_user.id,
         curso_id=curso.id,
@@ -172,7 +252,7 @@ def inscribirse(curso_id):
     db.session.add(nueva_inscripcion)
     db.session.commit()
     flash(f'Se inscribió al curso "{curso.nombre}".', 'success')
-    return redirect(url_for('cursos.index'))
+    return redirect(url_for('cursos.index', tab='inscrito'))
 
 
 # ---------- EXÁMENES ----------
@@ -423,27 +503,3 @@ def enviar_resultado_actividad(actividad_id):
     actualizar_avance(inscripcion)
     flash('Actividad entregada correctamente.', 'success')
     return redirect(url_for('cursos.curso_detalle', curso_id=curso.id))
-
-
-@bp_cursos.route('/crear', methods=['GET', 'POST'])
-@login_required
-def crear_curso():
-    form = CursoForm()
-    if form.validate_on_submit():
-        nuevo_curso = Curso(
-            categoria_id=form.categoria.data,
-            modalidad=form.modalidad.data,
-            objetivo=form.objetivo.data,
-            nombre=form.nombre.data,
-            contenido=form.contenido.data,
-            area_tematica=form.area_tematica.data,
-            duracion=form.duracion.data,
-            tipo_agente=form.tipo_agente.data,
-            creador_id=current_user.id
-        )
-        db.session.add(nuevo_curso)
-        db.session.commit()
-        flash('Curso creado exitosamente', 'success')
-        return redirect(url_for('cursos.index'))
-    return render_template('cursos/crear.html', form=form)
-

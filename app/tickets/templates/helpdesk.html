@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
 {% block content %}
 <style>
   body {
@@ -11,9 +15,9 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
     background: transparent;
-    padding: 1rem 0;
+    padding: 0;
   }
   
   .filters {
@@ -91,6 +95,7 @@
     border-radius: 12px;
     border: 1px solid #e5e7eb;
     overflow: hidden;
+    margin-top: 1.5rem;
   }
   
   /* Tabs mejoradas estilo minimalista */
@@ -99,11 +104,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem; /* Espacio entre tabs */
-    background: transparent; /* Sin fondo */
+    background: transparent;
     border-radius: 0;
     padding: 0;
-    border: none; /* Sin borde */
+    border: none;
     width: 100%;
   }
   
@@ -111,36 +115,35 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 0; /* Solo padding vertical, sin horizontal */
+    padding: 0.75rem 0;
     font-weight: 500;
     font-size: 0.9rem;
     transition: all 0.25s ease;
     position: relative;
     text-decoration: none;
-    border-radius: 0; /* Sin border radius */
+    border-radius: 0;
     color: #6b7280;
-    background: transparent; /* Sin background */
+    background: transparent;
     white-space: nowrap;
-    border: none; /* Sin borde */
-    border-bottom: 2px solid transparent; /* Línea inferior transparente por defecto */
+    border: none;
+    border-bottom: 2px solid transparent;
   }
   
   .tab-link.active {
-    background: transparent; /* Sin background cuando activo */
+    background: transparent;
     color: #000000;
-    border-bottom: 2px solid #fab522; /* Línea amarilla debajo cuando activo */
-    box-shadow: none; /* Sin sombra */
+    border-bottom: 2px solid #3b82f6;
+    box-shadow: none;
     font-weight: 700;
   }
   
   .tab-link:not(.active):hover {
     color: #374151;
-    background: transparent; /* Sin background en hover */
-    border-bottom: 2px solid rgba(250, 178, 34, 0.3); /* Línea amarilla suave en hover */
+    background: transparent;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
   }
-
-  /* Iconos de las tabs - minimalistas SVG */
-  .tab-link .tab-icon {
+  
+  .tab-icon {
     width: 16px;
     height: 16px;
     opacity: 0.7;
@@ -150,403 +153,181 @@
   .tab-link.active .tab-icon {
     opacity: 1;
   }
-
-  /* Responsivo para tabs */
-  @media (max-width: 768px) {
-    .tabs-container {
-      width: 100%;
-      justify-content: space-between;
-      flex-wrap: nowrap;
-      gap: 0.25rem;
-      padding: 0.375rem;
-    }
-    
-    .tabs-container > div {
-      flex: 1;
-      display: flex;
-      justify-content: flex-start;
-      gap: 0.25rem;
-    }
-    
-    .tab-link {
-      padding: 0.625rem 1rem;
-      font-size: 0.85rem;
-      min-width: 120px;
-      justify-content: center;
-    }
-    
-    .tab-link .tab-icon {
-      width: 14px;
-      height: 14px;
-    }
-    
-    .filters-bar {
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .filters {
-      width: 100%;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    
-    .filter-item {
-      flex: 1;
-      min-width: 140px;
-    }
-    
-    .search-bar {
-      margin: 0;
-      width: 100%;
-    }
-    
-    #nuevo-ticket-container {
-      width: 100%;
-    }
-    
-    #btn-nuevo-ticket {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-
-  @media (min-width: 769px) and (max-width: 1024px) {
-    .tabs-container {
-      gap: 0.25rem;
-    }
-    
-    .tab-link {
-      padding: 0.75rem 1.125rem;
-      font-size: 0.875rem;
-    }
-  }
-
-  /* Estilos adicionales para móvil */
-  @media (max-width: 480px) {
-    .tabs-container {
-      padding: 0.25rem;
-    }
-    
-    .tab-link {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.8rem;
-      min-width: 100px;
-    }
-    
-    .tab-link span:not(.tab-icon) {
-      display: none;
-    }
-    
-    .tab-link .tab-icon {
-      width: 18px;
-      height: 18px;
-    }
-    
-    .priority-badge,
-    .status-badge {
-      font-size: 0.625rem;
-      padding: 0.125rem 0.5rem;
-    }
-    
-    .tickets-table th,
-    .tickets-table td {
-      padding: 6px 8px;
-      font-size: 12px;
-    }
-    
-    .titulo-limitado {
-      max-width: 150px;
-    }
-  }
   
-  /* Prioridades con colores y estilo redondeado */
-  .priority-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-  }
-  
-  .priority-baja { 
-    background-color: #dcfce7; 
-    color: #166534;
-    border: 1px solid #bbf7d0;
-  }
-  
-  .priority-media { 
-    background-color: #fef3c7; 
-    color: #92400e;
-    border: 1px solid #fde68a;
-  }
-  
-  .priority-alta { 
-    background-color: #fecaca; 
-    color: #dc2626;
-    border: 1px solid #fca5a5;
-  }
-  
-  .priority-urgente { 
-    background-color: #dc2626; 
-    color: #ffffff;
-    border: 1px solid #b91c1c;
-    font-weight: 600;
-  }
-  
-  /* Status badges mejorados */
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    border: 1px solid;
-  }
-  
-  .status-abierto { 
-    background-color: #dbeafe; 
-    color: #1e40af;
-    border-color: #93c5fd;
-  }
-  
-  .status-en-proceso { 
-    background-color: #fef3c7; 
-    color: #92400e;
-    border-color: #fde68a;
-  }
-  
-  .status-resuelto { 
-    background-color: #dcfce7; 
-    color: #166534;
-    border-color: #bbf7d0;
-  }
-  
-  .status-cerrado { 
-    background-color: #f3f4f6; 
-    color: #4b5563;
-    border-color: #d1d5db;
-  }
-  
-  .status-archivado { 
-    background-color: #e5e7eb; 
-    color: #6b7280;
-    border-color: #d1d5db;
-  }
-  
-  /* Botones de acción minimalistas */
-  .action-btn {
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
+  /* Estilo del botón Nuevo Ticket - similar a Knowledge */
+  #nuevo-ticket-container {
+    display: flex;
     align-items: center;
-    justify-content: center;
   }
   
-  .action-btn:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-  }
-  
-  .action-btn:disabled {
-    background: #f9fafb;
-    border-color: #e5e7eb;
-    color: #9ca3af;
-    cursor: not-allowed;
-  }
-  
-  .action-btn svg {
-    width: 16px;
-    height: 16px;
-    color: #6b7280;
-  }
-  
-  .action-btn:hover:not(:disabled) svg {
-    color: #374151;
-  }
-  
-  /* Botón nuevo ticket mejorado */
   #btn-nuevo-ticket {
     background: #3b82f6;
     color: white;
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 8px;
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   #btn-nuevo-ticket:hover {
-    background: #2563eb;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #1d4ed8;
+    transform: translateY(-1px);
   }
   
-  /* Tabla con estilo Apple */
-  .table-container table {
-    background: white;
+  #btn-nuevo-ticket:active {
+    transform: translateY(0);
   }
   
-  .table-container thead {
-    background: #f8fafc;
-  }
-  
-  .table-container th {
-    font-weight: 600;
-    font-size: 0.75rem;
-    color: #4b5563;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .table-container td {
-    padding: 1rem 1.5rem;
-    font-size: 0.9rem;
-    color: #374151;
-    border-bottom: 1px solid #f3f4f6;
-  }
-  
-  .table-container tbody tr:hover {
-    background: #f8fafc;
-  }
-  
-  /* Select de estatus estilizado - neutro al desplegar */
-  .estatus-select {
-    border: none;
-    background: transparent;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    border: 1px solid;
-    transition: all 0.2s ease;
-  }
-  
-  .estatus-select:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    background-color: #f9fafb !important;
-    color: #374151 !important;
-    border-color: #d1d5db !important;
-  }
-  
-  .estatus-select option {
-    background-color: #ffffff;
-    color: #374151;
-    padding: 0.5rem;
-  }
-  
-  /* Aplicar colores específicos al select según el estatus */
-  .estatus-select.status-abierto {
-    background-color: #dbeafe; 
-    color: #1e40af;
-    border-color: #93c5fd;
-  }
-  
-  .estatus-select.status-en-progreso,
-  .estatus-select.status-en-proceso {
-    background-color: #fef3c7; 
-    color: #92400e;
-    border-color: #fde68a;
-  }
-  
-  .estatus-select.status-resuelto {
-    background-color: #dcfce7; 
-    color: #166534;
-    border-color: #bbf7d0;
-  }
-  
-  .estatus-select.status-cerrado {
-    background-color: #f3f4f6; 
-    color: #4b5563;
-    border-color: #d1d5db;
+  #btn-nuevo-ticket svg {
+    width: 16px;
+    height: 16px;
   }
 
-  /* Estilos para tabla */
+  /* Tabla de tickets */
   .tickets-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
-
+  
   .tickets-table th {
-    background: #f8f9fa;
-    color: #1f2937;
+    background: #f9fafb;
+    color: #374151;
     font-weight: 600;
-    text-align: center; /* Centrar headers */
-    padding: 12px 16px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    font-size: 0.875rem;
     border-bottom: 1px solid #e5e7eb;
+    font-family: 'Poppins', sans-serif;
   }
-
-  .tickets-table th.text-left {
-    text-align: left; /* Solo título a la izquierda */
-  }
-
+  
+  /* Ancho específico para columnas */
+  .tickets-table th:nth-child(1) { width: 8%; }   /* ID */
+  .tickets-table th:nth-child(2) { width: 25%; }  /* Título */
+  .tickets-table th:nth-child(3) { width: 12%; }  /* Fecha Creación */
+  .tickets-table th:nth-child(4) { width: 10%; }  /* Prioridad */
+  .tickets-table th:nth-child(5) { width: 12%; }  /* Última Actualización */
+  .tickets-table th:nth-child(6) { width: 10%; }  /* Estado */
+  .tickets-table th:nth-child(7) { width: 15%; }  /* Solicitante/Respondió */
+  .tickets-table th:nth-child(8) { width: 8%; }   /* Acciones */
+  
   .tickets-table td {
-    padding: 12px 16px;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #f3f4f6;
-    background: white;
-    text-align: center; /* Centrar contenido */
+    text-align: center;
+    font-size: 0.875rem;
+    color: #374151;
+    font-family: 'Poppins', sans-serif;
+    vertical-align: middle;
   }
-
-  .tickets-table td.text-left {
-    text-align: left; /* Solo título a la izquierda */
+  
+  .tickets-table tbody tr:hover {
+    background: #f9fafb;
   }
-
-  .tickets-table tr:hover td {
-    background: #f8f9fa;
+  
+  .titulo-limitado {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
   }
-
-  /* Estilos para acciones de tabla */
+  
+  /* Badges de prioridad */
+  .priority-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .priority-baja {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .priority-media {
+    background: #fef3c7;
+    color: #d97706;
+  }
+  
+  .priority-alta {
+    background: #fed7aa;
+    color: #ea580c;
+  }
+  
+  .priority-urgente {
+    background: #fecaca;
+    color: #dc2626;
+  }
+  
+  /* Badges de estatus */
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .status-abierto {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .status-en-progreso {
+    background: #fef3c7;
+    color: #d97706;
+  }
+  
+  .status-resuelto {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .status-cerrado {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  
+  /* Acciones de la tabla */
   .table-actions {
     display: flex;
-    gap: 8px;
+    gap: 0.5rem;
+    justify-content: center;
     align-items: center;
   }
-
-  /* Centrar acciones en archivados */
+  
   .table-actions.center {
     justify-content: center;
   }
-
-  /* Estilo para título con ancho limitado */
-  .titulo-limitado {
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-  }
-
+  
   .btn-action {
-    background: white;
+    padding: 0.5rem;
     border: 1px solid #d1d5db;
     border-radius: 6px;
-    padding: 6px 8px;
+    background: white;
+    color: #6b7280;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 14px;
-    color: #374151;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
   }
-
+  
   .btn-action:hover {
     background: #f3f4f6;
     border-color: #9ca3af;
@@ -564,6 +345,27 @@
 
   /* Estilos responsivos */
   @media (max-width: 768px) {
+    .tabs-container {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 0.25rem;
+      padding: 0.375rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tab-link {
+      padding: 0.625rem 0.5rem;
+      font-size: 0.8rem;
+      min-width: 100px;
+      justify-content: center;
+    }
+    
+    .tab-link .tab-icon {
+      width: 14px;
+      height: 14px;
+    }
+    
     .filters-bar {
       flex-direction: column;
       gap: 1rem;
@@ -572,10 +374,13 @@
     .filters {
       width: 100%;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
     
     .search-bar {
       margin: 0;
+      width: 100%;
     }
     
     .table-actions {
@@ -592,6 +397,22 @@
       padding: 8px 12px;
       font-size: 13px;
     }
+    
+    /* Ajustar ancho de columnas en móvil */
+    .tickets-table th:nth-child(1) { width: 10%; }  /* ID */
+    .tickets-table th:nth-child(2) { width: 30%; }  /* Título */
+    .tickets-table th:nth-child(3) { width: 15%; }  /* Fecha */
+    .tickets-table th:nth-child(4) { width: 12%; }  /* Prioridad */
+    .tickets-table th:nth-child(5) { width: 15%; }  /* Última Act. */
+    .tickets-table th:nth-child(6) { width: 12%; }  /* Estado */
+    .tickets-table th:nth-child(7) { width: 0%; display: none; }  /* Ocultar en móvil */
+    .tickets-table th:nth-child(8) { width: 6%; }   /* Acciones */
+    
+    .tickets-table td:nth-child(7) { display: none; } /* Ocultar en móvil */
+    
+    .titulo-limitado {
+      max-width: 120px;
+    }
   }
 
   @media (max-width: 480px) {
@@ -606,1040 +427,1279 @@
       padding: 6px 8px;
       font-size: 12px;
     }
+    
+    .titulo-limitado {
+      max-width: 100px;
+    }
+    
+    .table-actions {
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .btn-action {
+      padding: 3px 5px;
+    }
+  }
+    
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    .tickets-table {
+      min-width: 800px;
+    }
+  }
+  
+  /* Estilos para vista previa de archivos */
+  .evidencia-item {
+    transition: all 0.3s ease;
+  }
+  
+  .evidencia-preview {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .upload-placeholder {
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  
+  .evidencia-item:hover .upload-placeholder {
+    transform: scale(1.02);
+  }
+  
+  .evidencia-preview img {
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 60px;
+    width: auto;
+  }
+  
+  .evidencia-preview button {
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+  }
+  
+  .evidencia-preview button:hover {
+    transform: translateY(-1px);
+  }
+  
+  /* Animación para el modal */
+  #modal-nuevo-ticket {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 </style>
 
-<div class="min-h-screen p-4" style="background: #f8f9fa;">
+<div class="min-h-screen p-4 bg-gray-50">
   <div class="max-w-7xl mx-auto">
 
-    <!-- Tabs mejoradas con 3 secciones -->
-    <div class="tabs-container">
-      <div class="flex items-center gap-8">
-        <a href="{{ url_for('tickets.index', tab='mis_tickets') }}" 
-           class="tab-link {% if tab_actual != 'asignados' and tab_actual != 'archivados' %}active{% endif %}">
-          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-          </svg>
-          <span>Mis Tickets</span>
-        </a>
+    <!-- Contenedor principal con fondo blanco y esquinas redondeadas -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      
+      <!-- Tabs mejoradas -->
+      <div class="tabs-container mb-6">
+        <div class="flex items-center gap-8">
+          <a href="{{ url_for('tickets.index', tab='mis_tickets') }}" 
+             class="tab-link {% if tab_actual != 'asignados' and tab_actual != 'archivados' %}active{% endif %}">
+            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+            <span>Mis Tickets</span>
+          </a>
+          
+          {% if es_administrador %}
+          <a href="{{ url_for('tickets.index', tab='asignados') }}" 
+             class="tab-link {% if tab_actual == 'asignados' %}active{% endif %}">
+            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span>Tickets Asignados</span>
+          </a>
+          
+          <a href="{{ url_for('tickets.index', tab='archivados') }}" 
+             class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
+            <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+            </svg>
+            <span>Archivados</span>
+          </a>
+          {% else %}
+          <a href="{{ url_for('tickets.index', tab='archivados') }}" 
+             class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
+            <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+            </svg>
+            <span>Archivados</span>
+          </a>
+          {% endif %}
+        </div>
         
-        {% if es_administrador %}
-        <a href="{{ url_for('tickets.index', tab='asignados') }}" 
-           class="tab-link {% if tab_actual == 'asignados' %}active{% endif %}">
-          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-          </svg>
-          <span>Tickets Asignados</span>
-        </a>
-        
-        <a href="{{ url_for('tickets.index', tab='archivados') }}" 
-           class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
-          <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-          </svg>
-          <span>Archivados</span>
-        </a>
-        {% else %}
-        <a href="{{ url_for('tickets.index', tab='archivados') }}" 
-           class="tab-link {% if tab_actual == 'archivados' %}active{% endif %}" title="Tickets Archivados">
-          <svg class="tab-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-          </svg>
-          <span>Archivados</span>
-        </a>
+        <!-- Botón de configuración solo para puesto 7 -->
+        {% if current_user.puesto_trabajo_id == 7 %}
+        <div class="flex items-center">
+          <a href="{{ url_for('auth.config') }}" class="tab-link" title="Configuración">
+            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Config</span>
+          </a>
+        </div>
         {% endif %}
       </div>
-    </div>
 
-    <!-- Filtros mejorados con estilo de Knowledge -->
-    <div class="filters-bar">
-      <div class="filters">
-        <div class="filter-item">
-          <select id="order-select" onchange="aplicarFiltros()">
-            <option value="alfabetico" {% if orden == 'alfabetico' %}selected{% endif %}>A-Z</option>
-            <option value="reciente" {% if orden == 'reciente' %}selected{% endif %}>Más reciente</option>
-            <option value="antiguo" {% if orden == 'antiguo' %}selected{% endif %}>Más antiguo</option>
-          </select>
+      <!-- Filtros -->
+      <div class="filters-bar">
+        <div class="filters">
+          <div class="filter-item">
+            <select id="order-select" title="Ordenar tickets" aria-label="Ordenar tickets" onchange="aplicarFiltros()">
+              <option value="alfabetico" {% if orden == 'alfabetico' %}selected{% endif %}>A-Z</option>
+              <option value="reciente" {% if orden == 'reciente' %}selected{% endif %}>Más reciente</option>
+              <option value="antiguo" {% if orden == 'antiguo' %}selected{% endif %}>Más antiguo</option>
+            </select>
+          </div>
+          
+          <div class="filter-item">
+            <select id="area-filter" title="Filtrar por área" aria-label="Filtrar por área" onchange="aplicarFiltros()">
+              <option value="">Todas las áreas</option>
+              {% for area in areas_disponibles %}
+              <option value="{{ area }}" {% if area_seleccionada == area %}selected{% endif %}>{{ area }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="filter-item">
+            <select id="categoria-filter" title="Filtrar por categoría" aria-label="Filtrar por categoría" onchange="aplicarFiltros()">
+              <option value="">Todas las categorías</option>
+              {% for categoria in categorias_disponibles %}
+              <option value="{{ categoria }}" {% if categoria_seleccionada == categoria %}selected{% endif %}>{{ categoria }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         
-        <div class="filter-item">
-          <select id="categoria-filter" onchange="aplicarFiltros()">
-            <option value="">Todas las categorías</option>
-            {% for categoria in categorias_disponibles %}
-            <option value="{{ categoria }}" {% if categoria_seleccionada == categoria %}selected{% endif %}>{{ categoria }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-      
-      <div class="search-bar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input type="text" id="search-input" placeholder="Buscar tickets..." value="{{ busqueda }}" onkeyup="buscarTickets(this.value)">
-      </div>
-      
-      <!-- Botón Nuevo Ticket - Solo en pestaña "Mis Tickets" -->
-      {% if tab_actual != 'asignados' and tab_actual != 'archivados' %}
-      <div id="nuevo-ticket-container">
-        <button id="btn-nuevo-ticket" class="flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        <div class="search-bar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          Nuevo Ticket
-        </button>
+          <input type="text" id="search-input" placeholder="Buscar tickets..." value="{{ busqueda }}" onkeyup="buscarTickets(this.value)">
+        </div>
+        
+        <!-- Botón Nuevo Ticket -->
+        {% if tab_actual != 'asignados' and tab_actual != 'archivados' %}
+        <div id="nuevo-ticket-container">
+          <button id="btn-nuevo-ticket" type="button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span class="hidden sm:inline">Agregar</span>
+            <span class="sm:hidden">Nuevo</span>
+          </button>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
+      
     </div>
 
-    <!-- Tabla de Tickets -->
+    <!-- Tabla de tickets -->
     <div class="table-container">
-      <div class="overflow-x-auto">
-        <table class="tickets-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th class="text-left">Título</th>
-              <th>Fecha Apertura</th>
-              <th>Última Actualización</th>
-              <th>Prioridad</th>
-              <th>Estatus</th>
-              {% if tab_actual == 'asignados' %}
-              <th>Solicitante</th>
-              {% endif %}
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for ticket in tickets %}
-            <tr>
-              <!-- ID -->
-              <td>
-                <span class="font-medium text-gray-900">#{{ ticket.id }}</span>
-              </td>
-              
-              <!-- Título -->
-              <td class="text-left">
-                <div class="font-medium text-gray-900 titulo-limitado" title="{{ ticket.titulo }}">
-                  {{ ticket.titulo }}
-                </div>
-              </td>
-              
-              <!-- Fecha Apertura -->
-              <td>
-                <div class="text-gray-900">{{ ticket.fecha_creacion.strftime('%d/%m/%Y') }}</div>
-              </td>
-              
-              <!-- Última Actualización -->
-              <td>
-                <div class="text-gray-900">{{ ticket.fecha_actualizacion.strftime('%d/%m/%Y') if ticket.fecha_actualizacion else ticket.fecha_creacion.strftime('%d/%m/%Y') }}</div>
-              </td>
-              
-              <!-- Prioridad -->
-              <td>
-                <span class="priority-badge priority-{{ ticket.prioridad.lower() }}">
-                  {{ ticket.prioridad }}
-                </span>
-              </td>
-              
-              <!-- Estatus -->
-              <td>
-                {% if tab_actual == 'asignados' and es_administrador %}
-                <select class="status-badge estatus-select status-{{ ticket.estatus.lower().replace(' ', '-') }}" 
-                        data-ticket-id="{{ ticket.id }}" onchange="actualizarEstatusTicket(this)">
-                  <option value="Abierto" {% if ticket.estatus == 'Abierto' %}selected{% endif %}>Abierto</option>
-                  <option value="En progreso" {% if ticket.estatus == 'En progreso' %}selected{% endif %}>En progreso</option>
-                  <option value="Resuelto" {% if ticket.estatus == 'Resuelto' %}selected{% endif %}>Resuelto</option>
-                  <option value="Cerrado" {% if ticket.estatus == 'Cerrado' %}selected{% endif %}>Cerrado</option>
-                </select>
+      {% if tickets %}
+      <table class="tickets-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Fecha Creación</th>
+            <th>Prioridad</th>
+            <th>Última Actualización</th>
+            <th>Estado</th>
+            {% if tab_actual == 'asignados' %}
+            <th>Solicitante</th>
+            {% else %}
+            <th>Respondió</th>
+            {% endif %}
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in tickets %}
+          <tr data-ticket-id="{{ ticket.id }}">
+            <td>#{{ '%03d' % ticket.id }}</td>
+            <td class="titulo-limitado" title="{{ ticket.titulo }}">{{ ticket.titulo }}</td>
+            <td>{{ ticket.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <span class="priority-badge priority-{{ ticket.prioridad.lower() }}">
+                {{ ticket.prioridad }}
+              </span>
+            </td>
+            <td>{{ ticket.fecha_actualizacion.strftime('%d/%m/%Y %H:%M') if ticket.fecha_actualizacion else 'N/A' }}</td>
+            <td>
+              <span class="status-badge status-{{ ticket.estatus.lower().replace(' ', '-') }}">
+                {{ ticket.estatus }}
+              </span>
+            </td>
+            {% if tab_actual == 'asignados' %}
+            <td>{{ ticket.nombre_solicitante }}</td>
+            {% else %}
+            <td>
+              {% if ticket.comentarios %}
+                {% set ultimo_comentario = ticket.comentarios|selectattr("emisor.id", "ne", ticket.usuario_id)|list|last %}
+                {% if ultimo_comentario %}
+                  {{ ultimo_comentario.emisor.nombre }} {{ ultimo_comentario.emisor.apellido_paterno }}
                 {% else %}
-                <span class="status-badge status-{{ ticket.estatus.lower().replace(' ', '-') }}">
-                  {{ ticket.estatus }}
-                </span>
+                  Sin respuesta
                 {% endif %}
-              </td>
-              
-              <!-- Solicitante (solo en tickets asignados) -->
-              {% if tab_actual == 'asignados' %}
-              <td>
-                <span class="text-gray-900">{{ ticket.nombre_solicitante }}</span>
-              </td>
+              {% else %}
+                Sin respuesta
               {% endif %}
-              
-              <!-- Acciones -->
-              <td>
-                <div class="table-actions {% if tab_actual == 'archivados' %}center{% endif %}">
-                  <!-- Ver Detalles - Siempre disponible -->
-                  <button class="btn-action btn-ver" 
-                          data-ticket-id="{{ ticket.id }}" title="Ver detalles del ticket">
+            </td>
+            {% endif %}
+            <td>
+              <div class="table-actions center">
+                <!-- Ver - Siempre disponible -->
+                <button class="btn-action" title="Ver" onclick="verTicket({{ ticket.id }})">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                </button>
+                
+                {% if tab_actual == 'asignados' %}
+                  <!-- Archivar - Solo para administradores en asignados con estatus Resuelto o Cerrado -->
+                  {% if ticket.estatus in ['Resuelto', 'Cerrado'] and es_administrador %}
+                  <button class="btn-action" title="Archivar" onclick="archivarTicket({{ ticket.id }})">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
                     </svg>
                   </button>
+                  {% else %}
+                  <button class="btn-action" disabled title="No se puede archivar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                    </svg>
+                  </button>
+                  {% endif %}
                   
-                  <!-- Acciones adicionales solo si NO estamos en archivados -->
-                  {% if tab_actual != 'archivados' %}
-                    <!-- Archivar (en ambas pestañas si está resuelto) -->
-                    <button class="btn-action btn-archivar" 
-                            data-ticket-id="{{ ticket.id }}" 
-                            {% if ticket.estatus != 'Resuelto' %}disabled{% endif %}
-                            title="{% if ticket.estatus == 'Resuelto' %}Archivar ticket{% else %}Solo se pueden archivar tickets resueltos{% endif %}">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-                      </svg>
-                    </button>
-                    
-                    <!-- Reportes -->
-                    <button class="btn-action btn-reportes" 
-                            data-ticket-id="{{ ticket.id }}" title="Generar reporte" disabled>
-                      <svg class="w-4 h-4" fill="none" stroke="#dc2626" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                      </svg>
-                    </button>
-                  {% endif %}
-                </div>
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="{% if tab_actual == 'asignados' %}8{% else %}7{% endif %}" class="px-6 py-8 text-center">
-                <div class="text-gray-500">
-                  <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {% if tab_actual == 'archivados' %}
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l6 6 6-6M3 6h18l-2 10H5L3 6z"/>
-                    {% else %}
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    {% endif %}
-                  </svg>
-                  <p class="text-lg font-medium text-gray-900 mb-2">
-                    {% if tab_actual == 'archivados' %}
-                      No hay tickets archivados
-                    {% else %}
-                      No hay tickets
-                    {% endif %}
-                  </p>
-                  <p class="text-gray-500">
-                    {% if tab_actual == 'archivados' %}
-                      Los tickets archivados aparecerán aquí para consulta posterior
-                    {% elif tab_actual == 'asignados' %}
-                      No tienes tickets asignados
-                    {% else %}
-                      Aún no has creado ningún ticket
-                    {% endif %}
-                  </p>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Paginación -->
-      {% if pagination.pages > 1 %}
-      <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-        <div class="flex items-center justify-between">
-          <div class="flex-1 flex justify-between items-center">
-            <div>
-              <p class="text-sm text-gray-700">
-                Mostrando 
-                <span class="font-medium">{{ ((pagination.page - 1) * pagination.per_page) + 1 }}</span>
-                a 
-                <span class="font-medium">
-                  {% if pagination.page * pagination.per_page > pagination.total %}
-                    {{ pagination.total }}
+                  <!-- Reportar - Solo para tickets de Alta/Urgente con inactividad -->
+                  {% if ticket.prioridad in ['Alta', 'Urgente'] and (ticket.fecha_actualizacion is none or (now() - ticket.fecha_actualizacion).days >= (3 if ticket.prioridad == 'Urgente' else 7)) %}
+                  <button class="btn-action" title="Reportar inactividad" onclick="reportarTicket({{ ticket.id }})">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.351 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                  </button>
                   {% else %}
-                    {{ pagination.page * pagination.per_page }}
+                  <button class="btn-action" disabled title="No se puede reportar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.351 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                  </button>
                   {% endif %}
-                </span>
-                de 
-                <span class="font-medium">{{ pagination.total }}</span>
-                resultados
-              </p>
-            </div>
-            
-            <div class="flex space-x-2">
-              {% if pagination.has_prev %}
-              <a href="{{ url_for('tickets.index', page=pagination.prev_num, tab=tab_actual, orden=orden_actual, categoria=categoria_filtro, buscar=buscar_actual) }}" 
-                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Anterior
-              </a>
-              {% endif %}
-              
-              {% for page_num in pagination.iter_pages() %}
-                {% if page_num %}
-                  {% if page_num != pagination.page %}
-                  <a href="{{ url_for('tickets.index', page=page_num, tab=tab_actual, orden=orden_actual, categoria=categoria_filtro, buscar=buscar_actual) }}" 
-                     class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    {{ page_num }}
-                  </a>
+                  
+                {% elif tab_actual != 'archivados' %}
+                  <!-- Para Mis Tickets - Solo archivar si es el propietario del ticket y está Resuelto/Cerrado -->
+                  {% if ticket.estatus in ['Resuelto', 'Cerrado'] and ticket.usuario_id == current_user.id %}
+                  <button class="btn-action" title="Archivar" onclick="archivarTicket({{ ticket.id }})">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                    </svg>
+                  </button>
                   {% else %}
-                  <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-600 bg-blue-50">
-                    {{ page_num }}
-                  </span>
+                  <button class="btn-action" disabled title="No se puede archivar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                    </svg>
+                  </button>
+                  {% endif %}
+                  
+                  <!-- Reportar - Solo si es propietario y ticket de Alta/Urgente con inactividad -->
+                  {% if ticket.usuario_id == current_user.id and ticket.prioridad in ['Alta', 'Urgente'] and (ticket.fecha_actualizacion is none or (now() - ticket.fecha_actualizacion).days >= (3 if ticket.prioridad == 'Urgente' else 7)) %}
+                  <button class="btn-action" title="Reportar inactividad" onclick="reportarTicket({{ ticket.id }})">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.351 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                  </button>
+                  {% else %}
+                  <button class="btn-action" disabled title="No se puede reportar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.351 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                  </button>
                   {% endif %}
                 {% else %}
-                <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">
-                  ...
+                  <!-- Para Archivados - Sin acciones adicionales -->
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
+      <!-- Paginación -->
+      {% if pagination and pagination.pages > 1 %}
+      <div class="p-4 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Mostrando {{ pagination.per_page * (pagination.page - 1) + 1 }} a 
+            {{ pagination.per_page * (pagination.page - 1) + tickets|length }} de 
+            {{ pagination.total }} tickets
+          </div>
+          <div class="flex space-x-2">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('tickets.index', tab=tab_actual, page=pagination.prev_num, orden=orden, categoria=categoria_seleccionada, busqueda=busqueda) }}" 
+               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Anterior
+            </a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages() %}
+              {% if page_num %}
+                {% if page_num != pagination.page %}
+                <a href="{{ url_for('tickets.index', tab=tab_actual, page=page_num, orden=orden, categoria=categoria_seleccionada, busqueda=busqueda) }}" 
+                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                  {{ page_num }}
+                </a>
+                {% else %}
+                <span class="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-300 rounded-md">
+                  {{ page_num }}
                 </span>
                 {% endif %}
-              {% endfor %}
-              
-              {% if pagination.has_next %}
-              <a href="{{ url_for('tickets.index', page=pagination.next_num, tab=tab_actual, orden=orden_actual, categoria=categoria_filtro, buscar=buscar_actual) }}" 
-                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Siguiente
-              </a>
+              {% else %}
+                <span class="px-3 py-2 text-sm font-medium text-gray-400">…</span>
               {% endif %}
-            </div>
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <a href="{{ url_for('tickets.index', tab=tab_actual, page=pagination.next_num, orden=orden, categoria=categoria_seleccionada, busqueda=busqueda) }}" 
+               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Siguiente
+            </a>
+            {% endif %}
           </div>
         </div>
       </div>
       {% endif %}
-    </div>
-  </div>
-</div>
-
-<!-- Modal para ver detalles del ticket -->
-<div id="modal-ticket-detalle" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 p-4">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
-    <!-- Header del Modal -->
-    <div class="p-6 border-b border-gray-200">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xl font-bold text-gray-900">Detalles del Ticket</h3>
-        <button id="btn-cerrar-modal-detalle" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      
+      {% else %}
+      <!-- Estado vacío -->
+      <div class="p-8 text-center">
+        {% if tab_actual == 'mis_tickets' %}
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
           </svg>
-        </button>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No tienes tickets</h3>
+          <p class="text-gray-500 mb-4">Crea tu primer ticket para comenzar</p>
+        {% elif tab_actual == 'asignados' %}
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No hay tickets asignados</h3>
+          <p class="text-gray-500">No hay tickets pendientes en tu área</p>
+        {% else %}
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No hay tickets archivados</h3>
+          <p class="text-gray-500">Los tickets archivados aparecerán aquí</p>
+        {% endif %}
       </div>
-      
-      <!-- Tabs para cambiar entre vistas -->
-      <div class="mt-4 flex border-b border-gray-200">
-        <button id="tab-general" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50">
-          Generales
-        </button>
-        <button id="tab-chat" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 ml-4">
-          Chat
-        </button>
-      </div>
+      {% endif %}
     </div>
-    
-    <!-- Contenido del Modal -->
-    <div class="h-[calc(90vh-150px)]">
-      <!-- Vista General -->
-      <div id="vista-general" class="h-full p-6 overflow-y-auto">
-        <div id="contenido-modal-detalle">
-          <!-- El contenido se cargará dinámicamente -->
-        </div>
-      </div>
-      
-      <!-- Vista Chat -->
-      <div id="vista-chat" class="h-full flex-col hidden">
-        <!-- Header del Chat -->
-        <div class="p-4 border-b border-gray-200 bg-gray-50">
-          <div class="flex items-center">
-            <div class="flex-1">
-              <h4 id="chat-titulo" class="text-lg font-bold text-gray-900 mb-1"></h4>
-              <div class="flex gap-4 text-sm text-gray-600">
-                <span id="chat-fecha-creacion" class="bg-blue-100 px-2 py-1 rounded-md font-medium"></span>
-                <span id="chat-ultima-actualizacion" class="bg-green-100 px-2 py-1 rounded-md font-medium"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Área de Comentarios -->
-        <div class="flex-1 p-6 bg-gradient-to-b from-gray-50 to-gray-100 overflow-y-auto flex justify-center">
-          <div class="w-full max-w-4xl">
-            <div id="comentarios-container" class="space-y-1">
-              <!-- Los comentarios se cargarán aquí -->
-            </div>
-          </div>
-        </div>
-        
-        <!-- Formulario para nuevo comentario -->
-        <div class="p-6 border-t border-gray-200 bg-white flex justify-center">
-          <div class="w-full max-w-4xl">
-            <form id="form-nuevo-comentario" class="space-y-4">
-            <input type="hidden" name="csrf_token" value="{{ form.csrf_token.current_token }}">
-            <div class="relative">
-              <textarea name="comentario" rows="3" class="w-full border border-gray-300 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-50 transition-all duration-200 placeholder-gray-400" placeholder="Escribir comentario..."></textarea>
-              <div class="absolute bottom-3 right-3 text-xs text-gray-400">
-                Presiona Enter para enviar
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <label class="cursor-pointer text-blue-600 hover:text-blue-700 transition-colors duration-200 flex items-center space-x-2">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                  </svg>
-                  <span class="text-sm">Adjuntar imagen</span>
-                  <input type="file" name="imagen" accept="image/*" class="hidden">
-                </label>
-              </div>
-              <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                Enviar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de previsualización de imágenes -->
-<div id="modal-preview-imagen" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-75 p-4">
-  <div class="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
-    <button id="btn-cerrar-preview" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-      </svg>
-    </button>
-    <img id="preview-imagen" src="" alt="Vista previa" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
   </div>
 </div>
 
 <!-- Modal para nuevo ticket -->
-<div id="modal-nuevo-ticket" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" style="display: none;">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-    <div class="p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-bold text-gray-900">Nuevo ticket</h3>
-        <button id="btn-cerrar-modal-nuevo" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      
-      <form id="form-nuevo-ticket" method="POST" action="/tickets/nuevo_ticket" enctype="multipart/form-data">
+<div id="modal-nuevo-ticket" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-8">
+      <h3 class="text-2xl font-bold text-gray-900">Nuevo ticket</h3>
+      <button id="btn-cerrar-modal-nuevo" title="Cerrar modal" aria-label="Cerrar modal de nuevo ticket" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <form id="form-nuevo-ticket" method="POST" action="{{ url_for('tickets.nuevo_ticket') }}" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
-        <div class="space-y-6">
-          <!-- Primera fila: Área, Categoría, Nivel de prioridad -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Área</label>
-              <select name="area" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="">Selecciona un área</option>
-                <option value="Compras">Compras</option>
-                <option value="IT">IT</option>
-                <option value="Diseño">Diseño</option>
-                <option value="Soporte EHSmart">Soporte EHSmart</option>
-                <option value="Recursos Humanos">Recursos Humanos</option>
-                <option value="Desarrollo Organizacional">Desarrollo Organizacional</option>
-                <option value="Capacitación">Capacitación</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
-              <select name="categoria" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="">Selecciona una categoría</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Nivel de prioridad
-                <span class="ml-2 text-gray-400 cursor-help" title="Información sobre prioridades">ⓘ</span>
-              </label>
-              <select name="prioridad" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="">Selecciona prioridad</option>
-                <option value="Baja">Baja</option>
-                <option value="Media">Media</option>
-                <option value="Alta">Alta</option>
-                <option value="Urgente">Urgente</option>
-              </select>
-            </div>
+        <!-- Primera fila: Área, Categoría, Nivel de prioridad -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label for="area-select" class="block text-sm font-semibold text-gray-800 mb-3">Área</label>
+            <select id="area-select" name="area" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
+              <option value="">Selecciona un área</option>
+              <option value="Compras">Compras</option>
+              <option value="IT">IT</option>
+              <option value="Diseño">Diseño</option>
+              <option value="Soporte EHSmart">Soporte EHSmart</option>
+              <option value="Recursos Humanos">Recursos Humanos</option>
+              <option value="Desarrollo Organizacional">Desarrollo Organizacional</option>
+              <option value="Capacitación">Capacitación</option>
+            </select>
           </div>
           
-          <!-- Segunda fila: Asunto -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Asunto</label>
-            <input type="text" name="titulo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="el generante me habló feo">
+            <label for="categoria-select" class="block text-sm font-semibold text-gray-800 mb-3">Categoría</label>
+            <select id="categoria-select" name="categoria" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
+              <option value="">Selecciona una categoría</option>
+              <option value="Solicitud de compra">Solicitud de compra</option>
+              <option value="Problema técnico">Problema técnico</option>
+              <option value="Consulta">Consulta</option>
+              <option value="Soporte">Soporte</option>
+            </select>
           </div>
           
-          <!-- Tercera fila: Descripción -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-            <textarea name="descripcion" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Solicito tu ayuda con la compra de los siguientes componentes:&#10;-Cable flex de pantalla para Dell Inspiron 15 3000 series&#10;-Panel LCD o LED&#10;Son necesarios para reparar el equipo del colaborador Nombre de ejemplo 1"></textarea>
+            <label for="prioridad-select" class="block text-sm font-semibold text-gray-800 mb-3">
+              Nivel de prioridad
+              <span class="ml-2 text-gray-400 cursor-help" title="Información sobre prioridades">ⓘ</span>
+            </label>
+            <select id="prioridad-select" name="prioridad" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
+              <option value="">Selecciona prioridad</option>
+              <option value="Baja">Baja</option>
+              <option value="Media">Media</option>
+              <option value="Alta">Alta</option>
+              <option value="Urgente">Urgente</option>
+            </select>
           </div>
-          
-          <!-- Cuarta fila: Evidencia (hasta 3 archivos) -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-3">Evidencia (si aplica)</label>
-            <div class="flex gap-3">
-              <div class="evidencia-container flex-1">
-                <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                  <div class="flex flex-col items-center justify-center">
-                    <svg class="w-5 h-5 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    <p class="text-xs text-gray-500">Archivo 1</p>
-                  </div>
-                  <input type="file" name="evidencia_1" class="hidden evidencia-input" accept="image/*,.pdf,.doc,.docx">
-                </label>
-                <div class="evidencia-preview hidden mt-2">
-                  <div class="relative bg-gray-100 rounded-lg p-2">
-                    <span class="evidencia-nombre text-xs text-gray-700"></span>
-                    <button type="button" class="absolute top-1 right-1 text-red-500 hover:text-red-700 evidencia-remove">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                    </button>
+        </div>
+        
+        <!-- Segunda fila: Asunto -->
+        <div class="mb-6">
+          <label for="titulo-input" class="block text-sm font-semibold text-gray-800 mb-3">Asunto</label>
+          <input type="text" id="titulo-input" name="titulo" required maxlength="200" 
+                 class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700" 
+                 placeholder="Describe brevemente tu solicitud">
+        </div>
+        
+        <!-- Tercera fila: Descripción -->
+        <div class="mb-6">
+          <label for="descripcion-textarea" class="block text-sm font-semibold text-gray-800 mb-3">Descripción</label>
+          <textarea id="descripcion-textarea" name="descripcion" rows="3" required maxlength="1000" 
+                    class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical transition-all text-gray-700" 
+                    placeholder="Describe los detalles de tu solicitud..."></textarea>
+        </div>
+        
+        <!-- Cuarta fila: Evidencia y Botón de Envío -->
+        <div class="flex gap-6 items-end">
+          <!-- Evidencia -->
+          <div class="flex-1">
+            <label class="block text-sm font-semibold text-gray-800 mb-3">Evidencia (si aplica)</label>
+            <div id="evidencia-container" class="grid grid-cols-3 gap-4">
+              <div class="evidencia-item">
+                <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors h-24">
+                  <input type="file" name="evidencia_1" accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" 
+                         title="Seleccionar archivo de evidencia" 
+                         aria-label="Archivo de evidencia 1"
+                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                         onchange="handleFilePreview(this, 0)">
+                  <div class="evidencia-preview" id="preview-0">
+                    <div class="upload-placeholder">
+                      <div class="relative">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4 4h16v12l-4-4-4 4-4-4-4 4V4zm4 6.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/>
+                          <path d="M2 2v20h20V2H2zm18 18H4V4h16v16z"/>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                          +
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div class="evidencia-container flex-1">
-                <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                  <div class="flex flex-col items-center justify-center">
-                    <svg class="w-5 h-5 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    <p class="text-xs text-gray-500">Archivo 2</p>
-                  </div>
-                  <input type="file" name="evidencia_2" class="hidden evidencia-input" accept="image/*,.pdf,.doc,.docx">
-                </label>
-                <div class="evidencia-preview hidden mt-2">
-                  <div class="relative bg-gray-100 rounded-lg p-2">
-                    <span class="evidencia-nombre text-xs text-gray-700"></span>
-                    <button type="button" class="absolute top-1 right-1 text-red-500 hover:text-red-700 evidencia-remove">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                    </button>
+              <div class="evidencia-item hidden">
+                <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors h-24">
+                  <input type="file" name="evidencia_2" accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" 
+                         title="Seleccionar segundo archivo de evidencia" 
+                         aria-label="Archivo de evidencia 2"
+                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                         onchange="handleFilePreview(this, 1)">
+                  <div class="evidencia-preview" id="preview-1">
+                    <div class="upload-placeholder">
+                      <div class="relative">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4 4h16v12l-4-4-4 4-4-4-4 4V4zm4 6.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/>
+                          <path d="M2 2v20h20V2H2zm18 18H4V4h16v16z"/>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                          +
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div class="evidencia-container flex-1">
-                <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                  <div class="flex flex-col items-center justify-center">
-                    <svg class="w-5 h-5 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                    <p class="text-xs text-gray-500">Archivo 3</p>
-                  </div>
-                  <input type="file" name="evidencia_3" class="hidden evidencia-input" accept="image/*,.pdf,.doc,.docx">
-                </label>
-                <div class="evidencia-preview hidden mt-2">
-                  <div class="relative bg-gray-100 rounded-lg p-2">
-                    <span class="evidencia-nombre text-xs text-gray-700"></span>
-                    <button type="button" class="absolute top-1 right-1 text-red-500 hover:text-red-700 evidencia-remove">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                    </button>
+              <div class="evidencia-item hidden">
+                <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors h-24">
+                  <input type="file" name="evidencia_3" accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" 
+                         title="Seleccionar tercer archivo de evidencia" 
+                         aria-label="Archivo de evidencia 3"
+                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                         onchange="handleFilePreview(this, 2)">
+                  <div class="evidencia-preview" id="preview-2">
+                    <div class="upload-placeholder">
+                      <div class="relative">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4 4h16v12l-4-4-4 4-4-4-4 4V4zm4 6.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/>
+                          <path d="M2 2v20h20V2H2zm18 18H4V4h16v16z"/>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                          +
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+          
+          <!-- Botón de Envío -->
+          <div class="flex-shrink-0">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white border-none px-4 py-2 rounded-lg font-semibold text-sm cursor-pointer transition-all duration-300 font-poppins flex items-center gap-2 hover:transform hover:-translate-y-px active:transform active:translate-y-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              Enviar
+            </button>
+          </div>
+        </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para ver ticket -->
+<div id="modal-ver-ticket" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2">
+  <div class="bg-white rounded-lg w-full max-w-4xl max-h-[97vh] overflow-hidden flex flex-col">
+    <!-- Header del Modal -->
+    <div class="flex justify-between items-center p-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">Información general</h3>
+      <button id="btn-cerrar-modal-ver" title="Cerrar modal" aria-label="Cerrar modal de ver ticket" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Pestañas -->
+    <div class="border-b border-gray-200">
+      <nav class="flex space-x-8 px-4">
+        <button id="tab-descriptivo" class="py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-600" onclick="cambiarTab('descriptivo')">
+          Descriptivo
+        </button>
+        <button id="tab-conversacion" class="py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" onclick="cambiarTab('conversacion')">
+          Conversación
+        </button>
+        <button id="tab-observaciones" class="py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" onclick="cambiarTab('observaciones')">
+          Observaciones
+        </button>
+      </nav>
+    </div>
+    
+    <!-- Contenido de las pestañas -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- Pestaña Descriptivo -->
+      <div id="contenido-descriptivo" class="p-4">
+        <!-- Grid principal con información del ticket -->
+        <div class="grid grid-cols-3 gap-6 mb-6">
+          <!-- Área -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Área</label>
+            <p id="ver-ticket-area" class="text-sm text-gray-500"></p>
+          </div>
+          
+          <!-- Categoría -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Categoría</label>
+            <p id="ver-ticket-categoria" class="text-sm text-gray-500"></p>
+          </div>
+          
+          <!-- Asunto -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Asunto</label>
+            <p id="ver-ticket-titulo" class="text-sm text-gray-500"></p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-6 mb-4">
+          <!-- Nivel de prioridad -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Nivel de prioridad</label>
+            <span id="ver-ticket-prioridad-badge" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"></span>
+          </div>
+          
+          <!-- Fecha de creación -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Fecha de creación</label>
+            <p id="ver-ticket-fecha-creacion" class="text-sm text-gray-500"></p>
+          </div>
+          
+          <!-- Última actualización -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Última actualización</label>
+            <p id="ver-ticket-ultima-actualizacion" class="text-sm text-gray-500"></p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-6 mb-4">
+          <!-- Descripción -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1">Descripción</label>
+            <div id="ver-ticket-descripcion" class="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg min-h-[100px]"></div>
+          </div>
+          
+          <!-- Día de cierre y Estatus -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-1">Día de cierre</label>
+              <p id="ver-ticket-dia-cierre" class="text-sm text-gray-500">--/--/--</p>
+            </div>
+            
+            <!-- Estatus (editable) -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-1">Estatus</label>
+              <select id="ver-ticket-estatus" title="Cambiar estatus del ticket" aria-label="Estatus del ticket" onchange="cambiarEstatusTicket()" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="Abierto">Abierto</option>
+                <option value="En progreso">En progreso</option>
+                <option value="Resuelto">Resuelto</option>
+                <option value="Cerrado">Cerrado</option>
+              </select>
             </div>
           </div>
         </div>
         
-        <div class="flex justify-end mt-6">
-          <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
-            Enviar
-          </button>
+        <!-- Evidencia -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-2">Evidencia (si aplica)</label>
+          <div id="ver-ticket-evidencia" class="grid grid-cols-4 gap-3">
+            <!-- Las evidencias se cargarán dinámicamente aquí -->
+          </div>
         </div>
+      </div>
+      
+      <!-- Pestaña Conversación -->
+      <div id="contenido-conversacion" class="hidden p-4">
+        <!-- Información del ticket -->
+        <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+          <div class="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500 font-medium">Asunto</span>
+              <p id="chat-ticket-titulo" class="text-gray-900 mt-1">--</p>
+            </div>
+            <div>
+              <span class="text-gray-500 font-medium">Fecha de creación</span>
+              <p id="chat-fecha-creacion" class="text-gray-900 mt-1">--/--/--</p>
+            </div>
+            <div>
+              <span class="text-gray-500 font-medium">Última actualización</span>
+              <p id="chat-ultima-actualizacion" class="text-gray-900 mt-1">--/--/--</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Área de mensajes con scroll -->
+        <div id="chat-mensajes" class="mb-4 p-4 bg-gray-50 rounded-lg overflow-y-auto space-y-3 h-48">
+          <!-- Los mensajes se cargarán aquí dinámicamente -->
+        </div>
+        
+        <!-- Área para agregar comentario -->
+        <div class="p-3 bg-white border rounded-lg">
+          <div id="area-comentarios">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Añadir un comentario</label>
+              <textarea 
+                id="nuevo-comentario" 
+                rows="2" 
+                class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Presiona Enter para enviar tu comentario..."
+              ></textarea>
+            </div>
+            
+            <!-- Mensaje cuando está deshabilitado -->
+            <div id="comentarios-deshabilitados" class="hidden text-center py-4 bg-gray-100 rounded-lg">
+              <p class="text-sm text-gray-600">💬 Los comentarios están deshabilitados porque el ticket está <span id="estado-ticket-msg" class="font-medium"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pestaña Observaciones -->
+      <div id="contenido-observaciones" class="p-4 hidden">
+        <div class="text-center text-gray-500 py-8">
+          <p>Funcionalidad de observaciones en desarrollo</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal para editar ticket -->
+<div id="modal-editar-ticket" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-gray-900">Editar Ticket</h3>
+      <button id="btn-cerrar-modal-editar" title="Cerrar modal" aria-label="Cerrar modal de editar ticket" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div id="contenido-editar-ticket">
+      <!-- Contenido del modal para editar ticket -->
+      <form id="form-editar-ticket" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="space-y-6">
+              <!-- Header del ticket -->
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                      <h4 id="editar-ticket-numero" class="text-lg font-semibold text-gray-900"></h4>
+                      <p id="editar-ticket-fecha" class="text-sm text-gray-600"></p>
+                  </div>
+                  <span id="editar-ticket-prioridad" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"></span>
+              </div>
+
+              <!-- Primera fila: Área, Categoría, Prioridad -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                      <label for="area-edit" class="block text-sm font-medium text-gray-700 mb-2">Área *</label>
+                      <select id="area-edit" name="area" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Selecciona un área</option>
+                          <option value="Compras">Compras</option>
+                          <option value="IT">IT</option>
+                          <option value="Diseño">Diseño</option>
+                          <option value="Soporte EHSmart">Soporte EHSmart</option>
+                          <option value="Recursos Humanos">Recursos Humanos</option>
+                          <option value="Desarrollo Organizacional">Desarrollo Organizacional</option>
+                          <option value="Capacitación">Capacitación</option>
+                      </select>
+                  </div>
+                  
+                  <div>
+                      <label for="categoria-edit" class="block text-sm font-medium text-gray-700 mb-2">Categoría *</label>
+                      <select id="categoria-edit" name="categoria" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Selecciona una categoría</option>
+                      </select>
+                  </div>
+                  
+                  <div>
+                      <label for="prioridad-edit" class="block text-sm font-medium text-gray-700 mb-2">Prioridad *</label>
+                      <select id="prioridad-edit" name="prioridad" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Selecciona prioridad</option>
+                          <option value="Baja">Baja</option>
+                          <option value="Media">Media</option>
+                          <option value="Alta">Alta</option>
+                          <option value="Urgente">Urgente</option>
+                      </select>
+                  </div>
+              </div>
+
+              <!-- Título -->
+              <div>
+                  <label for="titulo-edit" class="block text-sm font-medium text-gray-700 mb-2">Título *</label>
+                  <input type="text" id="titulo-edit" name="titulo" required maxlength="200" 
+                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+
+              <!-- Descripción -->
+              <div>
+                  <label for="descripcion-edit" class="block text-sm font-medium text-gray-700 mb-2">Descripción *</label>
+                  <textarea id="descripcion-edit" name="descripcion" rows="4" required maxlength="1000" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"></textarea>
+              </div>
+
+              <!-- Estado (solo para administradores) -->
+              <div id="editar-estado-container" class="hidden">
+                  <label for="estatus-edit" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                  <select id="estatus-edit" name="estatus" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option value="Abierto">Abierto</option>
+                      <option value="En Progreso">En Progreso</option>
+                      <option value="Resuelto">Resuelto</option>
+                      <option value="Cerrado">Cerrado</option>
+                  </select>
+              </div>
+
+              <!-- Evidencias actuales -->
+              <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Evidencias actuales</label>
+                  <div id="evidencias-actuales-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+              </div>
+
+              <!-- Nuevas evidencias -->
+              <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Agregar nuevas evidencias (opcional)</label>
+                  <div id="evidencia-edit-container">
+                      <div class="evidencia-edit-item mb-4">
+                          <input type="file" name="nueva_evidencia_1" accept="image/*,.pdf,.doc,.docx,.txt" 
+                                 title="Seleccionar nueva evidencia"
+                                 placeholder="Seleccionar archivo"
+                                 aria-label="Nueva evidencia para el ticket"
+                                 class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      </div>
+                  </div>
+                  <button type="button" id="btn-agregar-evidencia-edit" onclick="agregarEvidenciaEdit()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                      + Agregar otro archivo (máximo 3)
+                  </button>
+              </div>
+
+              <!-- Botones -->
+              <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                  <button type="button" onclick="document.getElementById('modal-editar-ticket').classList.add('hidden')" 
+                          class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500">
+                      Cancelar
+                  </button>
+                  <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+                      Guardar Cambios
+                  </button>
+              </div>
+          </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Modal de confirmación para archivar -->
-<div id="modal-confirmar-archivar" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 p-4">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-    <div class="p-6">
-      <div class="flex items-center mb-4">
-        <div class="flex-shrink-0">
-          <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-            </svg>
-          </div>
-        </div>
-        <div class="ml-4">
-          <h3 class="text-lg font-semibold text-gray-900">Archivar Ticket</h3>
-        </div>
+<!-- Modal Vista Previa de Evidencia -->
+<div id="modal-vista-previa" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <!-- Header del Modal -->
+    <div class="flex justify-between items-center p-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">Vista previa de evidencia</h3>
+      <button onclick="cerrarVistaPrevia()" title="Cerrar vista previa" aria-label="Cerrar vista previa de evidencia" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Contenido de la vista previa -->
+    <div class="flex-1 overflow-auto p-4">
+      <div id="contenido-vista-previa" class="flex flex-col items-center justify-center min-h-96">
+        <!-- El contenido se cargará dinámicamente aquí -->
       </div>
-      
-      <div class="mb-6">
-        <p class="text-sm text-gray-600">
-          ¿Estás seguro de que quieres archivar este ticket? Esta acción moverá el ticket a la sección de archivados donde podrás consultarlo posteriormente, pero ya no aparecerá en las listas activas.
-        </p>
-      </div>
-      
-      <div class="flex justify-end space-x-3">
-        <button id="btn-cancelar-archivar" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-          Cancelar
-        </button>
-        <button id="btn-confirmar-archivar" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200">
-          Sí, Archivar
-        </button>
-      </div>
+    </div>
+    
+    <!-- Footer con nombre del archivo -->
+    <div class="p-4 border-t border-gray-200 bg-gray-50">
+      <p id="nombre-archivo-previa" class="text-sm text-gray-600 text-center"></p>
     </div>
   </div>
 </div>
 
 <script>
-// Variables globales para CSRF y configuración
-window.csrfToken = '{{ form.csrf_token.current_token }}';
+// CSRF Token Global
+window.csrfToken = '{{ csrf_token() }}';
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado - Inicializando aplicación');
+    console.log('🚀 DOM cargado - Versión LIMPIA');
     
-    // Variables globales
-    const modalDetalle = document.getElementById('modal-ticket-detalle');
-    const modalNuevo = document.getElementById('modal-nuevo-ticket');
+    // === MODAL NUEVO TICKET - VERSIÓN SIMPLE ===
+    const btnNuevo = document.getElementById('btn-nuevo-ticket');
+    const modal = document.getElementById('modal-nuevo-ticket');
+    const btnCerrar = document.getElementById('btn-cerrar-modal-nuevo');
     
-    console.log('Modal detalle encontrado:', !!modalDetalle);
-    console.log('Modal nuevo encontrado:', !!modalNuevo);
+    console.log('Elementos encontrados:', {
+        btnNuevo: !!btnNuevo,
+        modal: !!modal,
+        btnCerrar: !!btnCerrar
+    });
     
-    // Función helper para obtener token CSRF
-    function getCSRFToken() {
-        return window.csrfToken || document.querySelector('input[name="csrf_token"]')?.value || '';
+    // ABRIR MODAL
+    if (btnNuevo && modal) {
+        btnNuevo.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('✅ Abriendo modal');
+            modal.classList.remove('hidden');
+        });
     }
     
-    // --- Filtros dinámicos ---
-    window.aplicarFiltros = function() {
-        const orden = document.getElementById('order-select').value;
-        const categoria = document.getElementById('categoria-filter').value;
-        const busqueda = document.getElementById('search-input').value;
-        const tab = new URLSearchParams(window.location.search).get('tab') || 'mis_tickets';
+    // CERRAR MODAL - X
+    if (btnCerrar && modal) {
+        btnCerrar.addEventListener('click', function() {
+            console.log('❌ Cerrando modal con X');
+            modal.classList.add('hidden');
+        });
+    }
+    
+    // CERRAR MODAL - Click fuera
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                console.log('❌ Cerrando modal con click fuera');
+                modal.classList.add('hidden');
+            }
+        });
+    }
+    
+    // === MODALES VER Y EDITAR ===
+    const modalVer = document.getElementById('modal-ver-ticket');
+    const modalEditar = document.getElementById('modal-editar-ticket');
+    const btnCerrarVer = document.getElementById('btn-cerrar-modal-ver');
+    const btnCerrarEditar = document.getElementById('btn-cerrar-modal-editar');
+    
+    // Función para actualizar fila de la tabla
+    function actualizarFilaTabla(ticketId) {
+        if (!ticketId) return;
         
-        const params = new URLSearchParams();
-        params.set('tab', tab);
-        params.set('page', '1'); // Resetear a página 1 cuando se cambian filtros
-        if (orden && orden !== 'reciente') params.set('orden', orden);
-        if (categoria) params.set('categoria', categoria);
-        if (busqueda) params.set('busqueda', busqueda);
+        const fila = document.querySelector(`tr[data-ticket-id="${ticketId}"]`);
+        if (!fila) return;
         
-        window.location.href = `${window.location.pathname}?${params.toString()}`;
+        // Buscar las celdas en la fila
+        const celdas = fila.querySelectorAll('td');
+        const fechaActualizacionCell = celdas[4]; // La 5ta columna es fecha actualización (índice 4)
+        const estatusCell = celdas[5]; // La 6ta columna es el estatus (índice 5)
+        
+        // Actualizar fecha de actualización con la fecha/hora actual
+        if (fechaActualizacionCell) {
+            const ahora = new Date();
+            const fechaFormateada = `${ahora.getDate().toString().padStart(2, '0')}/${(ahora.getMonth() + 1).toString().padStart(2, '0')}/${ahora.getFullYear()} ${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
+            fechaActualizacionCell.textContent = fechaFormateada;
+        }
+        
+        // Actualizar estatus
+        if (estatusCell) {
+            // Obtener el estatus actual del modal
+            const selectEstatus = document.getElementById('ver-ticket-estatus');
+            if (selectEstatus) {
+                const nuevoEstatus = selectEstatus.value;
+                
+                // Actualizar el contenido con el badge
+                const estatusLower = nuevoEstatus.toLowerCase().replace(' ', '-');
+                estatusCell.innerHTML = `
+                    <span class="status-badge status-${estatusLower}">
+                        ${nuevoEstatus}
+                    </span>
+                `;
+                
+                console.log(`Fila actualizada: Ticket ${ticketId} -> ${nuevoEstatus}, Fecha: ${fechaActualizacionCell ? fechaActualizacionCell.textContent : 'N/A'}`);
+            }
+        }
+    }
+    
+    // Cerrar modal ver
+    if (btnCerrarVer && modalVer) {
+        btnCerrarVer.addEventListener('click', function() {
+            actualizarFilaTabla(ticketActualId);
+            modalVer.classList.add('hidden');
+        });
+    }
+    
+    // Cerrar modal editar
+    if (btnCerrarEditar && modalEditar) {
+        btnCerrarEditar.addEventListener('click', function() {
+            actualizarFilaTabla(ticketActualId);
+            modalEditar.classList.add('hidden');
+        });
+    }
+    
+    // Cerrar modales al hacer click fuera
+    if (modalVer) {
+        modalVer.addEventListener('click', function(e) {
+            if (e.target === modalVer) {
+                actualizarFilaTabla(ticketActualId);
+                modalVer.classList.add('hidden');
+            }
+        });
+    }
+    
+    if (modalEditar) {
+        modalEditar.addEventListener('click', function(e) {
+            if (e.target === modalEditar) {
+                actualizarFilaTabla(ticketActualId);
+                modalEditar.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Cerrar modal vista previa al hacer click fuera
+    const modalVistaPrevia = document.getElementById('modal-vista-previa');
+    if (modalVistaPrevia) {
+        modalVistaPrevia.addEventListener('click', function(e) {
+            if (e.target === modalVistaPrevia) {
+                cerrarVistaPrevia();
+            }
+        });
+    }
+    
+    // === CATEGORÍAS POR ÁREA ===
+    const areaSelect = document.getElementById('area-select');
+    const categoriaSelect = document.getElementById('categoria-select');
+    
+    const categorias = {
+        'Compras': ['Solicitud de compra', 'Cotizaciones', 'Reembolsos', 'Seguimiento de envíos'],
+        'IT': ['Soporte técnico', 'Accesos y contraseñas', 'Red y conectividad', 'Correo electrónico', 'Impresoras y escáneres', 'Instalación de software'],
+        'Diseño': ['Diseño de material impreso o digital', 'Actualización de diseño', 'Logotipos e identidad corporativa', 'Plantillas corporativas', 'Revisión de uso de marca'],
+        'Soporte EHSmart': ['Acceso y usuarios', 'Errores técnicos', 'Capacitación EHSmart', 'Solicitud de soporte funcional'],
+        'Recursos Humanos': ['Vacaciones y permisos', 'Nómina y pagos', 'Prestaciones y beneficios', 'Documentación y constancias'],
+        'Desarrollo Organizacional': ['Asesoría individual', 'Gestión de conflictos laborales', 'Apoyo al desarrollo personal y profesional', 'Programas de desarrollo interno'],
+        'Capacitación': ['Solicitud de curso', 'Alta de evento de capacitación', 'Dudas sobre plan de formación', 'Registro de constancia o diploma']
     };
     
-    // Búsqueda en tiempo real
-    let searchTimeout;
-    window.buscarTickets = function(valor) {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            aplicarFiltros();
-        }, 500);
-    };
-    
-    // --- Actualización de estatus con efecto suave ---
-    window.actualizarEstatusTicket = function(select) {
-        const ticketId = select.dataset.ticketId;
-        const nuevoEstatus = select.value;
-        const estatusAnterior = select.dataset.originalValue;
-        
-        // Efecto visual inmediato
-        select.style.opacity = '0.6';
-        select.disabled = true;
-        
-        // Preparar datos con CSRF token
-        const formData = new FormData();
-        formData.append('estatus', nuevoEstatus);
-        formData.append('csrf_token', getCSRFToken());
-        
-        fetch(`/tickets/actualizar_estatus/${ticketId}`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData
-        })
-        .then(response => {
-            // Verificar si la respuesta es realmente JSON
-            const contentType = response.headers.get('content-type');
+    if (areaSelect && categoriaSelect) {
+        areaSelect.addEventListener('change', function() {
+            const area = this.value;
+            categoriaSelect.innerHTML = '<option value="">Selecciona una categoría</option>';
             
-            if (!contentType || !contentType.includes('application/json')) {
-                // Si no es JSON, obtener el texto para ver qué está devolviendo
-                return response.text().then(text => {
-                    throw new Error(`Respuesta no es JSON. Content-Type: ${contentType}`);
+            if (area && categorias[area]) {
+                categorias[area].forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categoriaSelect.appendChild(option);
                 });
             }
-            
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Actualizar clases CSS con transición suave
-                updateStatusClasses(select, nuevoEstatus);
-                select.dataset.originalValue = nuevoEstatus;
-                showNotification('Estatus actualizado correctamente', 'success');
-                
-                // Actualizar botón de archivar si es necesario
-                const row = select.closest('tr');
-                const btnArchivar = row.querySelector('.btn-archivar');
-                if (btnArchivar) {
-                    btnArchivar.disabled = nuevoEstatus !== 'Resuelto';
-                    btnArchivar.title = nuevoEstatus === 'Resuelto' ? 
-                        'Archivar ticket' : 'Solo se pueden archivar tickets resueltos';
-                }
-            } else {
-                showNotification(data.message || 'Error al actualizar estatus', 'error');
-                select.value = estatusAnterior;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error de conexión', 'error');
-            select.value = estatusAnterior;
-        })
-        .finally(() => {
-            select.style.opacity = '1';
-            select.disabled = false;
-        });
-    };
-
-    // --- Ver detalles del ticket ---
-    document.querySelectorAll('.btn-ver').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const ticketId = this.dataset.ticketId;
-            loadTicketDetails(ticketId);
-        });
-    });
-
-    function loadTicketDetails(ticketId) {
-        fetch(`/tickets/api/ticket/${ticketId}`)
-        .then(response => response.json())
-        .then(response => {
-            if (!response.success) {
-                showNotification(response.error || 'Error al cargar detalles', 'error');
-                return;
-            }
-            
-            const data = response.ticket; // Extraer los datos del ticket de la respuesta
-            
-            // Llenar información general
-            document.getElementById('contenido-modal-detalle').innerHTML = `
-                <!-- Primera fila: área, categoría y asunto -->
-                <div class="grid grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Área</label>
-                        <p class="text-sm font-semibold">${data.area || 'N/A'}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Categoría</label>
-                        <p class="text-sm font-semibold">${data.categoria}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Asunto</label>
-                        <p class="text-sm font-semibold">${data.titulo}</p>
-                    </div>
-                </div>
-                
-                <!-- Segunda fila: fechas -->
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Fecha de creación</label>
-                        <p class="text-sm bg-gray-50 px-3 py-2 rounded-lg font-medium">${data.fecha_creacion}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Fecha de actualización</label>
-                        <p class="text-sm bg-gray-50 px-3 py-2 rounded-lg font-medium">${data.fecha_actualizacion || data.fecha_creacion}</p>
-                    </div>
-                </div>
-                
-                <!-- Tercera fila: prioridad -->
-                <div class="mb-4">
-                    <label class="text-sm font-medium text-gray-500 block mb-2">Nivel de prioridad</label>
-                    <span class="priority-badge priority-${data.prioridad.toLowerCase()}">${data.prioridad}</span>
-                </div>
-                
-                <!-- Tercera fila: descripción -->
-                <div class="mb-4">
-                    <label class="text-sm font-medium text-gray-500">Descripción</label>
-                    <p class="text-gray-700 mt-1 p-3 bg-gray-50 rounded-lg">${data.descripcion}</p>
-                </div>
-                
-                <!-- Cuarta fila: evidencia con vista previa -->
-                ${data.evidencias && data.evidencias.length > 0 ? `
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Evidencia</label>
-                    <div class="mt-2 grid grid-cols-2 gap-3">
-                        ${data.evidencias.map((evidencia, index) => {
-                            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(evidencia);
-                            return `
-                                <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                                    ${isImage ? `
-                                        <img src="/tickets/archivo/${evidencia}" alt="Evidencia ${index + 1}" class="w-full h-32 object-cover rounded mb-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="showImageModal('/tickets/archivo/${evidencia}')">
-                                    ` : `
-                                        <div class="w-full h-32 bg-gray-200 rounded mb-2 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors" onclick="showImageModal('/tickets/archivo/${evidencia}')">
-                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                            </svg>
-                                        </div>
-                                    `}
-                                    <p class="text-blue-600 hover:text-blue-800 text-xs font-medium cursor-pointer" onclick="showImageModal('/tickets/archivo/${evidencia}')">
-                                        Evidencia ${index + 1}
-                                    </p>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-                ` : ''}
-            `;
-            
-            // Llenar información del chat
-            document.getElementById('chat-titulo').textContent = data.titulo;
-            document.getElementById('chat-fecha-creacion').textContent = `Creado: ${data.fecha_creacion}`;
-            document.getElementById('chat-ultima-actualizacion').textContent = `Actualizado: ${data.fecha_actualizacion || data.fecha_creacion}`;
-            
-            // Cargar comentarios
-            loadComentarios(ticketId, data.comentarios || []);
-            
-            // Configurar formulario de comentario
-            setupComentarioForm(ticketId);
-            
-            // Configurar tabs del modal
-            setupModalTabs();
-            
-            modalDetalle.classList.remove('hidden');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error al cargar detalles del ticket', 'error');
         });
     }
     
-    // Función para mostrar modal de previsualización de imágenes
-    window.showImageModal = function(imageSrc) {
-        const modal = document.getElementById('modal-preview-imagen');
-        const img = document.getElementById('preview-imagen');
-        img.src = imageSrc;
-        modal.classList.remove('hidden');
-    };
-    
-    // Cerrar modal de previsualización
-    document.getElementById('btn-cerrar-preview').addEventListener('click', function() {
-        document.getElementById('modal-preview-imagen').classList.add('hidden');
-    });
-    
-    // Cerrar modal al hacer clic fuera de la imagen
-    document.getElementById('modal-preview-imagen').addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.add('hidden');
-        }
-    });
-    
-    function loadComentarios(ticketId, comentarios) {
-        const container = document.getElementById('comentarios-container');
-        if (!comentarios || comentarios.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-center py-4">No hay comentarios aún</p>';
-            return;
-        }
-        
-        container.innerHTML = comentarios.map(comentario => {
-            const isOwner = comentario.es_propietario || false;
-            const emisorNombre = comentario.emisor_nombre || 'Usuario';
-            const inicialEmisor = emisorNombre.charAt(0).toUpperCase();
-            const fechaComentario = comentario.fecha_creacion || comentario.fecha || 'Fecha no disponible';
-            const contenidoComentario = comentario.contenido || '';
-            const fotoUsuario = comentario.foto_usuario || null; // Assuming this field exists
-            
-            return `
-                <div class="flex ${isOwner ? 'justify-end' : 'justify-start'} mb-4">
-                    <div class="max-w-sm lg:max-w-md">
-                        ${!isOwner ? `
-                        <div class="flex items-start space-x-3">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden">
-                                ${fotoUsuario ? 
-                                    `<img src="${fotoUsuario}" alt="${emisorNombre}" class="w-full h-full object-cover">` :
-                                    `<div class="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                                        <span class="text-white text-sm font-bold">${inicialEmisor}</span>
-                                    </div>`
-                                }
-                            </div>
-                            <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-4 relative">
-                                <div class="absolute -left-2 top-4 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-white"></div>
-                                <div class="text-xs font-semibold text-blue-600 mb-2">${emisorNombre}</div>
-                                <p class="text-sm text-gray-800 leading-relaxed">${contenidoComentario}</p>
-                                ${comentario.imagen ? `
-                                    <div class="mt-3">
-                                        <img src="/tickets/archivo/${comentario.imagen}" class="max-w-full rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200" />
-                                    </div>
-                                ` : ''}
-                                <div class="text-xs text-gray-400 mt-2 font-medium">${fechaComentario}</div>
-                            </div>
-                        </div>
-                        ` : `
-                        <div class="flex items-start space-x-3 justify-end">
-                            <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-md p-4 relative">
-                                <div class="absolute -right-2 top-4 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-8 border-l-blue-600"></div>
-                                <p class="text-sm text-white leading-relaxed">${contenidoComentario}</p>
-                                ${comentario.imagen ? `
-                                    <div class="mt-3">
-                                        <img src="/tickets/archivo/${comentario.imagen}" class="max-w-full rounded-lg shadow-sm" />
-                                    </div>
-                                ` : ''}
-                                <div class="text-xs text-blue-200 mt-2 font-medium text-right">${fechaComentario}</div>
-                            </div>
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden">
-                                ${fotoUsuario ? 
-                                    `<img src="${fotoUsuario}" alt="${emisorNombre}" class="w-full h-full object-cover">` :
-                                    `<div class="w-full h-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center">
-                                        <span class="text-white text-sm font-bold">${inicialEmisor}</span>
-                                    </div>`
-                                }
-                            </div>
-                        </div>
-                        `}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function setupComentarioForm(ticketId) {
-        const form = document.getElementById('form-nuevo-comentario');
-        if (!form) {
-            console.error('Formulario de comentario no encontrado');
-            return;
-        }
-        
-        form.onsubmit = function(e) {
-            e.preventDefault();
-            console.log('Enviando comentario para ticket:', ticketId);
-            
-            const formData = new FormData(form);
-            const contenido = formData.get('comentario');
-            
-            if (!contenido || contenido.trim() === '') {
-                showNotification('El comentario no puede estar vacío', 'error');
-                return;
-            }
-            
-            console.log('Contenido del comentario:', contenido);
-            
-            fetch(`/tickets/comentar/${ticketId}`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                console.log('Respuesta del servidor:', response);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Datos recibidos:', data);
-                if (data.success) {
-                    showNotification('Comentario agregado', 'success');
-                    form.reset();
-                    // Recargar comentarios
-                    loadTicketDetails(ticketId);
-                } else {
-                    showNotification(data.error || 'Error al agregar comentario', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error completo:', error);
-                showNotification('Error de conexión', 'error');
-            });
-        };
-    }
-
-    // --- Funcionalidad de tabs en modal ---
-    function setupModalTabs() {
-        const tabGeneral = document.getElementById('tab-general');
-        const tabChat = document.getElementById('tab-chat');
-        const vistaGeneral = document.getElementById('vista-general');
-        const vistaChat = document.getElementById('vista-chat');
-
-        function showGeneralTab() {
-            // Activar tab general
-            tabGeneral.classList.add('text-blue-600', 'border-blue-600', 'bg-blue-50');
-            tabGeneral.classList.remove('text-gray-500', 'border-transparent');
-            
-            // Desactivar tab chat
-            tabChat.classList.remove('text-blue-600', 'border-blue-600', 'bg-blue-50');
-            tabChat.classList.add('text-gray-500', 'border-transparent');
-            
-            // Mostrar vista general
-            vistaGeneral.classList.remove('hidden');
-            vistaChat.classList.add('hidden');
-            vistaChat.classList.remove('flex');
-        }
-
-        function showChatTab() {
-            // Activar tab chat
-            tabChat.classList.add('text-blue-600', 'border-blue-600', 'bg-blue-50');
-            tabChat.classList.remove('text-gray-500', 'border-transparent');
-            
-            // Desactivar tab general
-            tabGeneral.classList.remove('text-blue-600', 'border-blue-600', 'bg-blue-50');
-            tabGeneral.classList.add('text-gray-500', 'border-transparent');
-            
-            // Mostrar vista chat
-            vistaChat.classList.remove('hidden');
-            vistaChat.classList.add('flex');
-            vistaGeneral.classList.add('hidden');
-        }
-
-        tabGeneral.addEventListener('click', showGeneralTab);
-        tabChat.addEventListener('click', showChatTab);
-        
-        // Por defecto mostrar vista general
-        showGeneralTab();
-    }
-
-    // --- Crear nuevo ticket ---
-    if (modalNuevo) {
-        const btnNuevoTicket = document.getElementById('btn-nuevo-ticket');
-        const btnCerrarNuevo = document.getElementById('btn-cerrar-modal-nuevo');
-        
-        if (btnNuevoTicket) {
-            btnNuevoTicket.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('Botón nuevo ticket clickeado');
-                modalNuevo.style.display = 'flex';
-                console.log('Modal mostrado');
-            });
-        }
-        
-        if (btnCerrarNuevo) {
-            btnCerrarNuevo.addEventListener('click', function() {
-                modalNuevo.style.display = 'none';
-                console.log('Modal cerrado');
-            });
-        }
-        
-        // Cerrar modal al hacer clic fuera
-        modalNuevo.addEventListener('click', function(e) {
-            if (e.target === modalNuevo) {
-                modalNuevo.style.display = 'none';
-                console.log('Modal cerrado por click fuera');
-            }
-        });
-    }
-    
-    if (btnCerrarNuevo && modalNuevo) {
-        console.log('✅ Configurando botón cerrar');
-        btnCerrarNuevo.addEventListener('click', function() {
-            console.log('🔒 Cerrando modal');
-            modalNuevo.classList.add('hidden');
-            if (formNuevoTicket) {
-                formNuevoTicket.reset();
-                resetEvidenciaContainers();
-            }
-        });
-    }
-    
+    // === ENVÍO DEL FORMULARIO NUEVO TICKET ===
+    const formNuevoTicket = document.getElementById('form-nuevo-ticket');
     if (formNuevoTicket) {
         formNuevoTicket.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Deshabilitar botón y mostrar loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creando...';
+            
+            fetch('{{ url_for("tickets.nuevo_ticket") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar modal
+                    modal.classList.add('hidden');
+                    
+                    // Limpiar formulario
+                    formNuevoTicket.reset();
+                    
+                    // Resetear evidencias - limpiar los inputs de archivo
+                    const evidenciaContainer = document.getElementById('evidencia-container');
+                    if (evidenciaContainer) {
+                        const fileInputs = evidenciaContainer.querySelectorAll('input[type="file"]');
+                        fileInputs.forEach(input => {
+                            input.value = '';
+                        });
+                        
+                        // Resetear las previsualizaciones
+                        const previews = evidenciaContainer.querySelectorAll('.evidencia-preview');
+                        previews.forEach((preview, index) => {
+                            preview.innerHTML = `
+                                <div class="upload-placeholder">
+                                    <div class="relative">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M4 4h16v12l-4-4-4 4-4-4-4 4V4zm4 6.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/>
+                                            <path d="M2 2v20h20V2H2zm18 18H4V4h16v16z"/>
+                                        </svg>
+                                        <div class="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                                            +
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    // Recargar página para mostrar el nuevo ticket
+                    window.location.reload();
+                } else {
+                    alert('Error al crear el ticket: ' + (data.error || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión. Inténtalo de nuevo.');
+            })
+            .finally(() => {
+                // Rehabilitar botón
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            });
+        });
+    }
+    
+    console.log('✅ Inicialización completada - Versión LIMPIA');
+});
+
+// === FUNCIONES PARA FILTROS ===
+window.aplicarFiltros = function() {
+    const orden = document.getElementById('order-select').value;
+    const area = document.getElementById('area-filter').value;
+    const categoria = document.getElementById('categoria-filter').value;
+    const busqueda = document.getElementById('search-input').value;
+    
+    // Construir URL con parámetros
+    const params = new URLSearchParams();
+    if (orden) params.set('orden', orden);
+    if (area) params.set('area', area);
+    if (categoria) params.set('categoria', categoria);
+    if (busqueda) params.set('busqueda', busqueda);
+    
+    // Mantener la tab actual
+    const tabActual = '{{ tab_actual }}';
+    if (tabActual) params.set('tab', tabActual);
+    
+    // Redirigir con los filtros
+    window.location.href = `{{ url_for('tickets.index') }}?${params.toString()}`;
+};
+
+window.buscarTickets = function(valor) {
+    // Aplicar filtros después de un pequeño delay para evitar demasiadas requests
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+        aplicarFiltros();
+    }, 500);
+};
+
+// === FUNCIONES PARA ACCIONES DE TICKETS ===
+window.verTicket = function(ticketId) {
+    console.log('Ver ticket:', ticketId);
+    
+    // Guardar el ID del ticket actual
+    window.currentTicketId = ticketId;
+    
+    // Abrir modal de ver ticket
+    const modalVer = document.getElementById('modal-ver-ticket');
+    
+    if (modalVer) {
+        modalVer.classList.remove('hidden');
+        
+        // Asegurar que la pestaña descriptivo esté activa
+        cambiarTab('descriptivo');
+        
+        // Cargar datos del ticket via JSON
+        fetch(`/tickets/api/ticket/${ticketId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                poblarModalVerTicket(data.ticket);
+            } else {
+                alert('Error al cargar el ticket: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión al cargar el ticket');
+        });
+    }
+};
+
+window.editarTicket = function(ticketId) {
+    console.log('Editar ticket:', ticketId);
+    
+    // Abrir modal de editar ticket
+    const modalEditar = document.getElementById('modal-editar-ticket');
+    const contenidoEditar = document.getElementById('contenido-editar-ticket');
+    
+    if (modalEditar && contenidoEditar) {
+        // Mostrar loading
+        contenidoEditar.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div><p class="mt-2 text-gray-600">Cargando...</p></div>';
+        modalEditar.classList.remove('hidden');
+        
+        // Cargar formulario de edición
+        fetch(`/tickets/editar/${ticketId}`)
+        .then(response => response.text())
+        .then(html => {
+            contenidoEditar.innerHTML = html;
+            // Inicializar eventos del formulario de edición
+            initEditarTicketForm();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            contenidoEditar.innerHTML = '<div class="text-center py-8 text-red-600">Error al cargar el formulario</div>';
+        });
+    }
+};
+
+window.archivarTicket = function(ticketId) {
+    console.log('Archivar ticket:', ticketId);
+    if (confirm('¿Estás seguro de que quieres archivar este ticket?')) {
+        // TODO: Implementar archivado
+        fetch(`/tickets/archivar/${ticketId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al archivar el ticket');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al archivar el ticket');
+        });
+    }
+};
+
+window.reportarTicket = function(ticketId) {
+    console.log('Reportar ticket:', ticketId);
+    if (confirm('¿Reportar este ticket por inactividad? Se notificará al área responsable.')) {
+        fetch(`/tickets/reportar/${ticketId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Ticket reportado exitosamente');
+                location.reload();
+            } else {
+                alert('Error al reportar el ticket');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al reportar el ticket');
+        });
+    }
+};
+
+// Función para inicializar el formulario de edición
+window.initEditarTicketForm = function() {
+    const formEditar = document.querySelector('#contenido-editar-ticket form');
+    if (formEditar) {
+        formEditar.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Deshabilitar botón y mostrar loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
             
             fetch(this.action, {
                 method: 'POST',
@@ -1648,313 +1708,648 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showNotification('Ticket creado correctamente', 'success');
-                    modalNuevo.classList.add('hidden');
-                    this.reset();
-                    resetEvidenciaContainers();
-                    setTimeout(() => location.reload(), 1000);
+                    // Cerrar modal
+                    document.getElementById('modal-editar-ticket').classList.add('hidden');
+                    
+                    // Recargar página para mostrar los cambios
+                    window.location.reload();
                 } else {
-                    showNotification(data.error || 'Error al crear el ticket', 'error');
+                    alert('Error al actualizar el ticket: ' + (data.error || 'Error desconocido'));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error de conexión', 'error');
-            });
-        });
-    }
-
-    // --- Manejo de múltiples evidencias ---
-    function initEvidenciaHandlers() {
-        document.querySelectorAll('.evidencia-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const container = this.closest('.evidencia-container');
-                const label = container.querySelector('label');
-                const preview = container.querySelector('.evidencia-preview');
-                const nombreSpan = container.querySelector('.evidencia-nombre');
-                const removeBtn = container.querySelector('.evidencia-remove');
-                
-                if (this.files && this.files[0]) {
-                    const file = this.files[0];
-                    
-                    // Mostrar preview
-                    label.style.display = 'none';
-                    preview.classList.remove('hidden');
-                    nombreSpan.textContent = file.name;
-                    
-                    // Manejar botón de remover
-                    removeBtn.addEventListener('click', function() {
-                        input.value = '';
-                        label.style.display = 'flex';
-                        preview.classList.add('hidden');
-                    });
-                }
-            });
-        });
-    }
-    
-    function resetEvidenciaContainers() {
-        document.querySelectorAll('.evidencia-container').forEach(container => {
-            const input = container.querySelector('.evidencia-input');
-            const label = container.querySelector('label');
-            const preview = container.querySelector('.evidencia-preview');
-            
-            input.value = '';
-            label.style.display = 'flex';
-            preview.classList.add('hidden');
-        });
-    }
-    
-    // --- Filtrado dinámico de categorías por área ---
-    function initAreaCategoriaFilter() {
-        const areaSelect = document.querySelector('select[name="area"]');
-        const categoriaSelect = document.querySelector('select[name="categoria"]');
-        
-        if (!areaSelect || !categoriaSelect) return;
-        
-        // Mapeo de áreas a categorías
-        const areaCategoriaMap = {
-            'Compras': [
-                'Solicitud de compra',
-                'Cotizaciones',
-                'Reembolsos',
-                'Seguimiento de envíos'
-            ],
-            'IT': [
-                'Soporte técnico',
-                'Accesos y contraseñas',
-                'Red y conectividad',
-                'Correo electrónico',
-                'Impresoras y escáneres',
-                'Instalación de software'
-            ],
-            'Diseño': [
-                'Diseño de material impreso o digital',
-                'Actualización de diseño',
-                'Logotipos e identidad corporativa',
-                'Plantillas corporativas',
-                'Revisión de uso de marca'
-            ],
-            'Soporte EHSmart': [
-                'Acceso y usuarios',
-                'Errores técnicos',
-                'Capacitación EHSmart',
-                'Solicitud de soporte funcional'
-            ],
-            'Recursos Humanos': [
-                'Vacaciones y permisos',
-                'Nómina y pagos',
-                'Prestaciones y beneficios',
-                'Documentación y constancias'
-            ],
-            'Desarrollo Organizacional': [
-                'Asesoría individual',
-                'Gestión de conflictos laborales',
-                'Apoyo al desarrollo personal y profesional',
-                'Programas de desarrollo interno'
-            ],
-            'Capacitación': [
-                'Solicitud de curso',
-                'Alta de evento de capacitación',
-                'Dudas sobre plan de formación',
-                'Registro de constancia o diploma'
-            ]
-        };
-        
-        // Función para filtrar categorías
-        function filterCategorias(selectedArea) {
-            // Limpiar categorías actuales
-            categoriaSelect.innerHTML = '<option value="">Selecciona una categoría</option>';
-            
-            // Agregar categorías del área seleccionada
-            if (selectedArea && areaCategoriaMap[selectedArea]) {
-                areaCategoriaMap[selectedArea].forEach(categoria => {
-                    const option = document.createElement('option');
-                    option.value = categoria;
-                    option.textContent = categoria;
-                    categoriaSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Evento para cambio de área
-        areaSelect.addEventListener('change', function() {
-            filterCategorias(this.value);
-        });
-        
-        // Inicializar filtrado si ya hay un área seleccionada
-        if (areaSelect.value) {
-            filterCategorias(areaSelect.value);
-        }
-    }
-    
-    // Inicializar handlers de evidencia y filtros
-    initEvidenciaHandlers();
-    initAreaCategoriaFilter();
-
-    // --- Archivar tickets con modal de confirmación ---
-    let ticketToArchive = null;
-    const modalConfirmarArchivar = document.getElementById('modal-confirmar-archivar');
-    
-    document.querySelectorAll('.btn-archivar').forEach(btn => {
-        btn.addEventListener('click', function() {
-            if (this.disabled) {
-                showNotification('Solo se pueden archivar tickets resueltos', 'error');
-                return;
-            }
-            
-            ticketToArchive = this.dataset.ticketId;
-            modalConfirmarArchivar.classList.remove('hidden');
-        });
-    });
-    
-    // Cancelar archivado
-    document.getElementById('btn-cancelar-archivar').addEventListener('click', () => {
-        modalConfirmarArchivar.classList.add('hidden');
-        ticketToArchive = null;
-    });
-    
-    // Confirmar archivado
-    document.getElementById('btn-confirmar-archivar').addEventListener('click', () => {
-        if (ticketToArchive) {
-            // Preparar datos con CSRF token
-            const formData = new FormData();
-            formData.append('csrf_token', getCSRFToken());
-            
-            fetch(`/tickets/archivar/${ticketToArchive}`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
+                alert('Error de conexión. Inténtalo de nuevo.');
             })
-            .then(response => {
-                // Verificar si la respuesta es realmente JSON
-                const contentType = response.headers.get('content-type');
-                
-                if (!contentType || !contentType.includes('application/json')) {
-                    // Si no es JSON, obtener el texto para ver qué está devolviendo
-                    return response.text().then(text => {
-                        throw new Error(`Respuesta no es JSON. Content-Type: ${contentType}`);
-                    });
-                }
-                
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showNotification('Ticket archivado correctamente', 'success');
-                    
-                    // Remover la fila con efecto suave
-                    const btn = document.querySelector(`[data-ticket-id="${ticketToArchive}"]`);
-                    const row = btn.closest('tr');
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '0';
-                    row.style.transform = 'translateX(-20px)';
-                    setTimeout(() => {
-                        row.remove();
-                    }, 300);
-                } else {
-                    showNotification(data.message || 'Error al archivar ticket', 'error');
-                }
-                
-                modalConfirmarArchivar.classList.add('hidden');
-                ticketToArchive = null;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Error de conexión', 'error');
-                modalConfirmarArchivar.classList.add('hidden');
-                ticketToArchive = null;
+            .finally(() => {
+                // Rehabilitar botón
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             });
-        }
-    });
-
-    // --- Reportes ---
-    document.querySelectorAll('.btn-reportes').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const ticketId = this.dataset.ticketId;
-            showNotification('Función de reportes en desarrollo', 'info');
-        });
-    });
-
-    // --- Cerrar modales ---
-    if (document.getElementById('btn-cerrar-modal-detalle')) {
-        document.getElementById('btn-cerrar-modal-detalle').addEventListener('click', () => {
-            modalDetalle.classList.add('hidden');
         });
     }
+};
 
-    // --- Cerrar modales al hacer clic fuera ---
-    [modalDetalle, modalNuevo, modalConfirmarArchivar].forEach(modal => {
-        if (modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.add('hidden');
-                    if (this === modalConfirmarArchivar) {
-                        ticketToArchive = null;
-                    }
-                }
-            });
-        }
-    });
-
-    // --- Funciones auxiliares ---
-    function updateStatusClasses(select, estatus) {
-        // Remover todas las clases de estatus anteriores
-        select.className = select.className.replace(/status-[\w-]+/g, '');
-        
-        // Agregar las clases base
-        select.classList.add('status-badge', 'estatus-select');
-        
-        // Agregar la nueva clase de estatus
-        const statusClass = `status-${estatus.toLowerCase().replace(/\s+/g, '-')}`;
-        select.classList.add(statusClass);
-    }
-
-    function showNotification(message, type) {
-        // Crear notificación mejorada en la parte inferior derecha
-        const notification = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-green-500' : 
-                       type === 'info' ? 'bg-blue-500' : 'bg-red-500';
-        
-        notification.className = `fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${bgColor} text-white`;
-        notification.innerHTML = `
-            <div class="flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    ${type === 'success' ? 
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' :
-                        type === 'info' ?
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
-                    }
-                </svg>
-                <span>${message}</span>
+// Función para manejar la vista previa de archivos
+window.handleFilePreview = function(input, index) {
+    const file = input.files[0];
+    const previewContainer = document.getElementById(`preview-${index}`);
+    
+    if (!file) {
+        // Restaurar placeholder si no hay archivo
+        previewContainer.innerHTML = `
+            <div class="upload-placeholder">
+                <div class="relative">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M4 4h16v12l-4-4-4 4-4-4-4 4V4zm4 6.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/>
+                        <path d="M2 2v20h20V2H2zm18 18H4V4h16v16z"/>
+                    </svg>
+                    <div class="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                        +
+                    </div>
+                </div>
             </div>
         `;
-        
-        document.body.appendChild(notification);
-        
-        // Animar entrada
-        setTimeout(() => {
-            notification.classList.remove('translate-x-full');
-        }, 100);
-        
-        // Animar salida y remover
-        setTimeout(() => {
-            notification.classList.add('translate-x-full');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
+        return;
     }
     
-    // Inicializar valores originales para rollback y aplicar estilos
-    document.querySelectorAll('.estatus-select').forEach(select => {
-        select.dataset.originalValue = select.value;
-        // Aplicar estilos iniciales basados en el valor actual
-        updateStatusClasses(select, select.value);
+    const fileName = file.name;
+    const fileType = file.type;
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    
+    // Verificar si es una imagen
+    if (fileType.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `
+                <div class="relative">
+                    <img src="${e.target.result}" alt="Preview" class="w-full h-16 object-cover rounded mx-auto">
+                    <div class="mt-1">
+                        <p class="text-xs font-medium text-gray-700 truncate">${fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</p>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 text-xs">
+                            ×
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // Para documentos, mostrar icono según el tipo
+        let iconSvg = '';
+        
+        if (['pdf'].includes(fileExtension)) {
+            iconSvg = `
+                <svg class="w-6 h-6 text-red-500 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8.267 14.68c-.184 0-.308.018-.372.036v1.178c.076.018.171.023.302.023.479 0 .774-.242.774-.651 0-.366-.254-.586-.704-.586zm3.487.012c-.2 0-.33.018-.407.036v2.61c.077.018.201.018.313.018.817.006 1.349-.444 1.349-1.396.006-.83-.479-1.268-1.255-1.268z"/>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM9.498 16.19c-.309.29-.765.42-1.296.42a2.23 2.23 0 0 1-.308-.018v1.426H7v-3.936A7.558 7.558 0 0 1 8.219 14c.557 0 .953.106 1.22.319.254.202.426.533.426.923-.001.392-.131.723-.367.948zm3.807 1.355c-.42.349-1.059.515-1.84.515-.468 0-.799-.03-1.024-.06v-3.917A7.947 7.947 0 0 1 11.66 14c.757 0 1.249.136 1.633.426.415.308.675.799.675 1.504 0 .763-.279 1.29-.663 1.615zM17 14.77h-1.532v.911H16.9v.734h-1.432v1.604h-.906V14.03H17v.74zM14 9h-1V4l5 5h-4z"/>
+                </svg>
+            `;
+        } else if (['doc', 'docx'].includes(fileExtension)) {
+            iconSvg = `
+                <svg class="w-6 h-6 text-blue-500 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM16 18H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+            `;
+        } else if (['xls', 'xlsx'].includes(fileExtension)) {
+            iconSvg = `
+                <svg class="w-6 h-6 text-green-500 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM15.5 16L13 13.5 10.5 16 9 14.5l2.5-2.5L9 9.5 10.5 8 13 10.5 15.5 8 17 9.5 14.5 12l2.5 2.5-1.5 1.5zM13 9V3.5L18.5 9H13z"/>
+                </svg>
+            `;
+        } else {
+            iconSvg = `
+                <svg class="w-6 h-6 text-gray-500 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM16 18H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+            `;
+        }
+        
+        previewContainer.innerHTML = `
+            <div class="relative text-center">
+                ${iconSvg}
+                <p class="text-xs font-medium text-gray-700 truncate">${fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</p>
+                <p class="text-xs text-gray-500">${(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 text-xs">
+                    ×
+                </button>
+            </div>
+        `;
+    }
+    
+    // Mostrar siguiente slot de evidencia si existe
+    const evidenciaItems = document.querySelectorAll('.evidencia-item');
+    if (index < evidenciaItems.length - 1) {
+        evidenciaItems[index + 1].classList.remove('hidden');
+    }
+};
+
+// Función para eliminar archivo
+window.removeFile = function(index) {
+    const input = document.querySelector(`input[name="evidencia_${index + 1}"]`);
+    const previewContainer = document.getElementById(`preview-${index}`);
+    
+    input.value = '';
+    previewContainer.innerHTML = `
+        <div class="upload-placeholder">
+            <div class="relative">
+                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 4h16v12l-4-4-4 4-4-4-4 4V4zm4 6.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/>
+                    <path d="M2 2v20h20V2H2zm18 18H4V4h16v16z"/>
+                </svg>
+                <div class="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                    +
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Ocultar slots posteriores vacíos
+    const evidenciaItems = document.querySelectorAll('.evidencia-item');
+    for (let i = index + 1; i < evidenciaItems.length; i++) {
+        const nextInput = document.querySelector(`input[name="evidencia_${i + 1}"]`);
+        if (!nextInput.files.length) {
+            evidenciaItems[i].classList.add('hidden');
+        }
+    }
+};
+
+// CSRF Token para las peticiones AJAX
+window.csrfToken = '{{ csrf_token() }}';
+
+// === FUNCIONES PARA EL MODAL VER TICKET ===
+
+// Función para cambiar entre pestañas del modal ver ticket
+window.cambiarTab = function(tabName) {
+    // Ocultar todos los contenidos
+    document.getElementById('contenido-descriptivo').classList.add('hidden');
+    document.getElementById('contenido-conversacion').classList.add('hidden');
+    document.getElementById('contenido-observaciones').classList.add('hidden');
+    
+    // Resetear todos los botones de pestañas
+    document.getElementById('tab-descriptivo').className = 'py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700';
+    document.getElementById('tab-conversacion').className = 'py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700';
+    document.getElementById('tab-observaciones').className = 'py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700';
+    
+    // Mostrar el contenido seleccionado y activar el botón
+    document.getElementById('contenido-' + tabName).classList.remove('hidden');
+    document.getElementById('tab-' + tabName).className = 'py-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600';
+    
+    // Si se abre la pestaña de conversación, configurar el event listener para Enter
+    if (tabName === 'conversacion') {
+        const textarea = document.getElementById('nuevo-comentario');
+        if (textarea) {
+            // Remover event listeners anteriores
+            textarea.removeEventListener('keydown', handleTextareaKeydown);
+            // Agregar nuevo event listener
+            textarea.addEventListener('keydown', handleTextareaKeydown);
+            // Hacer focus al textarea
+            setTimeout(() => textarea.focus(), 100);
+        }
+    }
+};
+
+// Función para manejar el evento keydown en el textarea
+function handleTextareaKeydown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        enviarComentario();
+    }
+}
+
+// Función para poblar el modal con datos del ticket
+window.poblarModalVerTicket = function(ticketId) {
+    console.log('Poblando modal con ID:', ticketId);
+    
+    // Guardar el ID del ticket actual
+    ticketActualId = ticketId;
+    
+    // Hacer fetch de los datos del ticket
+    fetch(`/tickets/api/ticket/${ticketId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            const ticket = data.ticket;
+            
+            // Información básica
+            document.getElementById('ver-ticket-area').textContent = ticket.area || '--';
+            document.getElementById('ver-ticket-categoria').textContent = ticket.categoria || '--';
+            document.getElementById('ver-ticket-titulo').textContent = ticket.titulo || '--';
+            
+            // Prioridad con badge
+            const prioridadBadge = document.getElementById('ver-ticket-prioridad-badge');
+            if (ticket.prioridad) {
+                prioridadBadge.textContent = ticket.prioridad;
+                prioridadBadge.className = `inline-flex items-center px-3 py-1 rounded-full text-xs font-medium priority-${ticket.prioridad.toLowerCase()}`;
+            }
+            
+            // Fechas
+            document.getElementById('ver-ticket-fecha-creacion').textContent = ticket.fecha_creacion || '--/--/--';
+            document.getElementById('ver-ticket-ultima-actualizacion').textContent = ticket.fecha_actualizacion || '--/--/--';
+            
+            // Día de cierre - solo si el ticket está cerrado
+            const diaCierre = ticket.estatus === 'Cerrado' ? ticket.fecha_actualizacion : '--/--/--';
+            document.getElementById('ver-ticket-dia-cierre').textContent = diaCierre;
+            
+            // Descripción
+            document.getElementById('ver-ticket-descripcion').textContent = ticket.descripcion || '';
+            
+            // Estatus
+            const estatusSelect = document.getElementById('ver-ticket-estatus');
+            if (ticket.estatus) {
+                estatusSelect.value = ticket.estatus;
+            }
+            
+            // Habilitar o deshabilitar el select según permisos
+            if (ticket.puede_cambiar_estatus) {
+                estatusSelect.disabled = false;
+                estatusSelect.title = 'Puedes cambiar el estatus';
+            } else {
+                estatusSelect.disabled = true;
+                estatusSelect.title = 'Solo el gestor de la categoría puede cambiar el estatus';
+            }
+            
+            // Evidencias
+            const evidenciaContainer = document.getElementById('ver-ticket-evidencia');
+            evidenciaContainer.innerHTML = '';
+            
+            if (ticket.evidencias && ticket.evidencias.length > 0) {
+                ticket.evidencias.forEach((evidencia, index) => {
+                    const evidenciaDiv = document.createElement('div');
+                    evidenciaDiv.className = 'border border-gray-200 rounded-lg p-2 text-center';
+                    
+                    // Determinar si es imagen por extensión
+                    const esImagen = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(evidencia);
+                    
+                    if (esImagen) {
+                        evidenciaDiv.innerHTML = `
+                            <div class="cursor-pointer hover:opacity-75 transition-opacity" onclick="abrirVistaPrevia('${evidencia}', '${evidencia}')">
+                                <img src="/tickets/uploads/${evidencia}" alt="Evidencia ${index + 1}" class="w-full h-16 object-cover rounded mb-1" onerror="this.style.display='none'">
+                                <p class="text-xs text-gray-500 truncate" title="${evidencia}">${evidencia.length > 12 ? evidencia.substring(0, 12) + '...' : evidencia}</p>
+                            </div>
+                        `;
+                    } else {
+                        evidenciaDiv.innerHTML = `
+                            <div class="cursor-pointer hover:bg-gray-50 transition-colors" onclick="abrirVistaPrevia('${evidencia}', '${evidencia}')">
+                                <div class="flex flex-col items-center justify-center h-16">
+                                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                                    </svg>
+                                    <p class="text-xs text-gray-500 truncate" title="${evidencia}">${evidencia.length > 12 ? evidencia.substring(0, 12) + '...' : evidencia}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    evidenciaContainer.appendChild(evidenciaDiv);
+                });
+            } else {
+                evidenciaContainer.innerHTML = '<p class="text-gray-500 text-sm col-span-4 text-center py-4">No hay evidencias adjuntas</p>';
+            }
+            
+            // Actualizar datos del chat
+            document.getElementById('chat-ticket-titulo').textContent = ticket.titulo || '--';
+            document.getElementById('chat-fecha-creacion').textContent = ticket.fecha_creacion || '--/--/--';
+            document.getElementById('chat-ultima-actualizacion').textContent = ticket.fecha_actualizacion || '--/--/--';
+            
+            // Cargar comentarios del chat
+            cargarComentarios(ticket.comentarios || []);
+            
+            // Verificar si se pueden agregar comentarios según el estatus
+            verificarEstadoComentarios(ticket.estatus);
+        })
+        .catch(error => {
+            console.error('Error al cargar datos del ticket:', error);
+        });
+};
+
+// Variable global para almacenar el ID del ticket actual
+let ticketActualId = null;
+
+// Función para abrir vista previa de evidencia
+function abrirVistaPrevia(archivo, nombreArchivo) {
+    const modal = document.getElementById('modal-vista-previa');
+    const contenido = document.getElementById('contenido-vista-previa');
+    const nombreDiv = document.getElementById('nombre-archivo-previa');
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+    
+    // Actualizar nombre del archivo
+    nombreDiv.textContent = nombreArchivo;
+    
+    // Determinar tipo de archivo
+    const esImagen = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(archivo);
+    
+    if (esImagen) {
+        contenido.innerHTML = `
+            <img src="/tickets/uploads/${archivo}" alt="${nombreArchivo}" class="max-w-full max-h-full object-contain rounded-lg shadow-lg">
+        `;
+    } else {
+        // Para otros tipos de archivo, mostrar información y botón de descarga
+        contenido.innerHTML = `
+            <div class="text-center">
+                <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                    <path d="M14 2v6h6"/>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">${nombreArchivo}</h3>
+                <p class="text-gray-500 mb-4">Este tipo de archivo no se puede previsualizar</p>
+                <a href="/tickets/uploads/${archivo}" download="${nombreArchivo}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Descargar archivo
+                </a>
+            </div>
+        `;
+    }
+}
+
+// Función para cerrar vista previa
+function cerrarVistaPrevia() {
+    document.getElementById('modal-vista-previa').classList.add('hidden');
+}
+
+// Función para cambiar estatus automáticamente
+function cambiarEstatusTicket() {
+    if (!ticketActualId) return;
+    
+    const select = document.getElementById('ver-ticket-estatus');
+    
+    // Verificar si el select está deshabilitado
+    if (select.disabled) {
+        select.style.backgroundColor = '#fecaca'; // Rojo suave
+        setTimeout(() => {
+            select.style.backgroundColor = '';
+        }, 1000);
+        return;
+    }
+    
+    const nuevoEstatus = select.value;
+    
+    // Mostrar indicador de carga
+    const originalText = select.style.backgroundColor;
+    select.style.backgroundColor = '#fef3c7'; // Amarillo suave
+    
+    fetch(`/tickets/api/cambiar-estatus/${ticketActualId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': window.csrfToken
+        },
+        body: JSON.stringify({
+            estatus: nuevoEstatus
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Mostrar confirmación visual
+            select.style.backgroundColor = '#dcfce7'; // Verde suave
+            setTimeout(() => {
+                select.style.backgroundColor = originalText;
+            }, 1000);
+            
+            console.log('Estatus actualizado correctamente');
+            
+            // Verificar si se pueden agregar comentarios con el nuevo estatus
+            verificarEstadoComentarios(nuevoEstatus);
+            
+            // La tabla se actualizará al cerrar el modal
+        } else {
+            throw new Error(data.message || 'Error al actualizar estatus');
+        }
+    })
+    .catch(error => {
+        console.error('Error al cambiar estatus:', error);
+        // Revertir al valor anterior en caso de error
+        select.style.backgroundColor = '#fecaca'; // Rojo suave
+        setTimeout(() => {
+            select.style.backgroundColor = originalText;
+        }, 2000);
+        
+        // Opcional: mostrar un mensaje de error al usuario
+        alert('Error al cambiar el estatus. Inténtalo de nuevo.');
     });
-});
+}
+
+// Funciones para el chat de comentarios
+function cargarComentarios(comentarios) {
+    const chatContainer = document.getElementById('chat-mensajes');
+    chatContainer.innerHTML = '';
+    
+    if (!comentarios || comentarios.length === 0) {
+        chatContainer.innerHTML = `
+            <div class="text-center text-gray-500 py-8">
+                <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                <p class="text-sm">No hay comentarios aún</p>
+                <p class="text-xs mt-1">Sé el primero en comentar</p>
+            </div>
+        `;
+        return;
+    }
+    
+    comentarios.forEach(comentario => {
+        const mensajeDiv = document.createElement('div');
+        const esPropio = comentario.emisor_id === ticketActualUsuarioId;
+        const horaFormateada = comentario.fecha;
+        const fotoUrl = comentario.emisor_foto || '/static/default_user.png';
+        
+        mensajeDiv.className = `flex mb-4 ${esPropio ? 'justify-end' : 'justify-start'}`;
+        
+        if (esPropio) {
+            // Mensaje propio (derecha, azul)
+            mensajeDiv.innerHTML = `
+                <div class="flex items-end space-x-2 max-w-sm">
+                    <div class="bg-blue-500 text-white rounded-lg px-4 py-2 shadow-sm">
+                        <p class="text-sm">${comentario.contenido}</p>
+                        <div class="text-xs text-blue-100 mt-1 text-right">${horaFormateada}</div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-blue-300">
+                        <img src="${fotoUrl}" alt="Usuario" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
+                    </div>
+                </div>
+            `;
+        } else {
+            // Mensaje de otro (izquierda, gris)
+            mensajeDiv.innerHTML = `
+                <div class="flex items-end space-x-2 max-w-sm">
+                    <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-300">
+                        <img src="${fotoUrl}" alt="Usuario" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
+                    </div>
+                    <div class="bg-gray-800 text-white rounded-lg px-4 py-2 shadow-sm">
+                        <p class="text-sm">${comentario.contenido}</p>
+                        <div class="text-xs text-gray-300 mt-1 text-right">${horaFormateada}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        chatContainer.appendChild(mensajeDiv);
+    });
+    
+    // Hacer scroll al final del chat
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function enviarComentario() {
+    const textarea = document.getElementById('nuevo-comentario');
+    const contenido = textarea.value.trim();
+    
+    console.log('=== ENVIANDO COMENTARIO ===');
+    console.log('Contenido:', contenido);
+    console.log('Ticket ID:', ticketActualId);
+    
+    if (!contenido) {
+        textarea.focus();
+        return;
+    }
+    
+    if (!ticketActualId) {
+        alert('Error: No se ha seleccionado un ticket');
+        return;
+    }
+    
+    // Deshabilitar textarea mientras se envía
+    textarea.disabled = true;
+    textarea.placeholder = 'Enviando comentario...';
+    
+    // Enviar comentario
+    const formData = new FormData();
+    formData.append('contenido', contenido);
+    
+    console.log('=== VERIFICANDO CSRF TOKEN ===');
+    const csrfMeta = document.querySelector('meta[name=csrf-token]');
+    console.log('CSRF meta element:', csrfMeta);
+    
+    if (csrfMeta) {
+        const csrfToken = csrfMeta.getAttribute('content');
+        console.log('CSRF token:', csrfToken);
+        if (csrfToken && csrfToken !== 'NO_TOKEN') {
+            formData.append('csrf_token', csrfToken);
+        }
+    } else {
+        console.log('CSRF meta tag not found, continuing without CSRF token (endpoint is exempt)');
+    }
+    
+    console.log('=== ENVIANDO FETCH ===');
+    console.log('URL:', `/tickets/comentario-nuevo/${ticketActualId}`);
+    console.log('FormData contenido:', formData.get('contenido'));
+    console.log('FormData csrf_token:', formData.get('csrf_token'));
+    
+    fetch(`/tickets/comentario-nuevo/${ticketActualId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('=== RESPUESTA FETCH ===');
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        console.log('Response headers:', response.headers.get('content-type'));
+        console.log('Response url:', response.url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.warn('Response is not JSON, trying to parse as text first');
+            return response.text().then(text => {
+                console.log('Raw response text:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Response is not valid JSON: ' + text);
+                }
+            });
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        console.log('Comentario response:', data);
+        if (data.success) {
+            // Limpiar textarea
+            textarea.value = '';
+            
+            // Recargar comentarios
+            return fetch(`/tickets/api/ticket/${ticketActualId}`);
+        } else {
+            throw new Error(data.message || 'Error al enviar comentario');
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Ticket reload response:', data);
+        if (data.success) {
+            cargarComentarios(data.ticket.comentarios || []);
+        }
+    })
+    .catch(error => {
+        console.error('Error al enviar comentario:', error);
+        alert('Error al enviar el comentario. Inténtalo de nuevo.');
+    })
+    .finally(() => {
+        // Restaurar textarea
+        textarea.disabled = false;
+        textarea.placeholder = 'Presiona Enter para enviar tu comentario...';
+    });
+}
+
+// Función para verificar el estado del ticket y habilitar/deshabilitar comentarios
+function verificarEstadoComentarios(estatus) {
+    const areaComentarios = document.getElementById('area-comentarios');
+    const textarea = document.getElementById('nuevo-comentario');
+    
+    // Estados que no permiten comentarios
+    const estadosCerrados = ['Cerrado', 'Resuelto'];
+    
+    if (estadosCerrados.includes(estatus)) {
+        // Deshabilitar comentarios
+        if (areaComentarios) {
+            areaComentarios.style.display = 'none';
+        }
+        
+        // Mostrar mensaje explicativo
+        let mensajeDeshabilitado = document.getElementById('comentarios-deshabilitados');
+        if (!mensajeDeshabilitado) {
+            mensajeDeshabilitado = document.createElement('div');
+            mensajeDeshabilitado.id = 'comentarios-deshabilitados';
+            mensajeDeshabilitado.className = 'bg-gray-100 border border-gray-300 rounded-lg p-4 text-center';
+            mensajeDeshabilitado.innerHTML = `
+                <div class="flex items-center justify-center space-x-2 text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span class="text-sm font-medium">Los comentarios están deshabilitados</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Este ticket está ${estatus.toLowerCase()} y no admite nuevos comentarios</p>
+            `;
+            
+            // Insertar después del chat
+            const chatContainer = document.getElementById('chat-mensajes').parentNode;
+            chatContainer.appendChild(mensajeDeshabilitado);
+        }
+        mensajeDeshabilitado.style.display = 'block';
+        
+    } else {
+        // Habilitar comentarios
+        if (areaComentarios) {
+            areaComentarios.style.display = 'block';
+        }
+        
+        // Ocultar mensaje de deshabilitado
+        const mensajeDeshabilitado = document.getElementById('comentarios-deshabilitados');
+        if (mensajeDeshabilitado) {
+            mensajeDeshabilitado.style.display = 'none';
+        }
+    }
+}
+
+// Variable global para almacenar el ID del usuario actual
+let ticketActualUsuarioId = {{ current_user.id if current_user.is_authenticated else 'null' }};
+
 </script>
+
+<!-- Script específico para helpdesk -->
+<script src="{{ url_for('tickets.static', filename='helpdesk.js') }}"></script>
 {% endblock %}

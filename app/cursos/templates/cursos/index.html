@@ -1,33 +1,429 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mx-auto p-6">
-  <h1 class="text-4xl font-bold mb-6">Mis Cursos</h1>
+{% extends 'base.html' %} {% block content %}
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for curso in cursos %}
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-      <img src="{{ url_for('static', filename=curso.imagen if curso.imagen else 'cursos/img/default-curso.png') }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover">
-      <div class="p-4">
-        <h2 class="text-xl font-semibold">{{ curso.nombre }}</h2>
-        <p class="text-gray-600 text-sm">{{ curso.descripcion or 'Sin descripción' }}</p>
-        <div class="mt-4">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-sm font-medium text-blue-700">Progreso</span>
-            <span class="text-sm font-semibold text-blue-700">{{ curso.progreso }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2">
-            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ curso.progreso }}%;"></div>
-          </div>
-        </div>
-        <div class="mt-4 flex gap-2">
-          <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Ver Curso</a>
-          {% if current_user.id == curso.creador_id %}
-          <a href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Editar</a>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+  body,
+  .helpdesk-scope {
+    /* background: linear-gradient(120deg, #f7f8fa 0%, #f2f3f7 100%) !important; */
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+      "Inter", Arial, sans-serif;
+  }
+
+  .helpdesk-scope {
+    min-height: 92vh; /* Ajusta el porcentaje según lo que necesites */
+    /* width: 100vw; */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .glassmorphism {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  @keyframes fadein { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+  .animate-fadein { animation: fadein .5s cubic-bezier(.4,0,.2,1); }
+
+  .glassmorphism-modal {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    border: 1px solid #ececec;
+  }
+  .tab-btn {
+    transition: background 0.2s, color 0.2s;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    background: transparent;
+    border-bottom: 2px solid transparent; /* Para la transición del borde inferior */
+  }
+
+  .tab-btn.active {
+    background: #fffbe6;
+    color: #3b3b3c;
+    border-bottom: 2px solid #fab522;
+  }
+
+  .tab-btn.active i { /* Estilo para el icono dentro del botón de pestaña cuando está activo */
+      color: #232323 !important;
+  }
+
+  .tab-content.active {
+      display: block; /* Visible cuando se activa con JS */
+  }
+
+  /* .tab-btn.border-b-2 {
+    background: #fffbe6;
+    color: #3b3b3c;
+    border-bottom: 2px solid #fab522;
+  } */
+  .badge-prioridad {
+    display: inline-block;
+    padding: 0.25em 0.8em;
+    border-radius: 999px;
+    font-size: 0.95em;
+    font-weight: 500;
+    background: #f7f7fa;
+    color: #3b3b3c;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+  }
+  .badge-prioridad.urgente {
+    background: #ff3b30;
+    color: #fff;
+  }
+  .badge-prioridad.alta {
+    background: #ffe08a;
+    color: #3b3b3c;
+  }
+  .badge-prioridad.media {
+    background: #e5e5ea;
+    color: #3b3b3c;
+  }
+  .badge-prioridad.baja {
+    background: #f2f3f7;
+    color: #3b3b3c;
+  }
+  .badge-estatus {
+    display: inline-block;
+    padding: 0.25em 0.8em;
+    border-radius: 999px;
+    font-size: 0.95em;
+    font-weight: 500;
+    background: #C7FBB0;
+    color: #143A04;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+  }
+  .badge-estatus.abierto {
+    background: #e5e5ea;
+    color: #3b3b3c;
+  }
+  .badge-estatus.en-progreso {
+    background: #ffe08a;
+    color: #3b3b3c;
+  }
+  .badge-estatus.resuelto {
+    background: #b7ebc6;
+    color: #2e7d32;
+  }
+  .tab-content {
+    display: none;
+    min-height: 320px;
+  }
+  table {
+    border-collapse: separate;
+    border-spacing: 0 0.5em;
+    font-family: inherit;
+  }
+  th,
+  td {
+    font-family: inherit;
+    font-size: 1em;
+  }
+  th {
+    font-weight: 600;
+    background: transparent;
+  }
+  tr {
+    transition: background 0.18s;
+  }
+  tr:hover {
+    background: #fffbe6 !important;
+  }
+  .btn-ver-ticket {
+    background: #fff;
+    border: 1px solid #ececec;
+    color: #3b3b3c;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px 0 rgba(31, 38, 135, 0.04);
+    font-family: inherit;
+  }
+  .btn-ver-ticket:hover {
+    background: #ffe08a;
+    color: #3b3b3c;
+    box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.08);
+  }
+  #btnNuevoTicket {
+    background: #fff;
+    color: #3b3b3c;
+    border: 1.5px solid #fab522;
+    border-radius: 16px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.04);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+  }
+  #btnNuevoTicket:hover {
+    background: #ffe08a;
+    color: #3b3b3c;
+    box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.08);
+  }
+  .font-sfpro {
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+      "Inter", Arial, sans-serif !important;
+  }
+
+  /* Estilo para cards de cursos */
+.card-curso {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px 0 rgba(31,38,135,0.08);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  cursor: pointer;
+}
+.card-curso:hover {
+  background: #fffbe6;
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.16);
+  transform: translateY(-6px);
+}
+.card-curso .card-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.card-curso:hover .card-actions {
+  opacity: 1;
+}
+
+.catalogo-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 270px);
+  min-height: 320px;
+}
+
+</style>
+<div class="helpdesk-scope">
+  <div class="w-full max-w-7xl mx-auto px-2 sm:px-6 pt-4 pb-8">
+    <div
+      class="glassmorphism rounded-2xl border border-[#fab522]/30 p-0 pb-6 animate-fadein shadow-xl"
+    >
+      <div class="flex border-b border-[#fab522]/20 bg-white/95 rounded-t-2xl">
+        
+        <button
+          id="tab-catalogo"
+          class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c] bg-white rounded-t-2xl focus:outline-none transition-all border-b-2 border-[#fab522]"
+        >
+          Catálogo
+        </button>
+        
+        <button
+          id="tab-inscrito"
+          class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all"
+        >
+          Inscrito
+        </button>
+        <button
+          id="tab-terminados"
+          class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all"
+        >
+          Terminados
+        </button>
+      </div>
+
+      <!-- Filyro de cursos, categorias -->
+      <div class="flex flex-wrap items-center justify-between mb-4 mt-4 gap-4">
+        <form method="get" class="flex flex-wrap gap-4 items-center flex-1 pl-6" id="filtro-cursos">
+        <!-- Filtro por categoría -->
+          <label class="font-semibold text-[#3b3b3c]">
+            Categoría:
+            <select name="categoria" class="border rounded px-3 py-2 ml-2">
+              <option value="">Todas</option>
+              {% for cat in categorias %}
+                <option value="{{ cat }}" {% if categoria_filtro == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        
+          {% if es_encargado %}
+          <!-- Filtro por creados por mí -->
+          <label class="font-semibold text-[#3b3b3c] flex items-center">
+            <input type="checkbox" name="creados" value="1" {% if request.args.get('creados') %}checked{% endif %} class="mr-2">
+            Mis cursos creados
+          </label>
+          <!-- Filtro por inactivos -->
+          <label class="font-semibold text-[#3b3b3c] flex items-center">
+            <input type="checkbox" name="inactivos" value="1" {% if request.args.get('inactivos') %}checked{% endif %} class="mr-2">
+            Inactivos
+          </label>
           {% endif %}
+          <button type="submit" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded transition-all">Filtrar</button>
+        </form>
+        {% if es_encargado %}
+        <div class="flex justify-end mt-4 mb-4 pr-6 sm:pr-10">
+          <a
+            href="#"
+            id="btnNuevoCurso"
+            class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-sfpro font-semibold px-6 py-2 rounded-xl shadow transition-all duration-200"
+          >
+            + Nuevo
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <div id="tab-content-catalogo" class="tab-content pl-6 pt-6 pr-6 pb-0 overflow-y-auto max-h-[calc(100vh-270px)]">
+        <!-- Aquí va el contenido de Catálogo (antes Gestión de cursos) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for curso in catalogo_cursos.items %}
+            {% set es_mio = curso.creador_id == current_user.id %}
+            {% if not es_mio %}
+              <!-- Card clickeable para cursos que NO son míos -->
+              <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="card-curso group block">
+                {% if curso.imagen %}
+                  <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+                {% else %}
+                  <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+                {% endif %}
+                <div class="p-4">
+                  <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
+                  <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
+                    {{ curso.estado }}
+                  </span>
+                  <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+                </div>
+              </a>
+            {% else %}
+              <!-- Card NO clickeable, con botones de editar/eliminar -->
+              <div class="card-curso group relative">
+                {% if curso.imagen %}
+                  <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+                {% else %}
+                  <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+                {% endif %}
+                <div class="p-4">
+                  <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
+                  <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
+                    {{ curso.estado }}
+                  </span>
+                  <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <a
+                    href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}"
+                    class="mx-2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
+                    title="Editar">
+                    <!-- Icono lápiz -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm0 0L4 19l5-5z" />
+                    </svg>
+                  </a>
+                  <button
+                    class="mx-2 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center btn-eliminar-curso"
+                    title="Eliminar"
+                    data-id="{{ curso.id }}"
+                    type="button">
+                    <!-- Icono basurero -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="flex justify-end mt-6">
+          <nav class="inline-flex gap-2">
+            {% if catalogo_cursos.has_prev %}
+              <a href="{{ url_for('cursos.index', page=catalogo_cursos.prev_num) }}"
+                class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
+                &lt;
+              </a>
+            {% else %}
+              <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&lt;</span>
+            {% endif %}
+
+            <span class="px-3 py-2 font-semibold text-[#fab522]">{{ catalogo_cursos.page }}</span>
+
+            {% if catalogo_cursos.has_next %}
+              <a href="{{ url_for('cursos.index', page=mis_cursos_creados.next_num) }}"
+                class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
+                &gt;
+              </a>
+            {% else %}
+              <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&gt;</span>
+            {% endif %}
+          </nav>
         </div>
       </div>
+      
+      <div id="tab-content-inscrito" class="tab-content p-6 {% if es_encargado %}hidden{% endif %}">
+        <!-- Aquí va el contenido de Inscrito (antes Mis cursos) -->
+        <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
+          Mis cursos
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for curso in mis_cursos_inscrito %}
+            <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="card-curso group block">
+              {% if curso.imagen %}
+                <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+              {% else %}
+                <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+              {% endif %}
+              <div class="p-4">
+                <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
+                <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
+                  {{ curso.estado }}
+                </span>
+                <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+              </div>
+            </a>
+            {% else %}
+            <div class="col-span-3 text-center text-gray-400 py-8 font-sfpro">
+              No estás inscrito en ningún curso.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div id="tab-content-terminados" class="tab-content p-6 hidden">
+        <!-- Aquí va el contenido de Terminados -->
+        <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
+          Cursos Terminados
+        </h2>
+        <!-- Puedes agregar aquí la tabla o cards de cursos terminados -->
+      </div>
     </div>
-    {% endfor %}
+  </div>
+</div> <!-- Cierre de .helpdesk-scope -->
+
+<!-- Aquí el modal del neuvo curso, fuera del contenedor principal -->
+<div id="cursoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all">
+  <div class="glassmorphism-modal w-full max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-2 sm:p-6 md:p-8 relative flex flex-col gap-4 animate-fadein
+              max-h-[90vh] sm:max-h-[80vh] md:max-h-[90vh]">
+    <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+    <div class="overflow-y-auto max-h-[70vh] sm:max-h-[60vh] md:max-h-[80vh] pr-2">
+      {% include 'cursos/agregar_curso.html' %}
+    </div>
   </div>
 </div>
+
+<!-- Scripts -->
+<script>
+  window.esEncargado = "{{ 'true' if es_encargado else 'false' }}";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='modal_add_curso.js') }}"></script>
+<script src="{{ url_for('static', filename='cursos_tabs.js') }}"></script>
 {% endblock %}

@@ -109,6 +109,22 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 block mb-2">Imagen de Fondo del Sistema</label>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                    <img id="currentBackgroundImage" src="{{ url_for('static', filename=background_image or 'default_bg.png') }}" alt="Background Image" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex flex-col space-y-2">
+                                    <button type="button" title="Cambiar imagen de fondo del sistema" onclick="document.getElementById('backgroundImageInput').click()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        Cambiar Fondo
+                                    </button>
+                                    <input type="file" id="backgroundImageInput" accept="image/*" title="Seleccionar imagen de fondo del sistema" class="hidden" onchange="subirImagenFondo()">
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max 2MB)</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -613,6 +629,66 @@ function subirLogo() {
             });
         } else {
             showAlert(data.error || 'Error al actualizar logo', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión: ' + error.message, 'error');
+    });
+}
+
+// Subir imagen de fondo del sistema
+function subirImagenFondo() {
+    const file = document.getElementById('backgroundImageInput').files[0];
+    if (!file) return;
+    
+    // Validaciones del cliente
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+        showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
+        return;
+    }
+    
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+        showAlert('Tipo de archivo no permitido. Use PNG, JPG o JPEG.', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('background_image', file);
+    
+    // Mostrar indicador de carga
+    showAlert('Subiendo imagen de fondo...', 'info');
+    
+    fetch('/auth/actualizar_configuracion', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Actualizar la imagen de fondo mostrada
+            const img = document.getElementById('currentBackgroundImage');
+            if (img && data.new_background) {
+                img.src = `/static/${data.new_background}?t=${new Date().getTime()}`;
+            }
+            showAlert('Imagen de fondo actualizada exitosamente', 'success');
+            
+            // Actualizar el fondo de la página inmediatamente
+            if (data.new_background) {
+                const bgPattern = document.querySelector('.bg-pattern');
+                if (bgPattern) {
+                    bgPattern.style.backgroundImage = `url('/static/${data.new_background}?t=${new Date().getTime()}')`;
+                }
+            }
+        } else {
+            showAlert(data.error || 'Error al actualizar imagen de fondo', 'error');
         }
     })
     .catch(error => {

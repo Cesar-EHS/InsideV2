@@ -241,6 +241,7 @@ def config():
     # Obtener configuraciones de imágenes
     login_image = Configuracion.get_valor('login_image', 'img/m.jpg')
     logo_sistema = Configuracion.get_valor('logo_sistema', 'logo_inside.png')
+    background_image = Configuracion.get_valor('background_image', 'default_bg.png')
     
     return render_template('auth/config.html',
                          users_count=total_users,
@@ -249,7 +250,8 @@ def config():
                          new_users=new_users,
                          puestos_trabajo=puestos_trabajo,
                          login_image=login_image,
-                         logo_sistema=logo_sistema)
+                         logo_sistema=logo_sistema,
+                         background_image=background_image)
 
 
 @auth_bp.route('/gestionar_usuarios')
@@ -798,6 +800,63 @@ def actualizar_configuracion():
                     'success': True, 
                     'message': 'Logo actualizado exitosamente', 
                     'new_logo': unique_filename
+                }), 200
+        
+        # Manejar cambio de imagen de fondo
+        if 'background_image' in request.files:
+            file = request.files['background_image']
+            if file and file.filename:
+                # Validar tipo de archivo
+                allowed_extensions = {'png', 'jpg', 'jpeg'}
+                if '.' not in file.filename:
+                    return jsonify({'error': 'Archivo sin extensión'}), 400
+                
+                file_ext = file.filename.rsplit('.', 1)[1].lower()
+                if file_ext not in allowed_extensions:
+                    return jsonify({'error': 'Tipo de archivo no permitido. Use PNG, JPG o JPEG'}), 400
+                
+                # Validar tamaño (máximo 2MB)
+                file.seek(0, 2)  # Ir al final del archivo
+                file_size = file.tell()
+                file.seek(0)  # Volver al inicio
+                
+                if file_size > 2 * 1024 * 1024:  # 2MB
+                    return jsonify({'error': 'Archivo demasiado grande. Máximo 2MB permitido'}), 400
+                
+                # Crear nombre de archivo único
+                import uuid
+                unique_filename = f"bg_{uuid.uuid4().hex[:8]}.{file_ext}"
+                
+                # Crear directorio si no existe
+                import os
+                
+                # Guardar en el directorio estático principal
+                static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static')
+                os.makedirs(static_dir, exist_ok=True)
+                
+                filepath = os.path.join(static_dir, unique_filename)
+                file.save(filepath)
+                
+                # Guardar configuración en base de datos
+                Configuracion.set_valor(
+                    clave='background_image',
+                    valor=unique_filename,
+                    descripcion='Imagen de fondo del sistema',
+                    tipo='file',
+                    usuario_id=current_user.id
+                )
+                
+                # Log de actividad
+                log_activity(
+                    activity_type='UPDATE_BACKGROUND',
+                    details=f'Imagen de fondo actualizada: {unique_filename}',
+                    user_id=current_user.id
+                )
+                
+                return jsonify({
+                    'success': True, 
+                    'message': 'Imagen de fondo actualizada exitosamente', 
+                    'new_background': unique_filename
                 }), 200
         
         # Manejar otras configuraciones

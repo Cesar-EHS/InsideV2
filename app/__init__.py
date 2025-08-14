@@ -130,16 +130,19 @@ def create_app(config_name=None):
             # Obtener configuraciones de imágenes
             login_image = Configuracion.get_valor('login_image', 'img/m.jpg')
             logo_sistema = Configuracion.get_valor('logo_sistema', 'logo_inside.png')
+            background_image = Configuracion.get_valor('background_image', 'default_bg.png')
             
             return {
                 'system_login_image': login_image,
-                'system_logo': logo_sistema
+                'system_logo': logo_sistema,
+                'background_image': background_image
             }
         except:
             # En caso de error (DB no inicializada, etc.), usar valores por defecto
             return {
                 'system_login_image': 'img/m.jpg',
-                'system_logo': 'logo_inside.png'
+                'system_logo': 'logo_inside.png',
+                'background_image': 'default_bg.png'
             }
 
     return app

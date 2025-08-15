@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-white">
   <!-- Saludo personalizado -->
   <section class="px-6 pt-8 pb-6">
     <h1 id="saludo" data-nombre="{{ usuario.nombre }}" class="text-3xl font-semibold text-gray-900 tracking-tight font-sfpro"></h1>
@@ -70,66 +70,72 @@
   </div>
 
   <!-- Layout para desktop -->
-  <div class="flex flex-col lg:flex-row lg:px-6 lg:gap-8">
+  <div class="flex flex-col lg:flex-row lg:px-6 lg:gap-8 lg:items-start">
     <!-- Publicaciones - 2/3 en desktop -->
     <main class="lg:w-2/3 px-6 lg:px-0">
-      <!-- Filtros minimalistas -->
-      <div x-data="{ open: false }" class="mb-6">
-        <button type="button" @click="open = !open" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 text-sm px-3 py-2 rounded-lg bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200" aria-expanded="false" aria-controls="filtros-form">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0013 13.414V19a1 1 0 01-1.447.894l-2-1A1 1 0 009 18v-4.586a1 1 0 00-.293-.707L2.293 6.707A1 1 0 012 6V4z"/></svg>
-          Filtros
-        </button>
-        <form id="filtros-form" x-show="open" x-transition.opacity x-transition.duration.250ms method="GET" action="{{ url_for('home.home') }}" class="flex flex-wrap gap-3 mt-3 p-4 rounded-lg bg-white shadow-sm text-gray-700 text-sm items-center" style="display: none;" @click.away="open = false">
-          <label class="flex items-center gap-1">
-            Año:
-            <select name="filter_year" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-blue-500 focus:ring-1 focus:ring-blue-200">
-              <option value="">Todos</option>
-              {% for year in años_posts %}
-                <option value="{{ year }}" {% if filter_year == year %}selected{% endif %}>{{ year }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          <label class="flex items-center gap-1">
-            Mes:
-            <select name="filter_month" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-blue-500 focus:ring-1 focus:ring-blue-200">
-              <option value="">Todos</option>
-              {% for month in meses %}
-                <option value="{{ month }}" {% if filter_month == month %}selected{% endif %}>{{ month }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          {% if current_user.rol == 'admin' or current_user.is_admin %}
-          <label class="flex items-center gap-1">
-            Proyecto:
-            <select name="filter_proyecto" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-blue-500 focus:ring-1 focus:ring-blue-200">
-              <option value="">Todos</option>
-              <option value="publicos" {% if filter_proyecto == 'publicos' %}selected{% endif %}>○ Solo públicos</option>
-              {% for proyecto in proyectos %}
-                <option value="{{ proyecto.id }}" {% if filter_proyecto|string == proyecto.id|string %}selected{% endif %}>◐ {{ proyecto.nombre }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          {% endif %}
-          <label class="flex items-center gap-1">
-            Publicado por:
-            <select name="filter_user" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:border-blue-500 focus:ring-1 focus:ring-blue-200">
-              <option value="">Todos</option>
-              {% for user in usuarios %}
-                <option value="{{ user.id }}" {% if filter_user|int == user.id %}selected{% endif %}>{{ user.nombre }} {{ user.apellido_paterno }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          <button type="submit" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-1.5 rounded-lg transition-colors">Filtrar</button>
-        </form>
-      </div>
-      <!-- Fin filtros minimalistas -->
-      <!-- Nueva publicación -->
+      <!-- Nueva publicación integrada con filtros -->
       {% if current_user.rol == 'admin' or current_user.is_admin %}
-      <div class="flex items-center bg-white rounded-xl shadow-sm p-4 mb-6 gap-4">
-        <img src="{{ usuario.foto_url }}" alt="Foto de {{ usuario.nombre }}" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
-        <button id="btn-abrir-modal-post" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-200 transition font-medium text-sm" aria-label="¿Listo para publicar?" type="button">
-          ¿Listo para publicar, {{ usuario.nombre.split(' ')[0] }}?
-        </button>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <!-- Crear publicación -->
+        <div class="flex items-center gap-4 mb-4">
+          <img src="{{ usuario.foto_url }}" alt="Foto de {{ usuario.nombre }}" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
+          <button id="btn-abrir-modal-post" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-3 w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-200 transition font-medium text-sm" aria-label="¿Listo para publicar?" type="button">
+            ¿Listo para publicar, {{ usuario.nombre.split(' ')[0] }}?
+          </button>
+        </div>
+        
+        <!-- Filtros integrados -->
+        <div x-data="{ open: false }" class="border-t border-gray-100 pt-4">
+          <button type="button" @click="open = !open" class="flex items-center gap-2 text-gray-600 hover:text-blue-600 text-sm px-3 py-2 rounded-lg hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-200" aria-expanded="false" aria-controls="filtros-form">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0013 13.414V19a1 1 0 01-1.447.894l-2-1A1 1 0 009 18v-4.586a1 1 0 00-.293-.707L2.293 6.707A1 1 0 012 6V4z"/></svg>
+            Filtrar publicaciones
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <form id="filtros-form" x-show="open" x-transition.opacity x-transition.duration.250ms method="GET" action="{{ url_for('home.home') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 p-4 rounded-lg bg-gray-50 border border-gray-200" style="display: none;" @click.away="open = false">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-gray-700">Año</label>
+              <select name="filter_year" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <option value="">Todos los años</option>
+                {% for year in años_posts %}
+                  <option value="{{ year }}" {% if filter_year == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-gray-700">Mes</label>
+              <select name="filter_month" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <option value="">Todos los meses</option>
+                {% for month in meses %}
+                  <option value="{{ month }}" {% if filter_month == month %}selected{% endif %}>{{ month }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% if current_user.rol == 'admin' or current_user.is_admin %}
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-gray-700">Proyecto</label>
+              <select name="filter_proyecto" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <option value="">Todos los proyectos</option>
+                <option value="publicos" {% if filter_proyecto == 'publicos' %}selected{% endif %}>○ Solo públicos</option>
+                {% for proyecto in proyectos %}
+                  <option value="{{ proyecto.id }}" {% if filter_proyecto|string == proyecto.id|string %}selected{% endif %}>◐ {{ proyecto.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-gray-700">Autor</label>
+              <select name="filter_user" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                <option value="">Todos los autores</option>
+                {% for user in usuarios %}
+                  <option value="{{ user.id }}" {% if filter_user|int == user.id %}selected{% endif %}>{{ user.nombre }} {{ user.apellido_paterno }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="md:col-span-2 lg:col-span-4 flex justify-end">
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors text-sm">Aplicar filtros</button>
+            </div>
+          </form>
+        </div>
       </div>
       {% endif %}
       
@@ -278,66 +284,68 @@
     </main>
 
     <!-- Sidebar de eventos - 1/3 en desktop -->
-    <aside class="lg:w-1/3 hidden lg:block" role="complementary">
-      <div class="sticky top-6 space-y-6">
+    <aside class="lg:w-1/3 hidden lg:block lg:mt-0 mt-6" role="complementary">
+      <div class="lg:sticky lg:top-6 space-y-6">
         <!-- Header con botón agregar evento -->
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-medium text-gray-900">Próximos eventos</h2>
-          {% if current_user.rol == 'admin' or current_user.is_admin %}
-          <button id="btn-nuevo-evento" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Agregar
-          </button>
-          {% endif %}
-        </div>
-
-        <!-- Lista de eventos (máximo 5) -->
-        {% if eventos %}
-        <div class="space-y-4">
-          {% for evento in eventos[:5] %}
-          <div class="bg-white rounded-xl shadow-sm p-4 group relative">
-            <!-- Menú de 3 puntos para eventos -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium text-gray-900">Próximos eventos</h2>
             {% if current_user.rol == 'admin' or current_user.is_admin %}
-            <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div class="relative dropdown">
-                <button class="dropdown-toggle" data-dropdown-id="evento-{{ evento.id }}" type="button" aria-label="Opciones de evento">
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                  </svg>
-                </button>
-                <div id="dropdown-evento-{{ evento.id }}" class="dropdown-menu">
-                  <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" data-delete-type="evento" type="button">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-            
-            <h3 class="font-medium text-gray-900 mb-2 line-clamp-2">{{ evento.titulo }}</h3>
-            <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
-              <span class="font-medium">{{ evento.fecha.strftime('%d de %B') }}</span>
-              {% if evento.hora %}
-              <span>{{ evento.hora.strftime('%H:%M') }}</span>
-              {% endif %}
-            </div>
-            <p class="text-sm text-gray-600 line-clamp-3 leading-relaxed">{{ evento.descripcion or 'Sin descripción' }}</p>
-            {% if evento.link_teams %}
-            <a href="{{ evento.link_teams }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium mt-2 transition-colors">
-              🔗 Unirse
-            </a>
+            <button id="btn-nuevo-evento" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Agregar
+            </button>
             {% endif %}
           </div>
-          {% endfor %}
+
+          <!-- Lista de eventos (máximo 5) -->
+          {% if eventos %}
+          <div class="space-y-4">
+            {% for evento in eventos[:5] %}
+            <div class="border border-gray-100 rounded-xl p-4 group relative hover:shadow-sm transition-shadow">
+              <!-- Menú de 3 puntos para eventos -->
+              {% if current_user.rol == 'admin' or current_user.is_admin %}
+              <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="relative dropdown">
+                  <button class="dropdown-toggle" data-dropdown-id="evento-{{ evento.id }}" type="button" aria-label="Opciones de evento">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                  </button>
+                  <div id="dropdown-evento-{{ evento.id }}" class="dropdown-menu">
+                    <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" data-delete-type="evento" type="button">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              
+              <h3 class="font-medium text-gray-900 mb-2 line-clamp-2 pr-6">{{ evento.titulo }}</h3>
+              <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                <span class="font-medium">{{ evento.fecha.strftime('%d de %B') }}</span>
+                {% if evento.hora %}
+                <span>{{ evento.hora.strftime('%H:%M') }}</span>
+                {% endif %}
+              </div>
+              <p class="text-sm text-gray-600 line-clamp-3 leading-relaxed mb-3">{{ evento.descripcion or 'Sin descripción' }}</p>
+              {% if evento.link_teams %}
+              <a href="{{ evento.link_teams }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium transition-colors">
+                🔗 Unirse al evento
+              </a>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-gray-500 text-sm text-center py-8">No hay eventos próximos programados.</p>
+          {% endif %}
         </div>
-        {% else %}
-        <p class="text-gray-500 text-sm">No hay eventos próximos.</p>
-        {% endif %}
       </div>
     </aside>
   </div>
@@ -346,18 +354,51 @@
 <!-- Modal para agregar evento -->
 {% if current_user.rol == 'admin' or current_user.is_admin %}
 <div id="modal-evento" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 transition-all p-4">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative flex flex-col gap-3 sm:gap-4 mx-auto">
-    <button id="btn-cerrar-modal-evento" type="button" class="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-400 hover:text-red-500 text-xl sm:text-2xl font-bold focus:outline-none">&times;</button>
-    <h3 class="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 pr-8">Nuevo evento</h3>
-    <form id="form-evento" method="POST" action="{{ url_for('home.create_evento') }}" class="flex flex-col gap-3">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative">
+    <button id="btn-cerrar-modal-evento" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none transition-colors">&times;</button>
+    
+    <div class="mb-6">
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">Nuevo evento</h3>
+      <p class="text-sm text-gray-600">Crea un evento para que todo el equipo esté informado</p>
+    </div>
+    
+    <form id="form-evento" method="POST" action="{{ url_for('home.create_evento') }}" class="space-y-4">
       {{ form_post.csrf_token }}
-      <input type="text" name="titulo" required placeholder="Título del evento" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base" />
-      <textarea name="descripcion" rows="2" placeholder="Descripción" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base"></textarea>
-      <input type="date" name="fecha" required class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base bg-white" />
-      <input type="time" name="hora" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base bg-white" />
-      <input type="url" name="link_teams" placeholder="Enlace Teams (opcional)" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base" />
-      <div class="flex justify-end gap-2 mt-2">
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 sm:px-5 py-2 rounded-lg transition-colors text-sm">Agregar evento</button>
+      
+      <!-- Título del evento -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Título del evento *</label>
+        <input type="text" name="titulo" required placeholder="Ej: Reunión de equipo, Workshop..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
+      </div>
+      
+      <!-- Fecha y hora en grid -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Fecha *</label>
+          <input type="date" name="fecha" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm bg-white" />
+        </div>
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Hora</label>
+          <input type="time" name="hora" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm bg-white" />
+        </div>
+      </div>
+      
+      <!-- Descripción -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Descripción</label>
+        <textarea name="descripcion" rows="3" placeholder="Describe de qué trata el evento..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm resize-none"></textarea>
+      </div>
+      
+      <!-- Link Teams -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Enlace de Teams (opcional)</label>
+        <input type="url" name="link_teams" placeholder="https://teams.microsoft.com/..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
+      </div>
+      
+      <!-- Botones -->
+      <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+        <button type="button" id="btn-cancelar-evento" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors">Cancelar</button>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors">Crear evento</button>
       </div>
     </form>
   </div>
@@ -366,45 +407,92 @@
 
 <!-- Modal Nueva Publicación -->
 <div id="modal-post" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 transition-all p-4" aria-hidden="true">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative flex flex-col gap-3 sm:gap-4 mx-auto">
-    <button id="btn-cerrar-modal-post" type="button" class="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-400 hover:text-red-500 text-xl sm:text-2xl font-bold focus:outline-none">&times;</button>
-    <h3 class="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 pr-8">Nueva publicación</h3>
-    <form id="post-form-modal" method="POST" action="{{ url_for('home.create_post') }}" enctype="multipart/form-data" class="flex flex-col gap-3">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 relative">
+    <button id="btn-cerrar-modal-post" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none transition-colors">&times;</button>
+    
+    <div class="mb-6">
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">Nueva publicación</h3>
+      <p class="text-sm text-gray-600">Comparte actualizaciones con tu equipo</p>
+    </div>
+    
+    <form id="post-form-modal" method="POST" action="{{ url_for('home.create_post') }}" enctype="multipart/form-data" class="space-y-6">
       {{ form_post.csrf_token }}
-      <textarea name="content" rows="3" required placeholder="¿Qué quieres compartir?" class="border border-gray-300 rounded-lg p-3 resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm sm:text-base"></textarea>
       
-      <input type="file" name="image" id="post-image" accept="image/*" class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-      <div id="preview-container" class="hidden mt-2"><img id="preview-image" src="" alt="Previsualización" class="max-h-32 sm:max-h-40 rounded-lg shadow mb-2 w-full object-contain"><button type="button" id="remove-image" class="text-xs text-red-500 hover:underline">Quitar imagen</button></div>
-      
-      <!-- Selección de visibilidad simplificada -->
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-gray-700">Visibilidad de la publicación</label>
+      <!-- Selector de visibilidad - PRIMERO -->
+      <div class="space-y-3">
+        <label class="block text-sm font-medium text-gray-700">Visibilidad de la publicación</label>
         <div class="relative">
-          <select name="visibility_type" id="visibility-select" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm" onchange="toggleProjectSelection()">
-            <option value="public">Público (todos los proyectos)</option>
-            <option value="private">Privado (proyectos específicos)</option>
+          <select name="visibility_type" id="visibility-select" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm appearance-none cursor-pointer" onchange="toggleProjectSelection()">
+            <option value="public">🌐 Todos los proyectos (Público)</option>
+            <option value="private">🔒 Proyectos específicos (Privado)</option>
           </select>
-          
-          <!-- Selector de proyectos específicos (oculto por defecto) -->
-          <div id="projects-container" class="hidden mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
-            <label class="text-xs font-medium text-gray-600 mb-2 block">Selecciona los proyectos:</label>
-            <div class="space-y-2 max-h-24 sm:max-h-32 overflow-y-auto">
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Selector de proyectos específicos -->
+        <div id="projects-container" class="hidden">
+          <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <label class="text-xs font-medium text-gray-700 mb-3 block">Selecciona los proyectos que podrán ver esta publicación:</label>
+            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
               {% if proyectos %}
               {% for proyecto in proyectos %}
-              <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
-                <input type="checkbox" name="proyectos_visibles" value="{{ proyecto.id }}" class="text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <span class="text-sm text-gray-900">{{ proyecto.nombre }}</span>
+              <label class="flex items-center gap-3 cursor-pointer hover:bg-white p-2 rounded-lg transition-colors group">
+                <input type="checkbox" name="proyectos_visibles" value="{{ proyecto.id }}" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                <span class="text-sm text-gray-800 group-hover:text-gray-900">{{ proyecto.nombre }}</span>
               </label>
               {% endfor %}
               {% endif %}
             </div>
           </div>
+        </div>
         
         <!-- Campo oculto para manejar la visibilidad pública -->
         <input type="hidden" name="proyectos_visibles" value="todos" id="public-visibility-input">
       </div>
-      <div class="flex justify-end gap-2 mt-2">
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 sm:px-5 py-2 rounded-lg transition-colors text-sm">Publicar</button>
+      
+      <!-- Contenido de la publicación -->
+      <div class="space-y-3">
+        <label class="block text-sm font-medium text-gray-700">Contenido</label>
+        <textarea name="content" rows="4" required placeholder="¿Qué quieres compartir con el equipo?" class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm placeholder-gray-400"></textarea>
+      </div>
+      
+      <!-- Subir imagen mejorada -->
+      <div class="space-y-3">
+        <label class="block text-sm font-medium text-gray-700">Imagen (opcional)</label>
+        
+        <!-- Área de arrastre mejorada -->
+        <div class="relative">
+          <input type="file" name="image" id="post-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+          <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+            <div id="upload-placeholder">
+              <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <p class="text-sm text-gray-600">
+                <span class="font-medium text-blue-600">Haz clic para subir</span> o arrastra una imagen aquí
+              </p>
+              <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF hasta 10MB</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Preview de imagen -->
+        <div id="preview-container" class="hidden">
+          <div class="relative inline-block">
+            <img id="preview-image" src="" alt="Vista previa" class="max-h-40 rounded-lg shadow-sm border border-gray-200 object-contain">
+            <button type="button" id="remove-image" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors">×</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Botones -->
+      <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+        <button type="button" id="btn-cancelar-post" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors">Cancelar</button>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors">Publicar</button>
       </div>
     </form>
   </div>
@@ -435,9 +523,102 @@ function toggleProjectSelection() {
   }
 }
 
-// Inicialización simple
+// Función para manejar el preview de imagen
+function setupImagePreview() {
+  const imageInput = document.getElementById('post-image');
+  const uploadArea = document.getElementById('upload-area');
+  const uploadPlaceholder = document.getElementById('upload-placeholder');
+  const previewContainer = document.getElementById('preview-container');
+  const previewImage = document.getElementById('preview-image');
+  const removeButton = document.getElementById('remove-image');
+  
+  if (!imageInput || !uploadArea || !previewContainer) return;
+  
+  // Manejar cambio de archivo
+  imageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        alert('El archivo es demasiado grande. Máximo 10MB.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        uploadArea.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Botón para quitar imagen
+  removeButton.addEventListener('click', function() {
+    imageInput.value = '';
+    previewImage.src = '';
+    uploadArea.classList.remove('hidden');
+    previewContainer.classList.add('hidden');
+  });
+  
+  // Drag and drop
+  uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+  });
+  
+  uploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+  });
+  
+  uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      imageInput.files = files;
+      imageInput.dispatchEvent(new Event('change'));
+    }
+  });
+}
+
+// Manejar botones de cancelar
+function setupCancelButtons() {
+  const cancelPostBtn = document.getElementById('btn-cancelar-post');
+  const cancelEventBtn = document.getElementById('btn-cancelar-evento');
+  const closePostBtn = document.getElementById('btn-cerrar-modal-post');
+  const closeEventBtn = document.getElementById('btn-cerrar-modal-evento');
+  
+  [cancelPostBtn, closePostBtn].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        document.getElementById('modal-post').classList.add('hidden');
+        // Limpiar formulario
+        document.getElementById('post-form-modal').reset();
+        document.getElementById('upload-area').classList.remove('hidden');
+        document.getElementById('preview-container').classList.add('hidden');
+        document.getElementById('projects-container').classList.add('hidden');
+      });
+    }
+  });
+  
+  [cancelEventBtn, closeEventBtn].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        document.getElementById('modal-evento').classList.add('hidden');
+        document.getElementById('form-evento').reset();
+      });
+    }
+  });
+}
+
+// Inicialización
 document.addEventListener('DOMContentLoaded', function() {
   console.log('HOME.HTML CARGADO - Todo funcionando correctamente');
+  setupImagePreview();
+  setupCancelButtons();
 });
 </script>
 <style>
@@ -470,6 +651,30 @@ document.addEventListener('DOMContentLoaded', function() {
   
   .overflow-x-auto::-webkit-scrollbar {
     display: none;
+  }
+  
+  /* Custom scrollbar para el selector de proyectos */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
   }
   
   /* Menú dropdown de 3 puntos */
@@ -547,6 +752,41 @@ document.addEventListener('DOMContentLoaded', function() {
   .dropdown-toggle:hover {
     background-color: #f3f4f6;
     color: #374151;
+  }
+  
+  /* Estilos para el área de upload mejorada */
+  #upload-area {
+    transition: all 0.2s ease;
+  }
+  
+  #upload-area:hover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+  }
+  
+  /* Animaciones para los modales */
+  #modal-post, #modal-evento {
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Mejoras para los selects */
+  select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+  
+  /* Estilo para labels mejoradas */
+  label {
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  /* Hover effects para cards */
+  .hover\:shadow-sm:hover {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 </style>
 {% endblock %}

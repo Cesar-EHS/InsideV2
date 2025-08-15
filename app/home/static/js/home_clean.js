@@ -477,12 +477,14 @@ function configurarModales() {
     const btnNuevoEventoMobile = document.getElementById('btn-nuevo-evento-mobile');
     const modalEvento = document.getElementById('modal-evento');
     const btnCerrarEvento = document.getElementById('btn-cerrar-modal-evento');
+    const btnCancelarEvento = document.getElementById('btn-cancelar-evento');
     const formEvento = document.getElementById('form-evento');
     
     // Modal para posts
     const btnAbrirModalPost = document.getElementById('btn-abrir-modal-post');
     const modalPost = document.getElementById('modal-post');
     const btnCerrarPost = document.getElementById('btn-cerrar-modal-post');
+    const btnCancelarPost = document.getElementById('btn-cancelar-post');
     const postFormModal = document.getElementById('post-form-modal');
     
     // Función para abrir modal
@@ -496,7 +498,7 @@ function configurarModales() {
     }
     
     // Función para cerrar modal
-    function cerrarModal(modal) {
+    function cerrarModal(modal, resetForm = true) {
         if (modal) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
@@ -504,9 +506,20 @@ function configurarModales() {
             document.body.classList.remove('overflow-hidden');
             
             // Limpiar formularios
-            const form = modal.querySelector('form');
-            if (form) {
-                form.reset();
+            if (resetForm) {
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset();
+                }
+                
+                // Limpiar preview de imagen si existe
+                const uploadArea = modal.querySelector('#upload-area');
+                const previewContainer = modal.querySelector('#preview-container');
+                const projectsContainer = modal.querySelector('#projects-container');
+                
+                if (uploadArea) uploadArea.classList.remove('hidden');
+                if (previewContainer) previewContainer.classList.add('hidden');
+                if (projectsContainer) projectsContainer.classList.add('hidden');
             }
         }
     }
@@ -520,12 +533,14 @@ function configurarModales() {
         }
     });
     
-    // Event listener para cerrar modal de evento
-    if (btnCerrarEvento) {
-        btnCerrarEvento.addEventListener('click', () => {
-            cerrarModal(modalEvento);
-        });
-    }
+    // Event listeners para cerrar modal de evento
+    [btnCerrarEvento, btnCancelarEvento].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                cerrarModal(modalEvento);
+            });
+        }
+    });
     
     // Event listener para abrir modal de posts
     if (btnAbrirModalPost) {
@@ -534,12 +549,14 @@ function configurarModales() {
         });
     }
     
-    // Event listener para cerrar modal de posts
-    if (btnCerrarPost) {
-        btnCerrarPost.addEventListener('click', () => {
-            cerrarModal(modalPost);
-        });
-    }
+    // Event listeners para cerrar modal de posts
+    [btnCerrarPost, btnCancelarPost].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                cerrarModal(modalPost);
+            });
+        }
+    });
     
     // Cerrar modales al hacer clic fuera del contenido
     if (modalEvento) {
@@ -585,6 +602,9 @@ function configurarModales() {
             enviarFormularioPost(this);
         });
     }
+    
+    // Configurar preview de imagen
+    configurarPreviewImagen();
 }
 
 // --- FUNCIONES PARA ENVÍO DE FORMULARIOS ---
@@ -666,4 +686,84 @@ function enviarFormularioPost(form) {
 function obtenerCSRFToken() {
     return document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || 
            document.querySelector('input[name="csrf_token"]')?.value || '';
+}
+
+// --- FUNCIÓN PARA CONFIGURAR PREVIEW DE IMAGEN ---
+function configurarPreviewImagen() {
+    const imageInput = document.getElementById('post-image');
+    const uploadArea = document.getElementById('upload-area');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const removeButton = document.getElementById('remove-image');
+    
+    if (!imageInput || !uploadArea || !previewContainer) return;
+    
+    // Manejar cambio de archivo
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar tamaño (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. Máximo 10MB.');
+                this.value = '';
+                return;
+            }
+            
+            // Validar tipo
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor selecciona solo archivos de imagen.');
+                this.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                uploadArea.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Botón para quitar imagen
+    if (removeButton) {
+        removeButton.addEventListener('click', function() {
+            imageInput.value = '';
+            previewImage.src = '';
+            uploadArea.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+        });
+    }
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('border-blue-400', 'bg-blue-50');
+    });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                imageInput.files = files;
+                imageInput.dispatchEvent(new Event('change'));
+            } else {
+                alert('Por favor arrastra solo archivos de imagen.');
+            }
+        }
+    });
 }

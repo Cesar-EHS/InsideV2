@@ -52,6 +52,9 @@ def index():
     creados = request.args.get('creados')
     inactivos = request.args.get('inactivos')
     page = request.args.get('page', 1, type=int)
+    
+    #Verficar si el usuario es encargado de cursos
+    es_encargado = current_user.puesto_trabajo_id in encargados
 
     query = Curso.query.filter_by(eliminado=0)
 
@@ -73,28 +76,22 @@ def index():
     #Instancia del formulario para pasarla a la plantilla principal
     form_curso = CursoForm()
 
-    catalogo_cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=9)
-    mis_cursos_creados = Curso.query.filter_by(creador_id=current_user.id).order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=9)
-
-    subq = db.session.query(Inscripcion.curso_id).filter(
-        Inscripcion.usuario_id == current_user.id,
-        Inscripcion.activo == True
-    ).subquery()
-    query = query.filter(~Curso.id.in_(subq))
-
-    cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=16)
+    catalogo_cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=6)
+    
+    if es_encargado:
+        mis_cursos_creados = Curso.query.filter_by(creador_id=current_user.id).order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=6)
+    else:
+        mis_cursos_creados = None
 
     categorias = [
         'Protección Civil', 'Seguridad y Salud en el Trabajo', 'Soporte IT',
         'Protección del Medio Ambiente', 'Técnico EHSmart', 'Desarrollo Organizacional'
     ]
 
-    #Verficar si el usuario es encargado de cursos
-    es_encargado = current_user.puesto_trabajo_id in encargados
     print("Encargado:", es_encargado)
 
     return render_template('cursos/index.html',
-                           mis_cursos_inscrito=mis_cursos_inscrito, cursos=cursos,
+                           mis_cursos_inscrito=mis_cursos_inscrito,
                            mis_cursos_creados=mis_cursos_creados,
                            catalogo_cursos=catalogo_cursos,
                            categorias=categorias, categoria_filtro=categoria_filtro,
@@ -118,9 +115,6 @@ def curso_detalle(curso_id):
     if curso.creador_id != current_user.id:
         #Nos traerá datos del curso que se seleccionó.
         curso = Curso.query.get_or_404(curso_id)
-    
-    
-        
 
     return render_template('cursos/curso_detalle.html', curso=curso)
 

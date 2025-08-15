@@ -39,6 +39,17 @@ tmp/
 temp/
 *.tmp
 
+# Archivos de prueba y desarrollo temporal
+test_*.py
+check_*.py
+migrar_*.py
+limpiar_*.py
+setup_*.py
+
+# Uploads y archivos subidos por usuarios
+app/auth/uploads/
+app/*/uploads/
+
 # Node modules (si usas npm/node)
 node_modules/
 

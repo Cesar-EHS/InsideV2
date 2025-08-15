@@ -939,9 +939,17 @@ def get_municipios(entidad_id):
 def api_get_tabla(tabla):
     """Obtener datos de una tabla de referencia."""
     try:
-        # Verificar permisos usando la función dinámica
-        if not has_management_permissions(current_user):
-            return jsonify({'error': 'No tienes permisos para realizar esta acción'}), 403
+        # Para departamentos y categorias_ticket, permitir acceso a todos los usuarios autenticados
+        # Para otras tablas, verificar permisos de gestión
+        tablas_publicas = ['departamentos', 'categorias_ticket']
+        
+        if tabla not in tablas_publicas:
+            # Verificar permisos usando la función dinámica para otras tablas
+            if not has_management_permissions(current_user):
+                return jsonify({'error': 'No tienes permisos para realizar esta acción'}), 403
+        
+        # Importar aquí para evitar importación circular
+        from app.tickets.models import CategoriaTicket
         
         # Mapeo de tablas a modelos
         tabla_models = {
@@ -953,7 +961,8 @@ def api_get_tabla(tabla):
             'niveles_estudio': NivelEstudio,
             'entidades_federativas': EntidadFederativa,
             'municipios': Municipio,
-            'estatus_usuarios': EstatusUsuario
+            'estatus_usuarios': EstatusUsuario,
+            'categorias_ticket': CategoriaTicket
         }
         
         if tabla not in tabla_models:
@@ -975,6 +984,21 @@ def api_get_tabla(tabla):
                     'descripcion': getattr(municipio, 'descripcion', None),
                     'entidad_federativa_id': municipio.entidad_federativa_id,
                     'entidad_federativa': entidad_nombre
+                })
+        elif tabla == 'categorias_ticket':
+            # Para categorías de tickets, incluir información del departamento
+            items = db.session.query(CategoriaTicket, Departamento.nombre.label('departamento_nombre'))\
+                .join(Departamento, CategoriaTicket.departamento_id == Departamento.id)\
+                .all()
+            
+            result = []
+            for categoria, departamento_nombre in items:
+                result.append({
+                    'id': categoria.id,
+                    'nombre': categoria.nombre,
+                    'descripcion': categoria.descripcion,
+                    'departamento_id': categoria.departamento_id,
+                    'departamento': departamento_nombre
                 })
         else:
             items = model.query.all()
@@ -1022,6 +1046,9 @@ def api_create_tabla(tabla):
             print("No data received")
             return jsonify({'error': 'No se recibieron datos'}), 400
         
+        # Importar aquí para evitar importación circular
+        from app.tickets.models import CategoriaTicket
+        
         tabla_models = {
             'departamentos': Departamento,
             'puestos_trabajo': PuestoTrabajo,
@@ -1031,7 +1058,8 @@ def api_create_tabla(tabla):
             'niveles_estudio': NivelEstudio,
             'entidades_federativas': EntidadFederativa,
             'municipios': Municipio,
-            'estatus_usuarios': EstatusUsuario
+            'estatus_usuarios': EstatusUsuario,
+            'categorias_ticket': CategoriaTicket
         }
         
         if tabla not in tabla_models:
@@ -1058,6 +1086,14 @@ def api_create_tabla(tabla):
                 print("Missing 'entidad_federativa_id' for municipio")
                 return jsonify({'error': 'El campo entidad_federativa_id es requerido para municipios'}), 400
             nuevo_item.entidad_federativa_id = entidad_id
+        
+        # Para categorías de tickets, agregar departamento
+        if tabla == 'categorias_ticket':
+            departamento_id = data.get('departamento_id')
+            if not departamento_id:
+                print("Missing 'departamento_id' for categoria_ticket")
+                return jsonify({'error': 'El campo departamento_id es requerido para categorías de tickets'}), 400
+            nuevo_item.departamento_id = departamento_id
         
         print(f"Creating new item: {nuevo_item.nombre}")
         db.session.add(nuevo_item)
@@ -1093,6 +1129,9 @@ def api_update_tabla(tabla, item_id):
         
         data = request.get_json()
         
+        # Importar aquí para evitar importación circular
+        from app.tickets.models import CategoriaTicket
+        
         tabla_models = {
             'departamentos': Departamento,
             'puestos_trabajo': PuestoTrabajo,
@@ -1102,7 +1141,8 @@ def api_update_tabla(tabla, item_id):
             'niveles_estudio': NivelEstudio,
             'entidades_federativas': EntidadFederativa,
             'municipios': Municipio,
-            'estatus_usuarios': EstatusUsuario
+            'estatus_usuarios': EstatusUsuario,
+            'categorias_ticket': CategoriaTicket
         }
         
         if tabla not in tabla_models:
@@ -1119,6 +1159,10 @@ def api_update_tabla(tabla, item_id):
         # Para municipios, actualizar entidad federativa
         if tabla == 'municipios':
             item.entidad_federativa_id = data.get('entidad_federativa_id')
+        
+        # Para categorías de tickets, actualizar departamento
+        if tabla == 'categorias_ticket':
+            item.departamento_id = data.get('departamento_id')
         
         db.session.commit()
         
@@ -1149,6 +1193,9 @@ def api_delete_tabla(tabla, item_id):
             print(f"Permission denied for user {current_user.email}")
             return jsonify({'error': 'No tienes permisos para realizar esta acción'}), 403
         
+        # Importar aquí para evitar importación circular
+        from app.tickets.models import CategoriaTicket
+        
         tabla_models = {
             'departamentos': Departamento,
             'puestos_trabajo': PuestoTrabajo,
@@ -1158,7 +1205,8 @@ def api_delete_tabla(tabla, item_id):
             'niveles_estudio': NivelEstudio,
             'entidades_federativas': EntidadFederativa,
             'municipios': Municipio,
-            'estatus_usuarios': EstatusUsuario
+            'estatus_usuarios': EstatusUsuario,
+            'categorias_ticket': CategoriaTicket
         }
         
         if tabla not in tabla_models:
@@ -1559,6 +1607,7 @@ def api_permisos_tickets():
                             nuevo_permiso = PermisosTickets()
                             nuevo_permiso.departamento_id = int(dept_id)
                             nuevo_permiso.usuario_id = int(usuario_id)
+                            nuevo_permiso.tipo_permiso = 'gestor'  # Set the required field
                             nuevo_permiso.actualizado_por = current_user.id
                             nuevo_permiso.activo = True
                             db.session.add(nuevo_permiso)

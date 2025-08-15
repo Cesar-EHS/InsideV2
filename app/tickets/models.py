@@ -8,24 +8,27 @@ class CategoriaTicket(db.Model):
     __tablename__ = 'categorias_ticket'
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False, unique=True)
+    nombre = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.String(200))
+    departamento_id = db.Column(db.Integer, db.ForeignKey('departamentos.id'), nullable=False)
     activo = db.Column(db.Boolean, default=True)
 
+    # Relación con departamento
+    departamento = db.relationship('Departamento', backref='categorias_tickets', lazy='select')
+    
     # Relación con tickets
     tickets = db.relationship('Ticket', backref='categoria_obj', lazy='dynamic')
 
     def __repr__(self):
-        return f'<CategoriaTicket {self.nombre}>'
+        return f'<CategoriaTicket {self.nombre} - {self.departamento.nombre if self.departamento else "Sin Dept"}>'
 
 
 class Ticket(db.Model):
     __tablename__ = 'tickets'
 
     id = db.Column(db.Integer, primary_key=True)
-    departamento_id = db.Column(db.Integer, db.ForeignKey('departamentos.id'), nullable=True)  # Cambio a departamento
-    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias_ticket.id'), nullable=False)  # Cambio a FK
-    categoria = db.Column(db.String(100), nullable=True)  # Mantener temporalmente para migración
+    departamento_id = db.Column(db.Integer, db.ForeignKey('departamentos.id'), nullable=False)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categorias_ticket.id'), nullable=False)
     titulo = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
     prioridad = db.Column(db.String(20), nullable=False)  # Baja, Media, Alta, Urgente

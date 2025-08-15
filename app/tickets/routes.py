@@ -101,78 +101,7 @@ def test_ticket(ticket_id):
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-# Mapeo de puestos a áreas (debe coincidir con frontend)
-AREAS_POR_PUESTO = {
-    10: 'IT',                          # Soporte Sistemas -> IT
-    3: 'Compras',                      # Requisición Compras -> Compras
-    24: 'Desarrollo Organizacional',   # Desarrollo Organizacional -> Desarrollo Organizacional
-    7: 'Capacitación',                 # Capacitación Técnica -> Capacitación
-    9: 'Diseño',                       # Diseño Institucional -> Diseño
-    2: 'Recursos Humanos',             # Recursos Humanos -> Recursos Humanos
-    6: 'Soporte EHSmart'               # Soporte EHSmart -> Soporte EHSmart
-}
-
-# Lista de todas las áreas disponibles
-TODAS_LAS_AREAS = [
-    'Compras',
-    'IT',
-    'Diseño',
-    'Soporte EHSmart',
-    'Recursos Humanos',
-    'Desarrollo Organizacional',
-    'Capacitación'
-]
-
-# Mapeo de categorías por área
-CATEGORIAS_POR_AREA = {
-    'Compras': [
-        'Solicitud de compra',
-        'Cotizaciones',
-        'Reembolsos',
-        'Seguimiento de envíos'
-    ],
-    'IT': [
-        'Soporte técnico',
-        'Accesos y contraseñas',
-        'Red y conectividad',
-        'Correo electrónico',
-        'Impresoras y escáneres',
-        'Instalación de software'
-    ],
-    'Diseño': [
-        'Diseño de material impreso o digital',
-        'Actualización de diseño',
-        'Logotipos e identidad corporativa',
-        'Plantillas corporativas',
-        'Revisión de uso de marca'
-    ],
-    'Soporte EHSmart': [
-        'Acceso y usuarios',
-        'Errores técnicos',
-        'Capacitación EHSmart',
-        'Solicitud de soporte funcional'
-    ],
-    'Recursos Humanos': [
-        'Vacaciones y permisos',
-        'Nómina y pagos',
-        'Prestaciones y beneficios',
-        'Documentación y constancias'
-    ],
-    'Desarrollo Organizacional': [
-        'Asesoría individual',
-        'Gestión de conflictos laborales',
-        'Apoyo al desarrollo personal y profesional',
-        'Programas de desarrollo interno'
-    ],
-    'Capacitación': [
-        'Solicitud de curso',
-        'Alta de evento de capacitación',
-        'Dudas sobre plan de formación',
-        'Registro de constancia o diploma'
-    ]
-}
-
-def obtener_categorias_disponibles(tab, area_admin, user_tickets_categorias=None):
+def obtener_categorias_disponibles(tab, departamentos_ids, user_tickets_categorias=None):
     """Obtener las categorías disponibles según el contexto"""
     if tab == 'mis_tickets':
         # En mis tickets: todas las categorías de los tickets levantados por el usuario
@@ -180,28 +109,30 @@ def obtener_categorias_disponibles(tab, area_admin, user_tickets_categorias=None
             return user_tickets_categorias
         else:
             # Si no hay tickets, mostrar todas las categorías
-            todas_categorias = []
-            for categorias in CATEGORIAS_POR_AREA.values():
-                todas_categorias.extend(categorias)
-            return sorted(set(todas_categorias))
+            todas_categorias = db.session.query(CategoriaTicket.nombre).all()
+            return sorted([cat.nombre for cat in todas_categorias])
     elif tab == 'asignados':
-        # En tickets asignados: solo categorías del área respectiva
-        if area_admin and area_admin in CATEGORIAS_POR_AREA:
-            return CATEGORIAS_POR_AREA[area_admin]
+        # En tickets asignados: solo categorías de los departamentos gestionados
+        if departamentos_ids:
+            categorias = db.session.query(CategoriaTicket.nombre).filter(
+                CategoriaTicket.departamento_id.in_(departamentos_ids)
+            ).all()
+            return [cat.nombre for cat in categorias]
         else:
             return []
     elif tab == 'archivados':
-        # En archivados: categorías según el contexto (todas para usuarios, del área para admins)
-        if area_admin:
-            return CATEGORIAS_POR_AREA.get(area_admin, [])
+        # En archivados: categorías según el contexto (todas para usuarios, de departamentos para gestores)
+        if departamentos_ids:
+            categorias = db.session.query(CategoriaTicket.nombre).filter(
+                CategoriaTicket.departamento_id.in_(departamentos_ids)
+            ).all()
+            return [cat.nombre for cat in categorias]
         else:
             if user_tickets_categorias:
                 return user_tickets_categorias
             else:
-                todas_categorias = []
-                for categorias in CATEGORIAS_POR_AREA.values():
-                    todas_categorias.extend(categorias)
-                return sorted(set(todas_categorias))
+                todas_categorias = db.session.query(CategoriaTicket.nombre).all()
+                return sorted([cat.nombre for cat in todas_categorias])
     
     return []
 
@@ -210,10 +141,15 @@ def obtener_categorias_disponibles(tab, area_admin, user_tickets_categorias=None
 def index():
     form = TicketForm()
     
-    # Verificar si el usuario es administrador de algún área
-    id_puesto = current_user.puesto_trabajo_id
-    area_admin = AREAS_POR_PUESTO.get(id_puesto)
-    es_administrador = bool(area_admin)
+    # Verificar si el usuario tiene permisos para gestionar departamentos
+    departamentos_gestionados = db.session.query(PermisosTickets).filter_by(
+        usuario_id=current_user.id,
+        activo=True
+    ).all()
+    
+    # El usuario es gestor si tiene al menos un departamento asignado
+    es_gestor = len(departamentos_gestionados) > 0
+    departamentos_ids = [p.departamento_id for p in departamentos_gestionados]
     
     # Parámetros de filtrado y paginación
     page = request.args.get('page', 1, type=int)
@@ -223,17 +159,18 @@ def index():
     busqueda = request.args.get('busqueda', '')
     per_page = 10
     
-    if tab == 'asignados' and es_administrador:
-        # Tickets asignados - solo para administradores de área (excluyendo archivados)
-        # TODO: Actualizar para usar departamento_id en lugar de area
+    if tab == 'asignados' and es_gestor:
+        # Tickets asignados - solo para gestores de departamento (excluyendo archivados)
         query = Ticket.query.filter(
-            # Ticket.area == area_admin,  # Comentado temporalmente
+            Ticket.departamento_id.in_(departamentos_ids),
             Ticket.estatus != 'Archivado'
         )
         
         # Aplicar filtros
         if categoria_filtro:
-            query = query.filter(Ticket.categoria == categoria_filtro)
+            query = query.join(CategoriaTicket, Ticket.categoria_id == CategoriaTicket.id).filter(
+                CategoriaTicket.nombre == categoria_filtro
+            )
         
         if busqueda:
             query = query.filter(
@@ -257,11 +194,13 @@ def index():
         tickets = pagination.items
         
     elif tab == 'archivados':
-        # Tickets archivados - todos los usuarios pueden ver sus propios archivados, admins ven los de su área
-        if es_administrador:
-            # TODO: Actualizar para usar departamento_id en lugar de area
+        # Tickets archivados - todos los usuarios pueden ver sus propios archivados, gestores ven los de sus departamentos
+        if es_gestor:
             query = Ticket.query.filter(
-                # Ticket.area == area_admin,  # Comentado temporalmente
+                or_(
+                    Ticket.usuario_id == current_user.id,  # Sus propios tickets
+                    Ticket.departamento_id.in_(departamentos_ids)  # Tickets de departamentos que gestiona
+                ),
                 Ticket.estatus == 'Archivado'
             )
         else:
@@ -272,10 +211,12 @@ def index():
         
         # Aplicar filtros para archivados
         if categoria_filtro:
-            query = query.filter(Ticket.categoria == categoria_filtro)
+            query = query.join(CategoriaTicket, Ticket.categoria_id == CategoriaTicket.id).filter(
+                CategoriaTicket.nombre == categoria_filtro
+            )
         
         if busqueda:
-            if es_administrador:
+            if es_gestor:
                 query = query.filter(
                     or_(
                         Ticket.titulo.contains(busqueda),
@@ -312,7 +253,9 @@ def index():
         
         # Aplicar filtros
         if categoria_filtro:
-            query = query.filter(Ticket.categoria == categoria_filtro)
+            query = query.join(CategoriaTicket, Ticket.categoria_id == CategoriaTicket.id).filter(
+                CategoriaTicket.nombre == categoria_filtro
+            )
         
         if busqueda:
             query = query.filter(
@@ -337,23 +280,24 @@ def index():
     
     # Obtener categorías de tickets del usuario para "mis tickets"
     user_tickets_categorias = []
-    if tab == 'mis_tickets' or (tab == 'archivados' and not es_administrador):
-        user_categorias_query = db.session.query(Ticket.categoria).filter(
-            Ticket.usuario_id == current_user.id,
-            Ticket.categoria.isnot(None)
+    if tab == 'mis_tickets' or (tab == 'archivados' and not es_gestor):
+        user_categorias_query = db.session.query(CategoriaTicket.nombre).join(
+            Ticket, Ticket.categoria_id == CategoriaTicket.id
+        ).filter(
+            Ticket.usuario_id == current_user.id
         ).distinct()
         user_tickets_categorias = [cat[0] for cat in user_categorias_query.all() if cat[0]]
     
     # Obtener categorías disponibles según el contexto
-    categorias_disponibles = obtener_categorias_disponibles(tab, area_admin, user_tickets_categorias)
+    categorias_disponibles = obtener_categorias_disponibles(tab, departamentos_ids, user_tickets_categorias)
     
     return render_template(
         'helpdesk.html',
         tickets=tickets,
         pagination=pagination,
         form=form,
-        es_administrador=es_administrador,
-        area_admin=area_admin,
+        es_administrador=es_gestor,
+        area_admin=departamentos_ids,
         categorias_disponibles=categorias_disponibles,
         tab_actual=tab,
         orden_actual=orden,
@@ -394,7 +338,7 @@ def actualizar_estatus(ticket_id):
             print(f"ERROR: Ticket {ticket_id} no encontrado")
             return jsonify({'success': False, 'message': 'Ticket no encontrado'}), 404
         
-        print(f"Ticket encontrado: ID={ticket.id}, Categoría={ticket.categoria}")
+        print(f"Ticket encontrado: ID={ticket.id}, Categoría={ticket.categoria_obj.nombre if ticket.categoria_obj else 'Sin categoría'}")
         
         # Soportar tanto JSON como form data
         if request.is_json:
@@ -416,22 +360,21 @@ def actualizar_estatus(ticket_id):
             print(f"ERROR: Estatus inválido: {nuevo_estatus}")
             return jsonify({'success': False, 'message': 'Estatus no válido'}), 400
         
-        # Verificar permisos (simplificado)
-        id_puesto = getattr(current_user, 'puesto_trabajo_id', None)
-        area_admin = AREAS_POR_PUESTO.get(id_puesto) if id_puesto else None
+        # Verificar permisos usando el nuevo sistema de PermisosTickets - SOLO gestores y administradores
+        permisos = PermisosTickets.query.filter_by(usuario_id=current_user.id).all()
+        departamentos_gestionados = [p.departamento_id for p in permisos]
         
-        print(f"Puesto ID: {id_puesto}")
-        print(f"Área admin: {area_admin}")
+        print(f"Usuario ID: {current_user.id}")
+        print(f"Departamentos gestionados: {departamentos_gestionados}")
         print(f"Ticket departamento: {ticket.departamento.nombre if ticket.departamento else 'Sin departamento'}")
         
-        # Para pruebas, relajamos un poco las validaciones
-        if not area_admin:
-            print("ADVERTENCIA: Usuario sin área de administrador")
-            # return jsonify({'success': False, 'message': 'No tienes permisos para actualizar tickets'}), 403
+        # Verificar si puede administrar este ticket - SOLO gestores de departamento o administradores
+        es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
+        es_gestor_departamento = ticket.departamento_id in departamentos_gestionados
         
-        if area_admin and ticket.departamento and area_admin != ticket.departamento.nombre:
-            print(f"ADVERTENCIA: Sin permisos para esta área")
-            # return jsonify({'success': False, 'message': 'No tienes permisos para esta área'}), 403
+        if not (es_administrador or es_gestor_departamento):
+            print(f"ERROR: Sin permisos para administrar ticket del departamento {ticket.departamento_id}")
+            return jsonify({'success': False, 'message': 'Solo los gestores del departamento pueden modificar el estatus del ticket'}), 403
         
         # Actualizar el ticket
         print(f"Actualizando ticket {ticket_id} de '{ticket.estatus}' a '{nuevo_estatus}'")
@@ -569,9 +512,19 @@ def descargar_archivo(filename):
 @login_required
 def detalle_ticket(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
-    id_puesto = current_user.puesto_trabajo_id
-    # Permiso: dueño o encargado del área
-    if ticket.usuario_id != current_user.id and (not ticket.departamento or AREAS_POR_PUESTO.get(id_puesto) != ticket.departamento.nombre):
+    
+    # Verificar permisos usando el nuevo sistema
+    permisos = PermisosTickets.query.filter_by(usuario_id=current_user.id).all()
+    departamentos_gestionados = [p.departamento_id for p in permisos]
+    
+    # Permiso: dueño, administrador o gestor del departamento
+    puede_ver = (
+        ticket.usuario_id == current_user.id or
+        (hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']) or
+        ticket.departamento_id in departamentos_gestionados
+    )
+    
+    if not puede_ver:
         return jsonify({'error': 'No autorizado'}), 403
     comentarios_data = [
         {
@@ -605,7 +558,7 @@ def detalle_ticket(ticket_id):
         'archivo': ticket.archivo or '',  # Mantener para compatibilidad
         'evidencias': evidencias,  # Nueva lista de evidencias
         'comentarios': comentarios_data,
-        'categoria': ticket.categoria,
+        'categoria': ticket.categoria_obj.nombre if ticket.categoria_obj else '',
         'area': ticket.departamento.nombre if ticket.departamento else ''
     }
     return jsonify(data)
@@ -756,13 +709,14 @@ def obtener_detalles_ticket(ticket_id):
             print(f"Error obteniendo nombre de usuario: {e}")
             usuario_nombre = 'Usuario desconocido'
         
-        # Paso 6: Verificar permisos para cambiar estatus
+        # Verificar permisos para cambiar estatus - SOLO gestores de departamento y administradores
         es_administrador_local = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
-        id_puesto = current_user.puesto_trabajo_id
         
         # Verificar permisos usando el nuevo sistema de departamentos
         puede_administrar_dept = puede_administrar_departamento(current_user.id, ticket.departamento_id) if ticket.departamento_id else False
-        puede_cambiar_estatus = es_propietario or es_administrador_local or puede_administrar_dept
+        
+        # SOLO gestores de departamento o administradores pueden cambiar estatus (NO el propietario)
+        puede_cambiar_estatus = es_administrador_local or puede_administrar_dept
         
         # Determinar si es gestor de categoría (usando el sistema de departamentos)
         es_gestor_categoria = puede_administrar_dept
@@ -772,7 +726,7 @@ def obtener_detalles_ticket(ticket_id):
             'id': ticket.id,
             'titulo': ticket.titulo or '',
             'descripcion': ticket.descripcion or '',
-            'categoria': ticket.categoria or '',
+            'categoria': ticket.categoria_obj.nombre if ticket.categoria_obj else '',
             'departamento': ticket.departamento.nombre if ticket.departamento else '',
             'estatus': ticket.estatus or 'Abierto',
             'prioridad': ticket.prioridad or 'Media',
@@ -828,17 +782,17 @@ def cambiar_estatus_ticket(ticket_id):
         if not ticket:
             return jsonify({'success': False, 'error': 'Ticket no encontrado'}), 404
         
-        # Verificar permisos
+        # Verificar permisos - SOLO gestores de departamento y administradores
         es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
-        es_propietario = ticket.usuario_id == current_user.id
         
-        # Verificar si es gestor de la categoría
-        id_puesto = current_user.puesto_trabajo_id
-        area_gestionada = AREAS_POR_PUESTO.get(id_puesto)
-        es_gestor_categoria = area_gestionada == (ticket.departamento.nombre if ticket.departamento else None)
+        # Verificar si es gestor del departamento usando PermisosTickets
+        permisos = PermisosTickets.query.filter_by(usuario_id=current_user.id).all()
+        departamentos_gestionados = [p.departamento_id for p in permisos]
+        es_gestor_departamento = ticket.departamento_id in departamentos_gestionados
         
-        if not (es_administrador or es_propietario or es_gestor_categoria):
-            return jsonify({'success': False, 'error': 'No tienes permisos para modificar este ticket'}), 403
+        # SOLO gestores de departamento o administradores pueden cambiar el estatus
+        if not (es_administrador or es_gestor_departamento):
+            return jsonify({'success': False, 'error': 'Solo los gestores del departamento pueden modificar el estatus del ticket'}), 403
         
         # Actualizar el estatus
         estatus_anterior = ticket.estatus
@@ -880,7 +834,13 @@ def ver_ticket(ticket_id):
         
         # Verificar permisos
         es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
-        puede_ver = (ticket.usuario_id == current_user.id or es_administrador)
+        
+        # Verificar si es gestor del departamento
+        permisos = PermisosTickets.query.filter_by(usuario_id=current_user.id).all()
+        departamentos_gestionados = [p.departamento_id for p in permisos]
+        es_gestor_departamento = ticket.departamento_id in departamentos_gestionados
+        
+        puede_ver = (ticket.usuario_id == current_user.id or es_administrador or es_gestor_departamento)
         
         if not puede_ver:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -934,7 +894,7 @@ def ver_ticket(ticket_id):
                 'titulo': ticket.titulo,
                 'descripcion': ticket.descripcion,
                 'area': ticket.departamento.nombre if ticket.departamento else '',
-                'categoria': ticket.categoria,
+                'categoria': ticket.categoria_obj.nombre if ticket.categoria_obj else '',
                 'prioridad': ticket.prioridad,
                 'estatus': ticket.estatus,
                 'fecha_creacion': ticket.fecha_creacion.isoformat() if ticket.fecha_creacion else None,
@@ -943,7 +903,7 @@ def ver_ticket(ticket_id):
             },
             'comentarios': comentarios_data,
             'evidencias': evidencias,
-            'es_administrador': es_administrador
+            'es_administrador': es_administrador or es_gestor_departamento
         })
                              
     except Exception as e:
@@ -960,7 +920,13 @@ def editar_ticket(ticket_id):
         
         # Verificar permisos
         es_administrador = hasattr(current_user, 'rol') and current_user.rol in ['admin', 'Administrador']
-        puede_editar = (ticket.usuario_id == current_user.id or es_administrador)
+        
+        # Verificar si es gestor del departamento
+        permisos = PermisosTickets.query.filter_by(usuario_id=current_user.id).all()
+        departamentos_gestionados = [p.departamento_id for p in permisos]
+        es_gestor_departamento = ticket.departamento_id in departamentos_gestionados
+        
+        puede_editar = (ticket.usuario_id == current_user.id or es_administrador or es_gestor_departamento)
         
         if not puede_editar:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -981,7 +947,7 @@ def editar_ticket(ticket_id):
                 'titulo': ticket.titulo,
                 'descripcion': ticket.descripcion,
                 'area': ticket.departamento.nombre if ticket.departamento else '',
-                'categoria': ticket.categoria,
+                'categoria': ticket.categoria_obj.nombre if ticket.categoria_obj else '',
                 'prioridad': ticket.prioridad,
                 'estatus': ticket.estatus,
                 'fecha_creacion': ticket.fecha_creacion.isoformat() if ticket.fecha_creacion else None,

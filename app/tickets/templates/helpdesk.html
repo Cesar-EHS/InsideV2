@@ -8,7 +8,7 @@
 <style>
   body {
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f8f9fa;
+    background: white;
   }
   
   .filters-bar {
@@ -505,7 +505,7 @@
   }
 </style>
 
-<div class="min-h-screen p-4 bg-gray-50">
+<div class="min-h-screen p-4">
   <div class="max-w-7xl mx-auto">
 
     <!-- Contenedor principal con fondo blanco y esquinas redondeadas -->
@@ -548,19 +548,6 @@
           </a>
           {% endif %}
         </div>
-        
-        <!-- Botón de configuración solo para puesto 7 -->
-        {% if current_user.puesto_trabajo_id == 7 %}
-        <div class="flex items-center">
-          <a href="{{ url_for('auth.config') }}" class="tab-link" title="Configuración">
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <span>Config</span>
-          </a>
-        </div>
-        {% endif %}
       </div>
 
       <!-- Filtros -->
@@ -841,27 +828,16 @@
         <!-- Primera fila: Área, Categoría, Nivel de prioridad -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div>
-            <label for="area-select" class="block text-sm font-semibold text-gray-800 mb-3">Área</label>
-            <select id="area-select" name="area" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
-              <option value="">Selecciona un área</option>
-              <option value="Compras">Compras</option>
-              <option value="IT">IT</option>
-              <option value="Diseño">Diseño</option>
-              <option value="Soporte EHSmart">Soporte EHSmart</option>
-              <option value="Recursos Humanos">Recursos Humanos</option>
-              <option value="Desarrollo Organizacional">Desarrollo Organizacional</option>
-              <option value="Capacitación">Capacitación</option>
+            <label for="departamento-select" class="block text-sm font-semibold text-gray-800 mb-3">Departamento</label>
+            <select id="departamento-select" name="departamento_id" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
+              <option value="">Selecciona un departamento</option>
             </select>
           </div>
           
           <div>
             <label for="categoria-select" class="block text-sm font-semibold text-gray-800 mb-3">Categoría</label>
-            <select id="categoria-select" name="categoria" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
+            <select id="categoria-select" name="categoria_id" required class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-700">
               <option value="">Selecciona una categoría</option>
-              <option value="Solicitud de compra">Solicitud de compra</option>
-              <option value="Problema técnico">Problema técnico</option>
-              <option value="Consulta">Consulta</option>
-              <option value="Soporte">Soporte</option>
             </select>
           </div>
           
@@ -1439,30 +1415,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // === CATEGORÍAS POR ÁREA ===
-    const areaSelect = document.getElementById('area-select');
+    // === CATEGORÍAS POR DEPARTAMENTO ===
+    const departamentoSelect = document.getElementById('departamento-select');
     const categoriaSelect = document.getElementById('categoria-select');
     
-    const categorias = {
-        'Compras': ['Solicitud de compra', 'Cotizaciones', 'Reembolsos', 'Seguimiento de envíos'],
-        'IT': ['Soporte técnico', 'Accesos y contraseñas', 'Red y conectividad', 'Correo electrónico', 'Impresoras y escáneres', 'Instalación de software'],
-        'Diseño': ['Diseño de material impreso o digital', 'Actualización de diseño', 'Logotipos e identidad corporativa', 'Plantillas corporativas', 'Revisión de uso de marca'],
-        'Soporte EHSmart': ['Acceso y usuarios', 'Errores técnicos', 'Capacitación EHSmart', 'Solicitud de soporte funcional'],
-        'Recursos Humanos': ['Vacaciones y permisos', 'Nómina y pagos', 'Prestaciones y beneficios', 'Documentación y constancias'],
-        'Desarrollo Organizacional': ['Asesoría individual', 'Gestión de conflictos laborales', 'Apoyo al desarrollo personal y profesional', 'Programas de desarrollo interno'],
-        'Capacitación': ['Solicitud de curso', 'Alta de evento de capacitación', 'Dudas sobre plan de formación', 'Registro de constancia o diploma']
-    };
+    // Cargar departamentos y categorías desde la base de datos
+    let departamentos = [];
+    let categoriasPorDepartamento = {};
     
-    if (areaSelect && categoriaSelect) {
-        areaSelect.addEventListener('change', function() {
-            const area = this.value;
+    // Función para cargar departamentos
+    async function cargarDepartamentos() {
+        try {
+            const response = await fetch('/auth/api/tabla/departamentos');
+            const data = await response.json();
+            
+            if (data.success) {
+                departamentos = data.items;
+                
+                // Limpiar y llenar el select de departamentos
+                departamentoSelect.innerHTML = '<option value="">Selecciona un departamento</option>';
+                departamentos.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.nombre;
+                    option.dataset.nombre = dept.nombre;
+                    departamentoSelect.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar departamentos:', error);
+        }
+    }
+    
+    // Función para cargar categorías de tickets
+    async function cargarCategorias() {
+        try {
+            const response = await fetch('/auth/api/tabla/categorias_ticket');
+            const data = await response.json();
+            
+            if (data.success) {
+                // Agrupar categorías por departamento
+                categoriasPorDepartamento = {};
+                data.items.forEach(categoria => {
+                    if (!categoriasPorDepartamento[categoria.departamento_id]) {
+                        categoriasPorDepartamento[categoria.departamento_id] = [];
+                    }
+                    categoriasPorDepartamento[categoria.departamento_id].push(categoria);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar categorías:', error);
+        }
+    }
+    
+    // Cargar datos al inicio
+    if (departamentoSelect && categoriaSelect) {
+        cargarDepartamentos();
+        cargarCategorias();
+        
+        departamentoSelect.addEventListener('change', function() {
+            const departamentoId = this.value;
             categoriaSelect.innerHTML = '<option value="">Selecciona una categoría</option>';
             
-            if (area && categorias[area]) {
-                categorias[area].forEach(cat => {
+            if (departamentoId && categoriasPorDepartamento[departamentoId]) {
+                categoriasPorDepartamento[departamentoId].forEach(categoria => {
                     const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
+                    option.value = categoria.id;
+                    option.textContent = categoria.nombre;
+                    option.dataset.nombre = categoria.nombre;
                     categoriaSelect.appendChild(option);
                 });
             }
@@ -1951,7 +1971,7 @@ window.poblarModalVerTicket = function(ticketId) {
                 estatusSelect.title = 'Puedes cambiar el estatus';
             } else {
                 estatusSelect.disabled = true;
-                estatusSelect.title = 'Solo el gestor de la categoría puede cambiar el estatus';
+                estatusSelect.title = 'Solo el gestor del departamento puede cambiar el estatus';
             }
             
             // Evidencias

@@ -381,6 +381,7 @@ class PermisosTickets(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     departamento_id = db.Column(db.Integer, db.ForeignKey('departamentos.id'), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    tipo_permiso = db.Column(db.String(50), nullable=False, default='gestor')
     fecha_creacion = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     actualizado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     activo = db.Column(db.Boolean, default=True)
@@ -398,6 +399,7 @@ class PermisosTickets(BaseModel):
             'usuario_nombre': f"{self.usuario.nombre} {self.usuario.apellido_paterno}" if self.usuario else None,
             'departamento_id': self.departamento_id,
             'departamento_nombre': self.departamento.nombre if self.departamento else None,
+            'tipo_permiso': self.tipo_permiso,
             'activo': self.activo,
             'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None
         }

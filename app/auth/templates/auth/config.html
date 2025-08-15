@@ -2,66 +2,37 @@
 
 {% block title %}Configuración - Inside{% endblock %}
 
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen">
+    <div class="w-full">
         <!-- Header -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="bg-white p-6 mb-4 rounded-lg">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Configuración del Sistema</h1>
                     <p class="mt-2 text-gray-600">Administra la configuración general del sistema y tablas de referencia</p>
                 </div>
-                <div class="flex space-x-3">
-                    <a href="{{ url_for('auth.gestionar_usuarios') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-                        Gestionar Usuarios
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Estadísticas Principales -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ users_count or 0 }}</div>
-                    <div class="text-sm text-gray-600">Total Usuarios</div>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">{{ active_users or 0 }}</div>
-                    <div class="text-sm text-gray-600">Usuarios Activos</div>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-orange-600 mb-2">{{ suspended_users or 0 }}</div>
-                    <div class="text-sm text-gray-600">Suspendidos</div>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ new_users or 0 }}</div>
-                    <div class="text-sm text-gray-600">Nuevos (7 días)</div>
-                </div>
             </div>
         </div>
 
         <!-- Navegación por Pestañas -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+        <div class="bg-white mb-4 rounded-lg">
             <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-                    <button onclick="cambiarTab('personalizacion')" id="tab-personalizacion" class="whitespace-nowrap py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                <nav class="-mb-px flex space-x-8 px-6 pt-2" aria-label="Tabs">
+                    <button onclick="cambiarTab('personalizacion')" id="tab-personalizacion" class="whitespace-nowrap py-3 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
                         Personalización
                     </button>
-                    <button onclick="cambiarTab('tablas')" id="tab-tablas" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <button onclick="cambiarTab('tablas')" id="tab-tablas" class="whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
                         Tablas de Referencia
                     </button>
-                    <button onclick="cambiarTab('permisos')" id="tab-permisos" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <button onclick="cambiarTab('permisos')" id="tab-permisos" class="whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
                         Permisos de Sistema
                     </button>
-                    <button onclick="cambiarTab('logs')" id="tab-logs" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <button onclick="cambiarTab('logs')" id="tab-logs" class="whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
                         Logs del Sistema
                     </button>
                 </nav>
@@ -72,9 +43,9 @@
         
         <!-- Tab: Personalización -->
         <div id="content-personalizacion" class="tab-content">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 px-6">
                 <!-- Cambiar Imagen de Login -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6">Imagen del Login</h3>
                     
                     <div class="space-y-4">
@@ -129,7 +100,7 @@
                 </div>
 
                 <!-- Configuración General -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-900 mb-6">Configuración General</h3>
                     
                     <div class="space-y-4">
@@ -153,10 +124,10 @@
 
         <!-- Tab: Tablas de Referencia -->
         <div id="content-tablas" class="tab-content hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
                 
                 <!-- Departamentos -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Departamentos</h3>
                         <button onclick="abrirModalTabla('departamentos')" title="Agregar nuevo departamento" aria-label="Agregar nuevo departamento" class="text-blue-600 hover:text-blue-800">
@@ -171,7 +142,7 @@
                 </div>
 
                 <!-- Puestos de Trabajo -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Puestos de Trabajo</h3>
                         <button onclick="abrirModalTabla('puestos_trabajo')" title="Agregar nuevo puesto de trabajo" aria-label="Agregar nuevo puesto de trabajo" class="text-blue-600 hover:text-blue-800">
@@ -186,7 +157,7 @@
                 </div>
 
                 <!-- Proyectos -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Proyectos</h3>
                         <button onclick="abrirModalTabla('proyectos')" title="Agregar nuevo proyecto" aria-label="Agregar nuevo proyecto" class="text-blue-600 hover:text-blue-800">
@@ -201,7 +172,7 @@
                 </div>
 
                 <!-- Ocupaciones -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Ocupaciones</h3>
                         <button onclick="abrirModalTabla('ocupaciones')" title="Agregar nueva ocupación" aria-label="Agregar nueva ocupación" class="text-blue-600 hover:text-blue-800">
@@ -216,7 +187,7 @@
                 </div>
 
                 <!-- Instituciones Educativas -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Instituciones Educativas</h3>
                         <button onclick="abrirModalTabla('instituciones_educativas')" title="Agregar nueva institución educativa" aria-label="Agregar nueva institución educativa" class="text-blue-600 hover:text-blue-800">
@@ -231,7 +202,7 @@
                 </div>
 
                 <!-- Niveles de Estudio -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Niveles de Estudio</h3>
                         <button onclick="abrirModalTabla('niveles_estudio')" title="Agregar nuevo nivel de estudio" aria-label="Agregar nuevo nivel de estudio" class="text-blue-600 hover:text-blue-800">
@@ -246,7 +217,7 @@
                 </div>
 
                 <!-- Entidades Federativas -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Entidades Federativas</h3>
                         <button onclick="abrirModalTabla('entidades_federativas')" title="Agregar nueva entidad federativa" aria-label="Agregar nueva entidad federativa" class="text-blue-600 hover:text-blue-800">
@@ -261,7 +232,7 @@
                 </div>
 
                 <!-- Municipios -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Municipios</h3>
                         <button onclick="abrirModalTabla('municipios')" title="Agregar nuevo municipio" aria-label="Agregar nuevo municipio" class="text-blue-600 hover:text-blue-800">
@@ -276,7 +247,7 @@
                 </div>
 
                 <!-- Estatus de Usuario -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Estatus de Usuario</h3>
                         <button onclick="abrirModalTabla('estatus_usuarios')" title="Agregar nuevo estatus de usuario" aria-label="Agregar nuevo estatus de usuario" class="text-blue-600 hover:text-blue-800">
@@ -291,16 +262,16 @@
                 </div>
 
                 <!-- Categorías de Tickets -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white p-6 rounded-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Categorías de Tickets</h3>
-                        <button onclick="abrirModalTabla('categorias_tickets')" title="Agregar nueva categoría de ticket" aria-label="Agregar nueva categoría de ticket" class="text-blue-600 hover:text-blue-800">
+                        <button onclick="abrirModalTabla('categorias_ticket')" title="Agregar nueva categoría de ticket" aria-label="Agregar nueva categoría de ticket" class="text-blue-600 hover:text-blue-800">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                         </button>
                     </div>
-                    <div id="lista-categorias_tickets" class="space-y-2 max-h-40 overflow-y-auto">
+                    <div id="lista-categorias_ticket" class="space-y-2 max-h-40 overflow-y-auto">
                         <!-- Se carga dinámicamente -->
                     </div>
                 </div>
@@ -310,7 +281,7 @@
 
         <!-- Tab: Permisos de Sistema -->
         <div id="content-permisos" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-white p-6 px-6 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-900 mb-6">Permisos de Gestión de Usuarios</h3>
                 
                 <div class="space-y-4">
@@ -346,7 +317,7 @@
             </div>
             
             <!-- Permisos para Tickets -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="bg-white p-6 mt-6 px-6 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-900 mb-6">Permisos de Tickets</h3>
                 
                 <div class="space-y-6">
@@ -370,7 +341,7 @@
             </div>
             
             <!-- Permisos para Home -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="bg-white p-6 mt-6 px-6 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-900 mb-6">Permisos de Home</h3>
                 
                 <div class="space-y-4">
@@ -409,7 +380,7 @@
 
         <!-- Tab: Logs del Sistema -->
         <div id="content-logs" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-white p-6 px-6 rounded-lg">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">Logs del Sistema</h3>
                     <div class="flex space-x-3">
@@ -465,6 +436,12 @@
                     <label for="itemEntidad" class="text-sm font-medium text-gray-700 block mb-2">Entidad Federativa</label>
                     <select id="itemEntidad" title="Seleccionar entidad federativa" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Seleccionar entidad...</option>
+                    </select>
+                </div>
+                <div id="departamentoSelect" class="hidden">
+                    <label for="itemDepartamento" class="text-sm font-medium text-gray-700 block mb-2">Departamento</label>
+                    <select id="itemDepartamento" title="Seleccionar departamento" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Seleccionar departamento...</option>
                     </select>
                 </div>
             </div>
@@ -673,214 +650,12 @@ function cambiarTab(tab) {
     }
 }
 
-// FUNCIONES MOVIDAS A upload-functions.js - COMENTADAS PARA EVITAR DUPLICADOS
-/*
-function subirImagenLogin() {
-    console.log('Función subirImagenLogin iniciada');
-    const file = document.getElementById('loginImageInput').files[0];
-    if (!file) {
-        console.log('No se seleccionó archivo');
-        return;
-    }
-    
-    console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
-    
-    // Validaciones del cliente
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxSize) {
-        showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
-        return;
-    }
-    
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-        showAlert('Tipo de archivo no permitido. Use PNG, JPG, JPEG o GIF.', 'error');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('login_image', file);
-    
-    console.log('Enviando request a /auth/actualizar_configuracion');
-    
-    // Mostrar indicador de carga
-    showAlert('Subiendo imagen...', 'info');
-    
-    fetch('/auth/actualizar_configuracion', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            // Actualizar la imagen mostrada
-            const img = document.getElementById('currentLoginImage');
-            if (img && data.new_image) {
-                img.src = `/${data.new_image}?t=${new Date().getTime()}`;
-            }
-            showAlert('Imagen de login actualizada exitosamente', 'success');
-            
-            // Recargar la página para aplicar cambios globalmente
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showAlert(data.error || 'Error al actualizar imagen', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('Error de conexión: ' + error.message, 'error');
-    });
-}
-*/
-
-/*
-// Subir logo del sistema
-function subirLogo() {
-    console.log('Función subirLogo iniciada');
-    const file = document.getElementById('logoImageInput').files[0];
-    if (!file) {
-        console.log('No se seleccionó archivo');
-        return;
-    }
-    
-    console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
-    
-    // Validaciones del cliente
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxSize) {
-        showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
-        return;
-    }
-    
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
-        showAlert('Tipo de archivo no permitido. Use PNG, JPG, JPEG, GIF o SVG.', 'error');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('logo_image', file);
-    
-    console.log('Enviando request a /auth/actualizar_configuracion');
-    
-    // Mostrar indicador de carga
-    showAlert('Subiendo logo...', 'info');
-    
-    fetch('/auth/actualizar_configuracion', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            // Actualizar el logo mostrado
-            const img = document.getElementById('currentLogo');
-            if (img && data.new_logo) {
-                img.src = `/static/${data.new_logo}?t=${new Date().getTime()}`;
-            }
-            showAlert('Logo actualizado exitosamente', 'success');
-            
-            // Recargar la página para aplicar cambios globalmente
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showAlert(data.error || 'Error al actualizar logo', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('Error de conexión: ' + error.message, 'error');
-    });
-}
-*/
-
-/*
-// Subir imagen de fondo del sistema
-function subirImagenFondo() {
-    console.log('Función subirImagenFondo iniciada');
-    const file = document.getElementById('backgroundImageInput').files[0];
-    if (!file) {
-        console.log('No se seleccionó archivo');
-        return;
-    }
-    
-    console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
-    
-    // Validaciones del cliente
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxSize) {
-        showAlert('El archivo es demasiado grande. Máximo 2MB permitido.', 'error');
-        return;
-    }
-    
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
-        showAlert('Tipo de archivo no permitido. Use PNG, JPG o JPEG.', 'error');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('background_image', file);
-    
-    console.log('Enviando request a /auth/actualizar_configuracion');
-    
-    // Mostrar indicador de carga
-    showAlert('Subiendo imagen de fondo...', 'info');
-    
-    fetch('/auth/actualizar_configuracion', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            showAlert('Imagen de fondo actualizada exitosamente', 'success');
-            
-            // Recargar la página para aplicar la nueva imagen de fondo
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showAlert(data.error || 'Error al actualizar imagen de fondo', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('Error de conexión: ' + error.message, 'error');
-    });
-}
-*/
-
 // Gestión de tablas de referencia
 function cargarTodasLasTablas() {
     const tablas = [
         'departamentos', 'puestos_trabajo', 'proyectos', 'ocupaciones',
         'instituciones_educativas', 'niveles_estudio', 'entidades_federativas',
-        'municipios', 'estatus_usuarios'
+        'municipios', 'estatus_usuarios', 'categorias_ticket'
     ];
     
     tablas.forEach(tabla => {
@@ -942,6 +717,14 @@ function abrirModalTabla(tabla) {
         document.getElementById('entidadSelect').classList.add('hidden');
     }
     
+    // Mostrar selector de departamento para categorías de tickets
+    if (tabla === 'categorias_ticket') {
+        document.getElementById('departamentoSelect').classList.remove('hidden');
+        cargarDepartamentos();
+    } else {
+        document.getElementById('departamentoSelect').classList.add('hidden');
+    }
+    
     cargarItemsModal(tabla);
 }
 
@@ -952,6 +735,20 @@ function cargarEntidades() {
         if (data.success) {
             const select = document.getElementById('itemEntidad');
             select.innerHTML = '<option value="">Seleccionar entidad...</option>';
+            data.items.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.nombre}</option>`;
+            });
+        }
+    });
+}
+
+function cargarDepartamentos() {
+    fetch('/auth/api/tabla/departamentos')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('itemDepartamento');
+            select.innerHTML = '<option value="">Seleccionar departamento...</option>';
             data.items.forEach(item => {
                 select.innerHTML += `<option value="${item.id}">${item.nombre}</option>`;
             });
@@ -973,30 +770,75 @@ function mostrarItemsModal(items) {
     const lista = document.getElementById('listaItems');
     lista.innerHTML = '';
     
-    items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'flex justify-between items-center p-3 border border-gray-200 rounded-lg';
-        div.innerHTML = `
-            <div>
-                <div class="font-medium">${item.nombre}</div>
-                ${item.descripcion ? `<div class="text-sm text-gray-500">${item.descripcion}</div>` : ''}
-                ${item.entidad_federativa ? `<div class="text-xs text-blue-600">Entidad: ${item.entidad_federativa}</div>` : ''}
-            </div>
-            <div class="flex space-x-2">
-                <button onclick="editarItem(${item.id})" class="text-blue-600 hover:text-blue-800">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
-                <button onclick="confirmarEliminar('${tablaActual}', ${item.id}, '${item.nombre}')" class="text-red-600 hover:text-red-800">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            </div>
-        `;
-        lista.appendChild(div);
-    });
+    if (tablaActual === 'categorias_ticket') {
+        // Agrupar categorías por departamento
+        const categoriasGrouped = {};
+        items.forEach(item => {
+            const deptName = item.departamento || 'Sin Departamento';
+            if (!categoriasGrouped[deptName]) {
+                categoriasGrouped[deptName] = [];
+            }
+            categoriasGrouped[deptName].push(item);
+        });
+        
+        // Mostrar categorías agrupadas por departamento
+        Object.keys(categoriasGrouped).forEach(deptName => {
+            const deptDiv = document.createElement('div');
+            deptDiv.className = 'mb-4';
+            deptDiv.innerHTML = `
+                <h4 class="font-semibold text-gray-700 mb-2 border-b border-gray-200 pb-1">${deptName}</h4>
+                <div class="space-y-2">
+                    ${categoriasGrouped[deptName].map(item => `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <div>
+                                <div class="font-medium text-sm">${item.nombre}</div>
+                                ${item.descripcion ? `<div class="text-xs text-gray-500">${item.descripcion}</div>` : ''}
+                            </div>
+                            <div class="flex space-x-1">
+                                <button onclick="editarItem(${item.id})" class="text-blue-600 hover:text-blue-800">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="confirmarEliminar('${tablaActual}', ${item.id}, '${item.nombre}')" class="text-red-600 hover:text-red-800">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            lista.appendChild(deptDiv);
+        });
+    } else {
+        // Mostrar items normales para otras tablas
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'flex justify-between items-center p-3 border border-gray-200 rounded-lg';
+            div.innerHTML = `
+                <div>
+                    <div class="font-medium">${item.nombre}</div>
+                    ${item.descripcion ? `<div class="text-sm text-gray-500">${item.descripcion}</div>` : ''}
+                    ${item.entidad_federativa ? `<div class="text-xs text-blue-600">Entidad: ${item.entidad_federativa}</div>` : ''}
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="editarItem(${item.id})" class="text-blue-600 hover:text-blue-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="confirmarEliminar('${tablaActual}', ${item.id}, '${item.nombre}')" class="text-red-600 hover:text-red-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            lista.appendChild(div);
+        });
+    }
 }
 
 function editarItem(itemId) {
@@ -1047,6 +889,16 @@ function guardarItem() {
             showAlert('Debe seleccionar una entidad federativa', 'error');
             return;
         }
+    }
+    
+    // Para categorías de tickets, agregar el departamento_id
+    if (tablaActual === 'categorias_ticket') {
+        const departamentoId = document.getElementById('itemDepartamento').value;
+        if (!departamentoId) {
+            showAlert('Debe seleccionar un departamento', 'error');
+            return;
+        }
+        data.departamento_id = departamentoId;
     }
     
     const url = itemEditando ? 
@@ -1422,14 +1274,6 @@ function cargarPermisosTickets() {
         showAlert('Error al cargar permisos de tickets', 'error');
     });
 }
-                }
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error al cargar permisos de tickets:', error);
-    });
-}
 
 // Funciones para permisos de home
 function guardarPermisosHome() {
@@ -1477,17 +1321,22 @@ function cargarPermisosHome() {
                 checkbox.checked = false;
             });
             
+            // Verificar que permisos sea un array
+            const permisos = Array.isArray(data.permisos) ? data.permisos : [];
+            
             // Marcar los permisos actuales
-            data.permisos.forEach(permiso => {
+            permisos.forEach(permiso => {
                 const checkbox = document.getElementById(`home-${permiso.tipo}-${permiso.puesto_id}`);
                 if (checkbox) {
                     checkbox.checked = true;
                 }
             });
+        } else {
+            console.log('No hay permisos de home disponibles o la respuesta no es válida');
         }
     })
     .catch(error => {
-        console.error('Error al cargar permisos de home:', error);
+        console.error(' Error al cargar permisos de home:', error);
     });
 }
 
@@ -1510,6 +1359,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // CSRF Token para las peticiones AJAX
 window.csrfToken = '{{ csrf_token() }}';
+
+// Function to get CSRF token
+function getCSRFToken() {
+    // Try to get from window variable first, then from meta tag as fallback
+    return window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
 
 // Variables globales
 let usuariosActivos = [];

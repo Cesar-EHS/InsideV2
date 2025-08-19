@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Test - Inside{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; background: white; margin: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+  <h1 style="color: #333; font-size: 32px; margin-bottom: 20px;">🎯 DASHBOARD TEST - DATOS REALES</h1>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+      <h3 style="margin: 0 0 10px 0; font-size: 14px; opacity: 0.9;">📝 PUBLICACIONES</h3>
+      <div style="font-size: 36px; font-weight: bold; margin: 10px 0;">{{ total_posts or 0 }}</div>
+      <div style="font-size: 12px; opacity: 0.8;">Datos reales de la BD</div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+      <h3 style="margin: 0 0 10px 0; font-size: 14px; opacity: 0.9;">👍 REACCIONES</h3>
+      <div style="font-size: 36px; font-weight: bold; margin: 10px 0;">{{ total_reactions or 0 }}</div>
+      <div style="font-size: 12px; opacity: 0.8;">Sin multiplicadores falsos</div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+      <h3 style="margin: 0 0 10px 0; font-size: 14px; opacity: 0.9;">💬 COMENTARIOS</h3>
+      <div style="font-size: 36px; font-weight: bold; margin: 10px 0;">{{ total_comments or 0 }}</div>
+      <div style="font-size: 12px; opacity: 0.8;">Exactos de la base</div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+      <h3 style="margin: 0 0 10px 0; font-size: 14px; opacity: 0.9;">🎫 TICKETS</h3>
+      <div style="font-size: 36px; font-weight: bold; margin: 10px 0;">{{ total_tickets or 0 }}</div>
+      <div style="font-size: 12px; opacity: 0.8;">Sistema de soporte</div>
+    </div>
+
+  </div>
+
+  <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
+    <h3 style="color: #155724; margin: 0 0 10px 0;">✅ VERIFICACIÓN EXITOSA</h3>
+    <p style="margin: 0; color: #155724;">
+      El dashboard está cargando datos reales desde la base de datos.<br>
+      <strong>Posts:</strong> {{ total_posts or 0 }} | 
+      <strong>Reacciones:</strong> {{ total_reactions or 0 }} | 
+      <strong>Comentarios:</strong> {{ total_comments or 0 }} | 
+      <strong>Tickets:</strong> {{ total_tickets or 0 }}
+    </p>
+  </div>
+
+  <div style="margin-top: 20px; text-align: center;">
+    <a href="/home/dashboard_full" style="background: #007bff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">
+      🚀 Ver Dashboard Completo
+    </a>
+  </div>
+
+</div>
+
+<script>
+console.log('✅ Dashboard Test cargado correctamente');
+console.log('📊 Datos recibidos:', {
+  posts: {{ total_posts or 0 }},
+  reactions: {{ total_reactions or 0 }}, 
+  comments: {{ total_comments or 0 }},
+  tickets: {{ total_tickets or 0 }}
+});
+</script>
+
+{% endblock %}

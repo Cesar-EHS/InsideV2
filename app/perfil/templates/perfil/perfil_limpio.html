@@ -169,139 +169,6 @@
   font-weight: 500;
 }
 
-/* ACTIVIDAD RECIENTE */
-.activity-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-icon {
-  width: 40px;
-  height: 40px;
-  background: #f3f4f6;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
-}
-
-.activity-description {
-  color: #6b7280;
-  font-size: 14px;
-  line-height: 1.4;
-  margin-bottom: 4px;
-}
-
-.activity-time {
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* ORGANIGRAMA */
-.org-chart {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.org-level {
-  display: flex;
-  justify-content: center;
-}
-
-.org-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 2px solid #e5e7eb;
-  background: #f9fafb;
-  min-width: 250px;
-  transition: all 0.2s;
-}
-
-.org-card.department {
-  border-color: #3b82f6;
-  background: #eff6ff;
-}
-
-.org-card.project {
-  border-color: #10b981;
-  background: #f0fdf4;
-}
-
-.org-card.position {
-  border-color: #f59e0b;
-  background: #fffbeb;
-}
-
-.org-card.user-card {
-  border-color: #8b5cf6;
-  background: #f5f3ff;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
-}
-
-.org-level.current::before {
-  content: "👇";
-  font-size: 20px;
-  margin-bottom: 8px;
-  display: block;
-  text-align: center;
-}
-
-.org-icon {
-  width: 36px;
-  height: 36px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  border: 2px solid #e5e7eb;
-}
-
-.org-info {
-  flex: 1;
-}
-
-.org-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 2px;
-}
-
-.org-name {
-  font-weight: 600;
-  color: #111827;
-  font-size: 14px;
-}
-
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .profile-header {
@@ -434,104 +301,34 @@
     </div>
   </div>
 
-  <!-- ACTIVIDAD RECIENTE Y ORGANIGRAMA -->
-  <div class="profile-details">
-    <!-- ACTIVIDAD RECIENTE MEJORADA -->
-    <div class="profile-card">
-      <div class="detail-section">
-        <h3>📊 Actividad Reciente</h3>
-        {% if user.posts %}
-          {% for post in user.posts[:3] %}
-            <div class="activity-item">
-              <div class="activity-icon">📝</div>
-              <div class="activity-content">
-                <div class="activity-title">Publicación</div>
-                <div class="activity-description">{{ post.content[:80] }}{% if post.content|length > 80 %}...{% endif %}</div>
-                <div class="activity-time">{{ post.timestamp.strftime('%d/%m/%Y %H:%M') }}</div>
-              </div>
-            </div>
-          {% endfor %}
-        {% endif %}
-        
-        {% if user.comments %}
-          {% for comment in user.comments[:2] %}
-            <div class="activity-item">
-              <div class="activity-icon">💬</div>
-              <div class="activity-content">
-                <div class="activity-title">Comentario</div>
-                <div class="activity-description">{{ comment.content[:60] }}{% if comment.content|length > 60 %}...{% endif %}</div>
-                <div class="activity-time">{{ comment.timestamp.strftime('%d/%m/%Y %H:%M') }}</div>
-              </div>
-            </div>
-          {% endfor %}
-        {% endif %}
-        
-        {% if not user.posts and not user.comments %}
-          <div class="activity-item">
-            <div class="activity-icon">🌟</div>
-            <div class="activity-content">
-              <div class="activity-title">¡Bienvenido!</div>
-              <div class="activity-description">Comienza a participar en la plataforma</div>
-              <div class="activity-time">{{ now.strftime('%d/%m/%Y') }}</div>
-            </div>
+  <!-- ACTIVIDAD RECIENTE -->
+  <div class="profile-card">
+    <div class="detail-section">
+      <h3>📊 Actividad Reciente</h3>
+      {% if user.posts %}
+        {% for post in user.posts[:5] %}
+          <div class="detail-item">
+            <span class="detail-label">{{ post.timestamp.strftime('%d/%m/%Y %H:%M') }}</span>
+            <span class="detail-value">{{ post.content[:50] }}...</span>
           </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- ORGANIGRAMA -->
-    <div class="profile-card">
-      <div class="detail-section">
-        <h3>🏢 Organigrama</h3>
-        <div class="org-chart">
-          <!-- DEPARTAMENTO -->
-          <div class="org-level">
-            <div class="org-card department">
-              <div class="org-icon">🏢</div>
-              <div class="org-info">
-                <div class="org-title">Departamento</div>
-                <div class="org-name">{{ user.departamento.nombre if user.departamento else 'No asignado' }}</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- PROYECTO -->
-          <div class="org-level">
-            <div class="org-card project">
-              <div class="org-icon">🚀</div>
-              <div class="org-info">
-                <div class="org-title">Proyecto</div>
-                <div class="org-name">{{ user.proyecto.nombre if user.proyecto else 'No asignado' }}</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- PUESTO -->
-          <div class="org-level">
-            <div class="org-card position">
-              <div class="org-icon">👤</div>
-              <div class="org-info">
-                <div class="org-title">Puesto</div>
-                <div class="org-name">{{ user.puesto_trabajo.nombre if user.puesto_trabajo else 'No asignado' }}</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- USUARIO ACTUAL -->
-          <div class="org-level current">
-            <div class="org-card user-card">
-              <div class="org-icon">⭐</div>
-              <div class="org-info">
-                <div class="org-title">Tu Posición</div>
-                <div class="org-name">{{ user.nombre }} {{ user.apellido_paterno }}</div>
-              </div>
-            </div>
-          </div>
+        {% endfor %}
+      {% else %}
+        <div class="detail-item">
+          <span class="detail-label">Sin actividad reciente</span>
+          <span class="detail-value">-</span>
         </div>
-      </div>
+      {% endif %}
     </div>
   </div>
 
+  <!-- BOTÓN DE EDICIÓN -->
+  {% if current_user.id == user.id or current_user.is_admin %}
+    <div class="profile-card" style="text-align: center;">
+      <button class="edit-button" onclick="window.location.href='{{ url_for('perfil.editar_perfil') }}'">
+        ✏️ Editar Perfil
+      </button>
+    </div>
+  {% endif %}
 </div>
 
 {% endblock %}

@@ -1,13 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="min-h-screen bg-white">
-  <!-- Saludo personalizado -->
-  <section class="px-6 pt-8 pb-6">
-    <h1 id="saludo" data-nombre="{{ usuario.nombre }}" class="text-3xl font-semibold text-gray-900 tracking-tight font-sfpro"></h1>
-  </section>
-
+<div class="min-h-screen">
   <!-- Layout para móvil: eventos arriba horizontal, publicaciones abajo -->
-  <div class="lg:hidden">
+  <div class="lg:hidden pt-0">
     <!-- Eventos horizontales en móvil -->
     <div class="px-6 mb-3">
       <div class="flex items-center justify-between mb-3">
@@ -24,7 +19,10 @@
       <div class="overflow-x-auto">
         <div class="flex gap-4 pb-2" style="width: max-content;">
           {% for evento in eventos[:5] %}
-          <div class="w-64 bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex-shrink-0 group relative">
+          <div class="w-64 bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex-shrink-0 group relative" 
+               data-tipo="evento" 
+               data-fecha="{{ evento.fecha.isoformat() }}" 
+               data-proyecto="{{ evento.proyecto.nombre if evento.proyecto else 'Sin proyecto' }}">
             <!-- Menú de 3 puntos para eventos móviles -->
             {% if current_user.rol == 'admin' or current_user.is_admin %}
             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -51,9 +49,76 @@
               <span>{{ evento.fecha.strftime('%d/%m') }}</span>
               {% if evento.hora %}
               <span>{{ evento.hora.strftime('%H:%M') }}</span>
+              {% if evento.get_hora_fin() %}
+                <span class="text-gray-400">- {{ evento.get_hora_fin().strftime('%H:%M') }}</span>
+              {% endif %}
               {% endif %}
             </div>
             <p class="text-sm text-gray-600 line-clamp-3 mb-3">{{ evento.descripcion or 'Sin descripción' }}</p>
+            
+            <!-- Botones de participación móvil -->
+            <div class="flex items-center justify-between mb-3">
+              {% set estado_actual = evento.get_estado_usuario(current_user.id) %}
+              <div class="flex gap-2">
+                {% if estado_actual != 'confirmado' %}
+                <!-- Botón confirmar (solo si no está confirmado) -->
+                <button 
+                  class="participar-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-600 border border-gray-200"
+                  data-evento-id="{{ evento.id }}" 
+                  data-accion="confirmado">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span class="hidden sm:inline">Confirmar</span>
+                </button>
+                {% endif %}
+                
+                {% if estado_actual != 'declinado' %}
+                <!-- Botón declinar (solo si no está declinado) -->
+                <button 
+                  class="participar-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-600 border border-gray-200"
+                  data-evento-id="{{ evento.id }}" 
+                  data-accion="declinado">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  <span class="hidden sm:inline">Declinar</span>
+                </button>
+                {% endif %}
+                
+                {% if estado_actual == 'confirmado' %}
+                <!-- Botón para quitar confirmación -->
+                <button 
+                  class="participar-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-green-100 text-green-700 border border-green-200"
+                  data-evento-id="{{ evento.id }}" 
+                  data-accion="declinado">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  <span class="hidden sm:inline">Quitar confirmación</span>
+                </button>
+                {% endif %}
+                
+                {% if estado_actual == 'declinado' %}
+                <!-- Botón para quitar declinación -->
+                <button 
+                  class="participar-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-red-100 text-red-700 border border-red-200"
+                  data-evento-id="{{ evento.id }}" 
+                  data-accion="confirmado">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span class="hidden sm:inline">Confirmar asistencia</span>
+                </button>
+                {% endif %}
+              </div>
+              
+              <!-- Ver participantes -->
+              <button class="text-blue-600 hover:text-blue-800 text-sm font-medium" onclick="abrirModalParticipantes({{ evento.id }})">
+                Ver participantes
+              </button>
+            </div>
+            
             {% if evento.link_teams %}
             <a href="{{ evento.link_teams }}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -72,84 +137,139 @@
   <!-- Layout para desktop -->
   <div class="flex flex-col lg:flex-row lg:px-6 lg:gap-8 lg:items-start">
     <!-- Publicaciones - 2/3 en desktop -->
-    <main class="lg:w-2/3 px-6 lg:px-0">
+    <main class="lg:w-2/3 pt-0">
       <!-- Nueva publicación integrada con filtros -->
       {% if current_user.rol == 'admin' or current_user.is_admin %}
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-4">
         <!-- Crear publicación -->
-        <div class="flex items-center gap-4 mb-4">
-          <img src="{{ usuario.foto_url }}" alt="Foto de {{ usuario.nombre }}" class="w-10 h-10 rounded-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
-          <button id="btn-abrir-modal-post" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-3 w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-200 transition font-medium text-sm" aria-label="¿Listo para publicar?" type="button">
+        <div class="flex items-center gap-3 mb-3">
+          <img src="{{ usuario.foto_url }}" alt="Foto de {{ usuario.nombre }}" class="w-8 h-8 rounded-full object-cover" onerror="this.onerror=null; this.src='/static/default_user.png';">
+          <button id="btn-abrir-modal-post" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-3 py-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 ease-in-out font-medium text-sm transform hover:scale-[1.02]" aria-label="¿Listo para publicar?" type="button">
             ¿Listo para publicar, {{ usuario.nombre.split(' ')[0] }}?
           </button>
         </div>
         
-        <!-- Filtros integrados -->
-        <div x-data="{ open: false }" class="border-t border-gray-100 pt-4">
-          <button type="button" @click="open = !open" class="flex items-center gap-2 text-gray-600 hover:text-blue-600 text-sm px-3 py-2 rounded-lg hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-200" aria-expanded="false" aria-controls="filtros-form">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0013 13.414V19a1 1 0 01-1.447.894l-2-1A1 1 0 009 18v-4.586a1 1 0 00-.293-.707L2.293 6.707A1 1 0 012 6V4z"/></svg>
-            Filtrar publicaciones
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <!-- Filtros minimalistas estilo Apple - Dinámicos -->
+        <div x-data="{ open: false }" class="border-t border-gray-200 pt-3">
+          <button type="button" @click="open = !open" class="flex items-center justify-between w-full text-left text-gray-600 hover:text-blue-600 text-sm transition-all focus:outline-none group" aria-expanded="false" aria-controls="filtros-form">
+            <span class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0013 13.414V19a1 1 0 01-1.447.894l-2-1A1 1 0 009 18v-4.586a1 1 0 00-.293-.707L2.293 6.707A1 1 0 012 6V4z"/>
+              </svg>
+              Filtrar publicaciones
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-blue-600" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
           </button>
-          <form id="filtros-form" x-show="open" x-transition.opacity x-transition.duration.250ms method="GET" action="{{ url_for('home.home') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 p-4 rounded-lg bg-gray-50 border border-gray-200" style="display: none;" @click.away="open = false">
-            <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-700">Año</label>
-              <select name="filter_year" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <option value="">Todos los años</option>
-                {% for year in años_posts %}
-                  <option value="{{ year }}" {% if filter_year == year %}selected{% endif %}>{{ year }}</option>
-                {% endfor %}
-              </select>
+          
+          <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-3 space-y-3" style="display: none;" @click.away="open = false">
+            
+            <!-- Filtros en diseño minimalista y compacto -->
+            <div class="grid grid-cols-4 gap-2">
+              <!-- Año -->
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Año</label>
+                <select id="filter_year" name="filter_year" class="w-full appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all">
+                  <option value="">Todos</option>
+                  {% for year in años_posts %}
+                    <option value="{{ year }}" {% if filter_year == year %}selected{% endif %}>{{ year }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <!-- Mes -->
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Mes</label>
+                <select id="filter_month" name="filter_month" class="w-full appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all">
+                  <option value="">Todos</option>
+                  {% for month in meses %}
+                    <option value="{{ month }}" {% if filter_month == month %}selected{% endif %}>{{ month }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <!-- Proyecto -->
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Proyecto</label>
+                <select id="filter_project" name="filter_project" class="w-full appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all">
+                  <option value="">Todos</option>
+                  {% for proyecto in proyectos %}
+                    <option value="{{ proyecto.id }}" {% if filter_project and filter_project|int == proyecto.id %}selected{% endif %}>{{ proyecto.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <!-- Autor -->
+              <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Autor</label>
+                <select id="filter_user" name="filter_user" class="w-full appearance-none bg-white border border-gray-200 rounded-md px-2 py-1 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all">
+                  <option value="">Todos</option>
+                  {% for user in usuarios %}
+                    <option value="{{ user.id }}" {% if filter_user and filter_user|int == user.id %}selected{% endif %}>{{ user.nombre }} {{ user.apellido_paterno }}</option>
+                  {% endfor %}
+                </select>
+              </div>
             </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-700">Mes</label>
-              <select name="filter_month" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <option value="">Todos los meses</option>
-                {% for month in meses %}
-                  <option value="{{ month }}" {% if filter_month == month %}selected{% endif %}>{{ month }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            {% if current_user.rol == 'admin' or current_user.is_admin %}
-            <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-700">Proyecto</label>
-              <select name="filter_proyecto" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <option value="">Todos los proyectos</option>
-                <option value="publicos" {% if filter_proyecto == 'publicos' %}selected{% endif %}>○ Solo públicos</option>
+            
+            <!-- Filtros dinámicos adicionales -->
+            <div class="border-t border-gray-100 pt-3 mt-3">
+              <div class="flex flex-wrap gap-2 mb-3">
+                <button data-filter="todo" class="px-3 py-1 text-xs rounded-full border transition-all bg-blue-50 text-blue-600 border-blue-200">
+                  Todo
+                </button>
+                <button data-filter="publicaciones" class="px-3 py-1 text-xs rounded-full border transition-all bg-gray-50 text-gray-600 border-gray-200">
+                  Publicaciones
+                </button>
+                <button data-filter="eventos" class="px-3 py-1 text-xs rounded-full border transition-all bg-gray-50 text-gray-600 border-gray-200">
+                  Eventos
+                </button>
                 {% for proyecto in proyectos %}
-                  <option value="{{ proyecto.id }}" {% if filter_proyecto|string == proyecto.id|string %}selected{% endif %}>◐ {{ proyecto.nombre }}</option>
+                <button data-filter="proyecto" data-proyecto="{{ proyecto.nombre }}" class="px-3 py-1 text-xs rounded-full border transition-all bg-gray-50 text-gray-600 border-gray-200">
+                  {{ proyecto.nombre }}
+                </button>
                 {% endfor %}
-              </select>
+              </div>
+              
+              <!-- Búsqueda y fecha -->
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="space-y-1">
+                  <label class="text-xs font-medium text-gray-500">Buscar</label>
+                  <input type="text" id="search-filter" placeholder="Buscar por título, contenido o autor..." class="w-full border border-gray-200 rounded-md px-2 py-1 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all">
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-medium text-gray-500">Fecha específica</label>
+                  <input type="date" id="date-filter" class="w-full border border-gray-200 rounded-md px-2 py-1 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all">
+                </div>
+              </div>
+              
+              <button onclick="clearAllFilters()" class="w-full px-3 py-2 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-all">
+                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Limpiar todos los filtros
+              </button>
             </div>
-            {% endif %}
-            <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-700">Autor</label>
-              <select name="filter_user" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <option value="">Todos los autores</option>
-                {% for user in usuarios %}
-                  <option value="{{ user.id }}" {% if filter_user|int == user.id %}selected{% endif %}>{{ user.nombre }} {{ user.apellido_paterno }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="md:col-span-2 lg:col-span-4 flex justify-end">
-              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors text-sm">Aplicar filtros</button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
       {% endif %}
       
-      <!-- Publicaciones flotantes -->
+      <!-- Publicaciones optimizadas -->
       {% if posts %}
-      <div class="space-y-6">
+      <div class="space-y-4">
         {% for post in posts %}
-        <article class="bg-white rounded-xl shadow-sm p-6 group relative">
+        <article class="bg-white rounded-xl border border-gray-200 p-4 group relative transition-all duration-300 ease-in-out hover:shadow-md hover:border-blue-200" 
+                 data-tipo="publicacion" 
+                 data-fecha="{{ post.timestamp.isoformat() }}" 
+                 data-proyecto="{{ post.user.proyecto.nombre if post.user.proyecto else 'Sin proyecto' }}" 
+                 data-author="{{ post.user.nombre }}">
           {% if (post.user_id == current_user.id or current_user.is_admin) and (current_user.rol == 'admin' or current_user.is_admin) %}
           <!-- Menú de 3 puntos para publicaciones -->
-          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <div class="relative dropdown">
               <button class="dropdown-toggle" data-dropdown-id="post-{{ post.id }}" type="button" aria-label="Opciones de publicación">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                 </svg>
               </button>
@@ -178,14 +298,14 @@
                     <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Visible para todos los proyectos">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="text-xs text-gray-500 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Público</span>
+                    <span class="text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium">Público</span>
                   </div>
                   {% elif post.proyectos_nombres %}
                   <div class="relative group flex items-center gap-1">
                     <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Visible solo para proyectos específicos">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
-                    <span class="text-xs text-gray-500 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">Privado</span>
+                    <span class="text-xs text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full font-medium">Privado</span>
                     <!-- Tooltip mejorado -->
                     <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-20 shadow-lg">
                       <div class="font-medium mb-1">Visible para:</div>
@@ -202,7 +322,7 @@
           
           {% if post.image_filename %}
           <div class="mb-4">
-            <img src="{{ url_for('home.static', filename='uploads/' + post.image_filename) }}" alt="Imagen adjunta" class="w-full rounded-lg object-contain max-h-96 bg-gray-50">
+            <img src="{{ url_for('home.static', filename='uploads/' + post.image_filename) }}" alt="Imagen adjunta" class="w-full rounded-xl object-contain max-h-96 border border-gray-200">
           </div>
           {% endif %}
           
@@ -271,15 +391,21 @@
             
             <form method="POST" action="{{ url_for('home.add_comment', post_id=post.id) }}" class="flex gap-2 mt-3 comment-form" novalidate>
               {{ form_post.csrf_token }}
-              <textarea name="comment_content" rows="1" required placeholder="Escribe un comentario..." class="flex-1 border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm resize-none placeholder-gray-400"></textarea>
-              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">Enviar</button>
+              <textarea name="comment_content" rows="1" required placeholder="Escribe un comentario..." class="flex-1 border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm resize-none placeholder-gray-400"></textarea>
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-xl transition-colors text-sm">Enviar</button>
             </form>
           </section>
         </article>
         {% endfor %}
       </div>
       {% else %}
-      <p class="text-center text-gray-500 italic mt-6">No hay publicaciones disponibles.</p>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+        </svg>
+        <p class="text-gray-500 text-lg">No hay publicaciones disponibles</p>
+        <p class="text-gray-400 text-sm mt-1">Las publicaciones aparecerán aquí cuando sean creadas</p>
+      </div>
       {% endif %}
     </main>
 
@@ -287,11 +413,11 @@
     <aside class="lg:w-1/3 hidden lg:block lg:mt-0 mt-6" role="complementary">
       <div class="lg:sticky lg:top-6 space-y-6">
         <!-- Header con botón agregar evento -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="rounded-2xl p-0">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-medium text-gray-900">Próximos eventos</h2>
             {% if current_user.rol == 'admin' or current_user.is_admin %}
-            <button id="btn-nuevo-evento" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" type="button">
+            <button id="btn-nuevo-evento" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
@@ -300,11 +426,45 @@
             {% endif %}
           </div>
 
+          <!-- Filtros para eventos - Diseño minimalista y dinámico -->
+          <div class="mb-4">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-sm font-medium text-gray-700">Filtros:</span>
+              <div class="flex gap-2 flex-1">
+                <select id="filter_evento_mes" name="filter_evento_mes" class="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all appearance-none">
+                  <option value="">Mes</option>
+                  <option value="1">Ene</option>
+                  <option value="2">Feb</option>
+                  <option value="3">Mar</option>
+                  <option value="4">Abr</option>
+                  <option value="5">May</option>
+                  <option value="6">Jun</option>
+                  <option value="7">Jul</option>
+                  <option value="8">Ago</option>
+                  <option value="9">Sep</option>
+                  <option value="10">Oct</option>
+                  <option value="11">Nov</option>
+                  <option value="12">Dic</option>
+                </select>
+                
+                <select id="filter_evento_año" name="filter_evento_año" class="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-all appearance-none">
+                  <option value="">Año</option>
+                  <option value="2024">2024</option>
+                  <option value="2025">2025</option>
+                  <option value="2026">2026</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <!-- Lista de eventos (máximo 5) -->
           {% if eventos %}
           <div class="space-y-4">
             {% for evento in eventos[:5] %}
-            <div class="border border-gray-100 rounded-xl p-4 group relative hover:shadow-sm transition-shadow">
+            <div class="border border-gray-200 rounded-2xl p-4 group relative hover:shadow-lg transition-all duration-300 ease-in-out bg-white transform hover:-translate-y-1 hover:border-blue-200" 
+                 data-tipo="evento" 
+                 data-fecha="{{ evento.fecha.isoformat() }}" 
+                 data-proyecto="{{ evento.proyecto.nombre if evento.proyecto else 'Sin proyecto' }}">
               <!-- Menú de 3 puntos para eventos -->
               {% if current_user.rol == 'admin' or current_user.is_admin %}
               <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -315,6 +475,12 @@
                     </svg>
                   </button>
                   <div id="dropdown-evento-{{ evento.id }}" class="dropdown-menu">
+                    <button class="dropdown-item" onclick="abrirModalParticipantes('{{ evento.id }}', '{{ evento.titulo }}')" type="button">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-5.523-3.582-10-8-10s-8 4.477-8 10v2m10 0H7m0 0H2v-2a3 3 0 015.196-2.121M7 20v-2m5-10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      Ver participantes
+                    </button>
                     <button class="dropdown-item danger" data-delete-url="{{ url_for('home.delete_evento', id=evento.id) }}" data-delete-type="evento" type="button">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"/>
@@ -326,24 +492,129 @@
               </div>
               {% endif %}
               
-              <h3 class="font-medium text-gray-900 mb-2 line-clamp-2 pr-6">{{ evento.titulo }}</h3>
-              <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
-                <span class="font-medium">{{ evento.fecha.strftime('%d de %B') }}</span>
-                {% if evento.hora %}
-                <span>{{ evento.hora.strftime('%H:%M') }}</span>
-                {% endif %}
+              <!-- Fecha destacada -->
+              <div class="flex items-start gap-3 mb-3">
+                <div class="bg-yellow-400 text-white rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
+                  <div class="text-lg font-bold">{{ evento.fecha.strftime('%d') }}</div>
+                  <div class="text-xs uppercase">{{ evento.fecha.strftime('%b') }}</div>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900 mb-1 pr-6">{{ evento.titulo }}</h3>
+                  <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                    <span>{{ evento.fecha.strftime('%d %B %Y') }}</span>
+                    {% if evento.hora %}
+                    <span>•</span>
+                    <span>{{ evento.hora.strftime('%H:%M') }}{% if evento.get_hora_fin() %} - {{ evento.get_hora_fin().strftime('%H:%M') }}{% endif %}</span>
+                    {% endif %}
+                  </div>
+                  <p class="text-sm text-gray-600 leading-relaxed mb-3">{{ evento.descripcion or 'Oficinas EHStandard Monterrey' }}</p>
+                </div>
               </div>
-              <p class="text-sm text-gray-600 line-clamp-3 leading-relaxed mb-3">{{ evento.descripcion or 'Sin descripción' }}</p>
+              
+              <!-- Participantes y acciones -->
+              <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                <!-- Avatares de participantes - Diseño realista -->
+                <div class="flex items-center gap-2">
+                  {% set confirmados = evento.participantes.filter_by(estado='confirmado').count() %}
+                  {% if confirmados > 0 %}
+                    <div class="flex -space-x-2" title="Participantes confirmados">
+                      {% for participante in evento.participantes.filter_by(estado='confirmado').limit(3) %}
+                        <img class="w-6 h-6 rounded-full border-2 border-white object-cover" 
+                             src="{{ participante.user.foto_url or '/static/default_user.png' }}" 
+                             alt="{{ participante.user.nombre }}"
+                             title="{{ participante.user.nombre }} {{ participante.user.apellido_paterno }}">
+                      {% endfor %}
+                      {% if confirmados > 3 %}
+                        <div class="w-6 h-6 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
+                          +{{ confirmados - 3 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <span class="text-xs text-gray-500 italic">Sin confirmaciones aún</span>
+                  {% endif %}
+                </div>
+                
+                <!-- Botones de participación inteligentes -->
+                <div class="flex items-center gap-2">
+                  {% set estado_actual = evento.get_estado_usuario(current_user.id) %}
+                  
+                  {% if estado_actual != 'confirmado' %}
+                  <!-- Botón confirmar (se muestra si no está confirmado) -->
+                  <button 
+                    class="participar-btn w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out group transform hover:scale-110 hover:shadow-md bg-gray-100 hover:bg-green-100 text-gray-500 hover:text-green-600"
+                    title="Confirmar asistencia" 
+                    data-evento-id="{{ evento.id }}" 
+                    data-accion="confirmado">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </button>
+                  {% endif %}
+                  
+                  {% if estado_actual != 'declinado' %}
+                  <!-- Botón declinar (se muestra si no está declinado) -->
+                  <button 
+                    class="participar-btn w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out group transform hover:scale-110 hover:shadow-md bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600"
+                    title="No asistiré" 
+                    data-evento-id="{{ evento.id }}" 
+                    data-accion="declinado">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                  {% endif %}
+                  
+                  {% if estado_actual == 'confirmado' %}
+                  <!-- Botón para quitar confirmación -->
+                  <button 
+                    class="participar-btn w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out group transform hover:scale-110 hover:shadow-md bg-green-100 text-green-600"
+                    title="Confirmado - Clic para quitar confirmación" 
+                    data-evento-id="{{ evento.id }}" 
+                    data-accion="declinado">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                  {% endif %}
+                  
+                  {% if estado_actual == 'declinado' %}
+                  <!-- Botón para quitar declinación -->
+                  <button 
+                    class="participar-btn w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out group transform hover:scale-110 hover:shadow-md bg-red-100 text-red-600"
+                    title="Declinado - Clic para confirmar asistencia" 
+                    data-evento-id="{{ evento.id }}" 
+                    data-accion="confirmado">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </button>
+                  {% endif %}
+                </div>
+                
+                <!-- Ver participantes como texto - Solo en móvil -->
+                <button class="lg:hidden text-xs text-blue-600 hover:text-blue-800 font-medium" onclick="abrirModalParticipantes({{ evento.id }})">
+                  Ver participantes
+                </button>
+              </div>
+              
               {% if evento.link_teams %}
-              <a href="{{ evento.link_teams }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium transition-colors">
-                🔗 Unirse al evento
-              </a>
+              <div class="mt-2">
+                <a href="{{ evento.link_teams }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs font-medium transition-colors">
+                  🔗 Unirse al evento
+                </a>
+              </div>
               {% endif %}
             </div>
             {% endfor %}
           </div>
           {% else %}
-          <p class="text-gray-500 text-sm text-center py-8">No hay eventos próximos programados.</p>
+          <div class="text-center py-8">
+            <svg class="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="text-gray-500 text-sm">No hay eventos próximos programados</p>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -354,45 +625,91 @@
 <!-- Modal para agregar evento -->
 {% if current_user.rol == 'admin' or current_user.is_admin %}
 <div id="modal-evento" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 transition-all p-4">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative">
-    <button id="btn-cerrar-modal-evento" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none transition-colors">&times;</button>
+  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-5 relative">
+    <button id="btn-cerrar-modal-evento" type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none transition-colors">&times;</button>
     
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-gray-900 mb-2">Nuevo evento</h3>
-      <p class="text-sm text-gray-600">Crea un evento para que todo el equipo esté informado</p>
+    <div class="mb-5">
+      <h3 class="text-lg font-semibold text-gray-900 mb-1">Nuevo evento</h3>
+      <p class="text-sm text-gray-600">Crea un evento para el equipo</p>
     </div>
     
-    <form id="form-evento" method="POST" action="{{ url_for('home.create_evento') }}" class="space-y-4">
+    <form id="form-evento" method="POST" action="{{ url_for('home.create_evento') }}" class="space-y-3">
       {{ form_post.csrf_token }}
       
       <!-- Título del evento -->
-      <div class="space-y-2">
+      <div class="space-y-1">
         <label class="block text-sm font-medium text-gray-700">Título del evento *</label>
-        <input type="text" name="titulo" required placeholder="Ej: Reunión de equipo, Workshop..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
+        <input type="text" name="titulo" required placeholder="Ej: Reunión de equipo, Workshop..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
       </div>
       
-      <!-- Fecha y hora en grid -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-2">
+      <!-- Fecha, hora y duración en grid -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="space-y-1">
           <label class="block text-sm font-medium text-gray-700">Fecha *</label>
-          <input type="date" name="fecha" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm bg-white" />
+          <input type="date" name="fecha" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm bg-transparent" />
         </div>
-        <div class="space-y-2">
+        <div class="space-y-1">
           <label class="block text-sm font-medium text-gray-700">Hora</label>
-          <input type="time" name="hora" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm bg-white" />
+          <input type="time" name="hora" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm bg-transparent" />
+        </div>
+        <div class="space-y-1">
+          <label class="block text-sm font-medium text-gray-700">Duración (min)</label>
+          <input type="number" name="duracion_minutos" value="60" min="15" max="480" step="15" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
         </div>
       </div>
       
       <!-- Descripción -->
-      <div class="space-y-2">
+      <div class="space-y-1">
         <label class="block text-sm font-medium text-gray-700">Descripción</label>
-        <textarea name="descripcion" rows="3" placeholder="Describe de qué trata el evento..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm resize-none"></textarea>
+        <textarea name="descripcion" rows="2" placeholder="Describe de qué trata el evento..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm resize-none"></textarea>
       </div>
       
       <!-- Link Teams -->
-      <div class="space-y-2">
+      <div class="space-y-1">
         <label class="block text-sm font-medium text-gray-700">Enlace de Teams (opcional)</label>
-        <input type="url" name="link_teams" placeholder="https://teams.microsoft.com/..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
+        <input type="url" name="link_teams" placeholder="https://teams.microsoft.com/..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors text-sm" />
+      </div>
+      
+      <!-- Selector de proyectos para el evento -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Visibilidad del evento</label>
+        <div class="relative">
+          <div class="flex bg-gray-100 rounded-xl p-1" role="tablist">
+            <button type="button" id="tab-event-public" class="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-white text-blue-600 shadow-sm" data-tab="public" onclick="switchEventVisibilityTab('public')">
+              <span class="flex items-center justify-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Público
+              </span>
+            </button>
+            <button type="button" id="tab-event-private" class="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-800" data-tab="private" onclick="switchEventVisibilityTab('private')">
+              <span class="flex items-center justify-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                Privado
+              </span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Selector de proyectos específicos para eventos -->
+        <div id="event-projects-container" class="hidden transition-all duration-200">
+          <div class="p-3 border border-gray-200 rounded-xl bg-gray-50 mt-2">
+            <label class="text-xs font-medium text-gray-600 mb-2 block">Proyectos específicos:</label>
+            <div class="space-y-1 max-h-28 overflow-y-auto custom-scrollbar">
+              {% if proyectos %}
+              {% for proyecto in proyectos %}
+              <label class="flex items-center gap-2 cursor-pointer hover:bg-white p-1.5 rounded-lg transition-colors group">
+                <input type="checkbox" name="proyectos_evento" value="{{ proyecto.id }}" class="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1">
+                <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ proyecto.nombre }}</span>
+              </label>
+              {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- Botones -->
@@ -407,42 +724,50 @@
 
 <!-- Modal Nueva Publicación -->
 <div id="modal-post" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 transition-all p-4" aria-hidden="true">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 relative">
-    <button id="btn-cerrar-modal-post" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none transition-colors">&times;</button>
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-y-auto p-5 relative">
+    <button id="btn-cerrar-modal-post" type="button" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-lg font-bold focus:outline-none transition-colors">&times;</button>
     
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-gray-900 mb-2">Nueva publicación</h3>
-      <p class="text-sm text-gray-600">Comparte actualizaciones con tu equipo</p>
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Nueva publicación</h3>
     </div>
     
-    <form id="post-form-modal" method="POST" action="{{ url_for('home.create_post') }}" enctype="multipart/form-data" class="space-y-6">
+    <form id="post-form-modal" method="POST" action="{{ url_for('home.create_post') }}" enctype="multipart/form-data" class="space-y-4">
       {{ form_post.csrf_token }}
       
-      <!-- Selector de visibilidad - PRIMERO -->
-      <div class="space-y-3">
-        <label class="block text-sm font-medium text-gray-700">Visibilidad de la publicación</label>
+      <!-- Selector de visibilidad estilo Apple -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Visibilidad</label>
         <div class="relative">
-          <select name="visibility_type" id="visibility-select" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm appearance-none cursor-pointer" onchange="toggleProjectSelection()">
-            <option value="public">🌐 Todos los proyectos (Público)</option>
-            <option value="private">🔒 Proyectos específicos (Privado)</option>
-          </select>
-          <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
+          <div class="flex bg-gray-100 rounded-xl p-1" role="tablist">
+            <button type="button" id="tab-public" class="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-white text-blue-600 shadow-sm" data-tab="public" onclick="switchVisibilityTab('public')">
+              <span class="flex items-center justify-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Público
+              </span>
+            </button>
+            <button type="button" id="tab-private" class="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-800" data-tab="private" onclick="switchVisibilityTab('private')">
+              <span class="flex items-center justify-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                Privado
+              </span>
+            </button>
           </div>
         </div>
         
         <!-- Selector de proyectos específicos -->
-        <div id="projects-container" class="hidden">
-          <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
-            <label class="text-xs font-medium text-gray-700 mb-3 block">Selecciona los proyectos que podrán ver esta publicación:</label>
-            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+        <div id="projects-container" class="hidden transition-all duration-200">
+          <div class="p-3 border border-gray-200 rounded-xl bg-gray-50 mt-2">
+            <label class="text-xs font-medium text-gray-600 mb-2 block">Proyectos específicos:</label>
+            <div class="space-y-1 max-h-28 overflow-y-auto custom-scrollbar">
               {% if proyectos %}
               {% for proyecto in proyectos %}
-              <label class="flex items-center gap-3 cursor-pointer hover:bg-white p-2 rounded-lg transition-colors group">
-                <input type="checkbox" name="proyectos_visibles" value="{{ proyecto.id }}" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
-                <span class="text-sm text-gray-800 group-hover:text-gray-900">{{ proyecto.nombre }}</span>
+              <label class="flex items-center gap-2 cursor-pointer hover:bg-white p-1.5 rounded-lg transition-colors group">
+                <input type="checkbox" name="proyectos_visibles" value="{{ proyecto.id }}" class="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1">
+                <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ proyecto.nombre }}</span>
               </label>
               {% endfor %}
               {% endif %}
@@ -452,30 +777,29 @@
         
         <!-- Campo oculto para manejar la visibilidad pública -->
         <input type="hidden" name="proyectos_visibles" value="todos" id="public-visibility-input">
+        <input type="hidden" name="visibility_type" value="public" id="visibility-type-input">
       </div>
       
       <!-- Contenido de la publicación -->
-      <div class="space-y-3">
+      <div class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">Contenido</label>
-        <textarea name="content" rows="4" required placeholder="¿Qué quieres compartir con el equipo?" class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm placeholder-gray-400"></textarea>
+        <textarea name="content" rows="3" required placeholder="¿Qué quieres compartir?" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm placeholder-gray-400"></textarea>
       </div>
       
-      <!-- Subir imagen mejorada -->
-      <div class="space-y-3">
-        <label class="block text-sm font-medium text-gray-700">Imagen (opcional)</label>
+      <!-- Subir imagen compacta -->
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">Imagen</label>
         
-        <!-- Área de arrastre mejorada -->
         <div class="relative">
           <input type="file" name="image" id="post-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-          <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+          <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
             <div id="upload-placeholder">
-              <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              <p class="text-sm text-gray-600">
-                <span class="font-medium text-blue-600">Haz clic para subir</span> o arrastra una imagen aquí
+              <p class="text-xs text-gray-600">
+                <span class="font-medium text-blue-600">Seleccionar imagen</span>
               </p>
-              <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF hasta 10MB</p>
             </div>
           </div>
         </div>
@@ -483,16 +807,16 @@
         <!-- Preview de imagen -->
         <div id="preview-container" class="hidden">
           <div class="relative inline-block">
-            <img id="preview-image" src="" alt="Vista previa" class="max-h-40 rounded-lg shadow-sm border border-gray-200 object-contain">
-            <button type="button" id="remove-image" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold transition-colors">×</button>
+            <img id="preview-image" src="" alt="Vista previa" class="max-h-32 rounded-xl shadow-sm border border-gray-200 object-contain">
+            <button type="button" id="remove-image" class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold transition-colors">×</button>
           </div>
         </div>
       </div>
       
       <!-- Botones -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-        <button type="button" id="btn-cancelar-post" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors">Cancelar</button>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors">Publicar</button>
+      <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+        <button type="button" id="btn-cancelar-post" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors text-sm">Cancelar</button>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-xl transition-colors text-sm">Publicar</button>
       </div>
     </form>
   </div>
@@ -500,26 +824,349 @@
 
 <!-- Fin Modales -->
 
+<!-- Modal de Participantes -->
+<div id="modal-participantes" class="fixed inset-0 z-50 hidden flex items-center justify-center transition-all p-4" style="backdrop-filter: blur(8px); background: rgba(0, 0, 0, 0.5);">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-y-auto p-6 relative transform transition-all duration-300 scale-95" id="modal-participantes-content">
+    <button id="btn-cerrar-modal-participantes" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-lg font-bold focus:outline-none transition-colors">&times;</button>
+    
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-1" id="titulo-evento-participantes">Participantes del evento</h3>
+      <p class="text-sm text-gray-600">Lista de confirmados y pendientes</p>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-3 gap-4 mb-6 p-4 bg-blue-50 rounded-xl">
+      <div class="text-center">
+        <div class="text-2xl font-bold text-blue-600" data-stat="confirmados">5</div>
+        <div class="text-xs text-blue-800 font-medium">Confirmados</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-red-600" data-stat="declinados">2</div>
+        <div class="text-xs text-red-800 font-medium">No asisten</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-gray-600" data-stat="pendientes">3</div>
+        <div class="text-xs text-gray-800 font-medium">Pendientes</div>
+      </div>
+    </div>
+    
+    <!-- Lista de participantes -->
+    <div class="space-y-3">
+      <h4 class="font-medium text-gray-900 text-sm">Participantes:</h4>
+      
+      <div id="lista-participantes" class="space-y-2">
+        <!-- Los participantes se cargarán dinámicamente aquí -->
+        <div class="text-center py-4 text-gray-500 text-sm">
+          Cargando participantes...
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botón cerrar -->
+    <div class="flex justify-end pt-4 border-t border-gray-100 mt-6">
+      <button type="button" onclick="cerrarModalParticipantes()" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors text-sm">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 {% block scripts %}
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="{{ url_for('home.static', filename='js/home_clean.js') }}"></script>
 <script>
-// Función para manejar la selección de visibilidad
-function toggleProjectSelection() {
-  const select = document.getElementById('visibility-select');
-  const container = document.getElementById('projects-container');
+// Función para cambiar tabs de visibilidad estilo Apple
+function switchVisibilityTab(type) {
+  const tabPublic = document.getElementById('tab-public');
+  const tabPrivate = document.getElementById('tab-private');
+  const projectsContainer = document.getElementById('projects-container');
   const publicInput = document.getElementById('public-visibility-input');
+  const visibilityTypeInput = document.getElementById('visibility-type-input');
   
-  if (select.value === 'private') {
-    container.classList.remove('hidden');
-    publicInput.disabled = true;
-  } else {
-    container.classList.add('hidden');
+  if (type === 'public') {
+    // Activar tab público
+    tabPublic.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPublic.classList.remove('text-gray-600', 'hover:text-gray-800');
+    tabPrivate.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPrivate.classList.add('text-gray-600', 'hover:text-gray-800');
+    
+    // Ocultar selector de proyectos
+    projectsContainer.classList.add('hidden');
     publicInput.disabled = false;
+    visibilityTypeInput.value = 'public';
+    
     // Limpiar selecciones de proyectos
     document.querySelectorAll('input[name="proyectos_visibles"]:not(#public-visibility-input)').forEach(cb => {
       cb.checked = false;
     });
+  } else {
+    // Activar tab privado
+    tabPrivate.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPrivate.classList.remove('text-gray-600', 'hover:text-gray-800');
+    tabPublic.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPublic.classList.add('text-gray-600', 'hover:text-gray-800');
+    
+    // Mostrar selector de proyectos
+    projectsContainer.classList.remove('hidden');
+    publicInput.disabled = true;
+    visibilityTypeInput.value = 'private';
+  }
+}
+
+// Función para cambiar tabs de visibilidad de eventos estilo Apple
+function switchEventVisibilityTab(type) {
+  const tabPublic = document.getElementById('tab-event-public');
+  const tabPrivate = document.getElementById('tab-event-private');
+  const projectsContainer = document.getElementById('event-projects-container');
+  
+  if (type === 'public') {
+    // Activar tab público
+    tabPublic.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPublic.classList.remove('text-gray-600', 'hover:text-gray-800');
+    tabPrivate.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPrivate.classList.add('text-gray-600', 'hover:text-gray-800');
+    
+    // Ocultar selector de proyectos
+    projectsContainer.classList.add('hidden');
+    
+    // Limpiar selecciones de proyectos
+    document.querySelectorAll('input[name="proyectos_evento"]').forEach(cb => {
+      cb.checked = false;
+    });
+  } else {
+    // Activar tab privado
+    tabPrivate.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPrivate.classList.remove('text-gray-600', 'hover:text-gray-800');
+    tabPublic.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+    tabPublic.classList.add('text-gray-600', 'hover:text-gray-800');
+    
+    // Mostrar selector de proyectos
+    projectsContainer.classList.remove('hidden');
+  }
+}
+
+// Función para manejar participación en eventos con actualización automática
+// Función mejorada para manejar participación
+function participarEvento(eventoId, accion) {
+  const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+  
+  fetch(`/home/evento/${eventoId}/participar`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrfToken && { 'X-CSRFToken': csrfToken })
+    },
+    body: JSON.stringify({ accion: accion })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      showToast(data.message, 'success');
+      // Actualizar inmediatamente la página para reflejar los cambios
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showToast(data.message || 'Error al actualizar participación', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Error de conexión', 'error');
+  });
+}
+
+// Delegación de eventos para botones de participación
+document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.participar-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.participar-btn');
+      const eventoId = btn.dataset.eventoId;
+      const accion = btn.dataset.accion;
+      
+      if (eventoId && accion) {
+        participarEvento(eventoId, accion);
+      }
+    }
+  });
+});
+document.addEventListener('DOMContentLoaded', function() {
+  // Manejar botones de participación con delegación de eventos
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.participar-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.participar-btn');
+      const eventoId = btn.dataset.eventoId;
+      const accion = btn.dataset.accion;
+      
+      if (eventoId && accion) {
+        participarEvento(eventoId, accion);
+      }
+    }
+  });
+  
+  // Filtros dinámicos para publicaciones
+  const filterYear = document.getElementById('filter_year');
+  const filterMonth = document.getElementById('filter_month');
+  const filterUser = document.getElementById('filter_user');
+  
+  if (filterYear && filterMonth && filterUser) {
+    [filterYear, filterMonth, filterUser].forEach(select => {
+      select.addEventListener('change', function() {
+        // Construir URL con parámetros
+        const url = new URL(window.location.href);
+        url.searchParams.set('filter_year', filterYear.value);
+        url.searchParams.set('filter_month', filterMonth.value);
+        url.searchParams.set('filter_user', filterUser.value);
+        
+        // Redirigir con filtros aplicados
+        window.location.href = url.toString();
+      });
+    });
+  }
+  
+  // Filtros dinámicos para eventos
+  const filterEventoMes = document.getElementById('filter_evento_mes');
+  const filterEventoAño = document.getElementById('filter_evento_año');
+  
+  if (filterEventoMes && filterEventoAño) {
+    [filterEventoMes, filterEventoAño].forEach(select => {
+      select.addEventListener('change', function() {
+        // Construir URL con parámetros
+        const url = new URL(window.location.href);
+        url.searchParams.set('filter_evento_mes', filterEventoMes.value);
+        url.searchParams.set('filter_evento_año', filterEventoAño.value);
+        
+        // Redirigir con filtros aplicados
+        window.location.href = url.toString();
+      });
+    });
+  }
+});
+
+// Función para mostrar notificaciones toast
+function showToast(message, type = 'info') {
+  // Crear elemento toast
+  const toast = document.createElement('div');
+  toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform ${
+    type === 'success' ? 'bg-green-500 text-white' : 
+    type === 'error' ? 'bg-red-500 text-white' : 
+    'bg-blue-500 text-white'
+  }`;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // Animación de entrada
+  setTimeout(() => {
+    toast.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Remover después de 3 segundos
+  setTimeout(() => {
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
+}
+
+// Función para abrir modal de participantes con datos reales
+function abrirModalParticipantes(eventoId, eventoTitulo) {
+  fetch(`/home/evento/${eventoId}/participantes`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const modal = document.getElementById('modal-participantes');
+        const modalContent = document.getElementById('modal-participantes-content');
+        const titulo = document.getElementById('titulo-evento-participantes');
+        const listaParticipantes = document.getElementById('lista-participantes');
+        
+        if (modal && titulo && listaParticipantes) {
+          titulo.textContent = `Participantes: ${data.titulo}`;
+          
+          // Actualizar estadísticas
+          document.querySelector('[data-stat="confirmados"]').textContent = data.estadisticas.confirmados;
+          document.querySelector('[data-stat="declinados"]').textContent = data.estadisticas.declinados;
+          document.querySelector('[data-stat="pendientes"]').textContent = data.estadisticas.pendientes;
+          
+          // Construir lista de participantes reales
+          let htmlParticipantes = '';
+          
+          if (data.participantes && data.participantes.length > 0) {
+            data.participantes.forEach(participante => {
+              let iconoEstado = '';
+              let colorEstado = '';
+              
+              if (participante.estado === 'confirmado') {
+                iconoEstado = '<svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                colorEstado = 'bg-green-100';
+              } else if (participante.estado === 'declinado') {
+                iconoEstado = '<svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+                colorEstado = 'bg-red-100';
+              } else {
+                iconoEstado = '<svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+                colorEstado = 'bg-gray-100';
+              }
+              
+              htmlParticipantes += `
+                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                  <img class="w-8 h-8 rounded-full object-cover" 
+                       src="${participante.foto_url || '/static/default_user.png'}" 
+                       alt="${participante.nombre}">
+                  <div class="flex-1">
+                    <div class="text-sm font-medium text-gray-900">${participante.nombre} ${participante.apellido_paterno || ''}</div>
+                    <div class="text-xs text-gray-500">${participante.proyecto || 'Sin proyecto'}</div>
+                  </div>
+                  <div class="w-6 h-6 rounded-full ${colorEstado} flex items-center justify-center">
+                    ${iconoEstado}
+                  </div>
+                </div>
+              `;
+            });
+          } else {
+            htmlParticipantes = '<div class="text-center py-4 text-gray-500 text-sm">No hay participantes aún</div>';
+          }
+          
+          listaParticipantes.innerHTML = htmlParticipantes;
+          
+          // Mostrar modal con animación
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          setTimeout(() => {
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+          }, 10);
+          document.body.classList.add('overflow-hidden');
+        }
+      } else {
+        showToast(data.message || 'Error al cargar participantes', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Error de conexión', 'error');
+    });
+}
+
+// Función para cerrar modal de participantes
+function cerrarModalParticipantes() {
+  const modal = document.getElementById('modal-participantes');
+  const modalContent = document.getElementById('modal-participantes-content');
+  
+  if (modal && modalContent) {
+    modalContent.classList.remove('scale-100');
+    modalContent.classList.add('scale-95');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.classList.remove('overflow-hidden');
+    }, 200);
   }
 }
 
@@ -590,6 +1237,7 @@ function setupCancelButtons() {
   const cancelEventBtn = document.getElementById('btn-cancelar-evento');
   const closePostBtn = document.getElementById('btn-cerrar-modal-post');
   const closeEventBtn = document.getElementById('btn-cerrar-modal-evento');
+  const closeParticipantesBtn = document.getElementById('btn-cerrar-modal-participantes');
   
   [cancelPostBtn, closePostBtn].forEach(btn => {
     if (btn) {
@@ -600,6 +1248,8 @@ function setupCancelButtons() {
         document.getElementById('upload-area').classList.remove('hidden');
         document.getElementById('preview-container').classList.add('hidden');
         document.getElementById('projects-container').classList.add('hidden');
+        // Resetear tabs
+        switchVisibilityTab('public');
       });
     }
   });
@@ -612,6 +1262,136 @@ function setupCancelButtons() {
       });
     }
   });
+  
+  if (closeParticipantesBtn) {
+    closeParticipantesBtn.addEventListener('click', cerrarModalParticipantes);
+  }
+}
+
+// Funciones para filtros dinámicos
+function setupFilters() {
+  const filterBtns = document.querySelectorAll('[data-filter]');
+  const publicaciones = document.querySelectorAll('[data-tipo="publicacion"]');
+  const eventos = document.querySelectorAll('[data-tipo="evento"]');
+  
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const filter = this.getAttribute('data-filter');
+      
+      // Actualizar estilos de botones
+      filterBtns.forEach(b => {
+        b.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-200');
+        b.classList.add('bg-gray-50', 'text-gray-600', 'border-gray-200');
+      });
+      
+      this.classList.remove('bg-gray-50', 'text-gray-600', 'border-gray-200');
+      this.classList.add('bg-blue-50', 'text-blue-600', 'border-blue-200');
+      
+      // Filtrar contenido
+      if (filter === 'todo') {
+        publicaciones.forEach(p => p.style.display = 'block');
+        eventos.forEach(e => e.style.display = 'block');
+      } else if (filter === 'publicaciones') {
+        publicaciones.forEach(p => p.style.display = 'block');
+        eventos.forEach(e => e.style.display = 'none');
+      } else if (filter === 'eventos') {
+        publicaciones.forEach(p => p.style.display = 'none');
+        eventos.forEach(e => e.style.display = 'block');
+      } else if (filter === 'proyecto') {
+        // Filtrar por proyecto específico
+        const proyecto = this.getAttribute('data-proyecto');
+        publicaciones.forEach(p => {
+          const pProyecto = p.getAttribute('data-proyecto');
+          p.style.display = (pProyecto === proyecto) ? 'block' : 'none';
+        });
+        eventos.forEach(e => e.style.display = 'none');
+      }
+    });
+  });
+}
+
+// Función para filtro por fecha
+function setupDateFilter() {
+  const dateFilter = document.getElementById('date-filter');
+  if (!dateFilter) return;
+  
+  dateFilter.addEventListener('change', function() {
+    const selectedDate = this.value;
+    const allItems = document.querySelectorAll('[data-fecha]');
+    
+    if (!selectedDate) {
+      allItems.forEach(item => item.style.display = 'block');
+      return;
+    }
+    
+    allItems.forEach(item => {
+      const itemDate = item.getAttribute('data-fecha');
+      const itemDateObj = new Date(itemDate);
+      const selectedDateObj = new Date(selectedDate);
+      
+      // Comparar solo la fecha (sin hora)
+      const itemDateString = itemDateObj.toISOString().split('T')[0];
+      const selectedDateString = selectedDateObj.toISOString().split('T')[0];
+      
+      item.style.display = (itemDateString === selectedDateString) ? 'block' : 'none';
+    });
+  });
+}
+
+// Función para búsqueda en tiempo real
+function setupSearchFilter() {
+  const searchInput = document.getElementById('search-filter');
+  if (!searchInput) return;
+  
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    const allItems = document.querySelectorAll('[data-tipo]');
+    
+    if (!searchTerm) {
+      allItems.forEach(item => item.style.display = 'block');
+      return;
+    }
+    
+    allItems.forEach(item => {
+      const title = item.querySelector('h3, h4')?.textContent.toLowerCase() || '';
+      const content = item.querySelector('p')?.textContent.toLowerCase() || '';
+      const author = item.querySelector('[data-author]')?.textContent.toLowerCase() || '';
+      
+      const matches = title.includes(searchTerm) || 
+                     content.includes(searchTerm) || 
+                     author.includes(searchTerm);
+      
+      item.style.display = matches ? 'block' : 'none';
+    });
+  });
+}
+
+// Función para limpiar filtros
+function clearAllFilters() {
+  // Limpiar búsqueda
+  const searchInput = document.getElementById('search-filter');
+  if (searchInput) searchInput.value = '';
+  
+  // Limpiar fecha
+  const dateFilter = document.getElementById('date-filter');
+  if (dateFilter) dateFilter.value = '';
+  
+  // Resetear filtros a "Todo"
+  const filterBtns = document.querySelectorAll('[data-filter]');
+  filterBtns.forEach(btn => {
+    btn.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-200');
+    btn.classList.add('bg-gray-50', 'text-gray-600', 'border-gray-200');
+  });
+  
+  const todoBtn = document.querySelector('[data-filter="todo"]');
+  if (todoBtn) {
+    todoBtn.classList.remove('bg-gray-50', 'text-gray-600', 'border-gray-200');
+    todoBtn.classList.add('bg-blue-50', 'text-blue-600', 'border-blue-200');
+  }
+  
+  // Mostrar todos los elementos
+  const allItems = document.querySelectorAll('[data-tipo]');
+  allItems.forEach(item => item.style.display = 'block');
 }
 
 // Inicialización
@@ -619,6 +1399,29 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('HOME.HTML CARGADO - Todo funcionando correctamente');
   setupImagePreview();
   setupCancelButtons();
+  setupFilters();
+  setupDateFilter();
+  setupSearchFilter();
+  
+  // Configurar cierre de modal de participantes con ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modalParticipantes = document.getElementById('modal-participantes');
+      if (modalParticipantes && !modalParticipantes.classList.contains('hidden')) {
+        cerrarModalParticipantes();
+      }
+    }
+  });
+  
+  // Cerrar modal de participantes al hacer clic fuera
+  const modalParticipantes = document.getElementById('modal-participantes');
+  if (modalParticipantes) {
+    modalParticipantes.addEventListener('click', function(e) {
+      if (e.target === this) {
+        cerrarModalParticipantes();
+      }
+    });
+  }
 });
 </script>
 <style>

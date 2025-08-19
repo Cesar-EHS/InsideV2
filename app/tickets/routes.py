@@ -157,7 +157,7 @@ def index():
     orden = request.args.get('orden', 'reciente')  # reciente, antiguo, alfabetico
     categoria_filtro = request.args.get('categoria', '')
     busqueda = request.args.get('busqueda', '')
-    per_page = 10
+    per_page = 5
     
     if tab == 'asignados' and es_gestor:
         # Tickets asignados - solo para gestores de departamento (excluyendo archivados)

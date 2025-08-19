@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.nombre }} {{ user.apellido_paterno }}{% endblock %}
+
+{% block content %}
+<!-- 🍎 Apple-Style Minimalist Profile -->
+<div class="min-h-screen bg-gray-50">
+  
+  <!-- Header minimalista -->
+  <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">Perfil</h1>
+        <div class="flex items-center space-x-3">
+          <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span class="text-sm text-gray-600">Conectado</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="max-w-4xl mx-auto px-6 py-8">
+    
+    <!-- Card principal del perfil -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+      <div class="p-8">
+        
+        <!-- Info básica -->
+        <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-6 sm:space-y-0 sm:space-x-8 mb-8">
+          
+          <!-- Foto de perfil -->
+          <div class="relative flex-shrink-0">
+            <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 ring-4 ring-gray-100">
+              {% if user.foto %}
+                <img src="{{ url_for('auth.uploaded_file', filename=user.foto) }}" 
+                     alt="{{ user.nombre }}" 
+                     class="w-full h-full object-cover">
+              {% else %}
+                <div class="w-full h-full flex items-center justify-center">
+                  <span class="text-white text-2xl sm:text-3xl font-medium">
+                    {{ user.nombre[0] if user.nombre else 'U' }}{{ user.apellido_paterno[0] if user.apellido_paterno else '' }}
+                  </span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Info del usuario -->
+          <div class="flex-1 text-center sm:text-left">
+            <h2 class="text-3xl font-semibold text-gray-900 mb-2">
+              {{ user.nombre }} {{ user.apellido_paterno }}
+              {% if user.apellido_materno %}{{ user.apellido_materno }}{% endif %}
+            </h2>
+            
+            <p class="text-lg text-gray-600 mb-4">
+              {{ user.puesto_trabajo.nombre if user.puesto_trabajo else 'Colaborador' }}
+            </p>
+            
+            <!-- Badges minimalistas -->
+            <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+              {% if user.puesto_trabajo and user.puesto_trabajo.departamento %}
+              <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full font-medium">
+                {{ user.puesto_trabajo.departamento.nombre }}
+              </span>
+              {% endif %}
+              {% if user.sede %}
+              <span class="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full font-medium">
+                {{ user.sede }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats minimalistas -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-gray-100">
+          
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-gray-900 mb-1">{{ user.posts|length }}</div>
+            <div class="text-sm text-gray-600">Publicaciones</div>
+          </div>
+          
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-gray-900 mb-1">
+              {% if user.fecha_ingreso %}
+                {% set years = ((now.year - user.fecha_ingreso.year) * 12 + (now.month - user.fecha_ingreso.month)) / 12 %}
+                {{ "%.1f"|format(years) }}
+              {% else %}--{% endif %}
+            </div>
+            <div class="text-sm text-gray-600">Años</div>
+          </div>
+          
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-gray-900 mb-1">{{ user.logros|length }}</div>
+            <div class="text-sm text-gray-600">Logros</div>
+          </div>
+          
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-gray-900 mb-1">
+              {% if user.comentarios %}{{ user.comentarios|length }}{% else %}0{% endif %}
+            </div>
+            <div class="text-sm text-gray-600">Comentarios</div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid de información -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Información personal -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Información Personal</h3>
+        
+        <div class="space-y-4">
+          {% if user.curp %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">CURP</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.curp }}</span>
+          </div>
+          {% endif %}
+          
+          {% if user.rfc %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">RFC</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.rfc }}</span>
+          </div>
+          {% endif %}
+          
+          {% if user.email %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Email</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.email }}</span>
+          </div>
+          {% endif %}
+          
+          {% if user.telefono %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Teléfono</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.telefono }}</span>
+          </div>
+          {% endif %}
+
+          {% if user.fecha_nacimiento %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Fecha de Nacimiento</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.fecha_nacimiento.strftime('%d/%m/%Y') }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Información profesional -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Información Profesional</h3>
+        
+        <div class="space-y-4">
+          {% if user.numero_empleado %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">No. Empleado</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.numero_empleado }}</span>
+          </div>
+          {% endif %}
+          
+          {% if user.fecha_ingreso %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Fecha de Ingreso</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.fecha_ingreso.strftime('%d/%m/%Y') }}</span>
+          </div>
+          {% endif %}
+          
+          {% if user.puesto_trabajo %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Puesto</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.puesto_trabajo.nombre }}</span>
+          </div>
+          {% endif %}
+
+          {% if user.puesto_trabajo and user.puesto_trabajo.departamento %}
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Departamento</span>
+            <span class="text-sm font-medium text-gray-900">{{ user.puesto_trabajo.departamento.nombre }}</span>
+          </div>
+          {% endif %}
+          
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-gray-600">Estado</span>
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if user.activo %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+              {% if user.activo %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- Organigrama minimalista -->
+    {% if user.supervisor or user.subordinados %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Organigrama</h3>
+      
+      <div class="space-y-4">
+        <!-- Supervisor -->
+        {% if user.supervisor %}
+        <div class="text-center">
+          <div class="text-sm text-gray-600 mb-2">Reporta a</div>
+          <div class="inline-flex items-center px-4 py-2 bg-gray-50 rounded-lg">
+            <div class="w-8 h-8 bg-gray-300 rounded-full mr-3"></div>
+            <span class="text-sm font-medium">{{ user.supervisor.nombre }} {{ user.supervisor.apellido_paterno }}</span>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Usuario actual -->
+        <div class="text-center border-t border-gray-100 pt-4">
+          <div class="inline-flex items-center px-6 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="w-10 h-10 bg-blue-500 rounded-full mr-3 flex items-center justify-center">
+              <span class="text-white text-sm font-semibold">
+                {{ user.nombre[0] }}{{ user.apellido_paterno[0] if user.apellido_paterno else '' }}
+              </span>
+            </div>
+            <div class="text-left">
+              <div class="text-sm font-medium text-gray-900">{{ user.nombre }} {{ user.apellido_paterno }}</div>
+              <div class="text-xs text-gray-600">{{ user.puesto_trabajo.nombre if user.puesto_trabajo else 'Colaborador' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subordinados -->
+        {% if user.subordinados %}
+        <div class="text-center border-t border-gray-100 pt-4">
+          <div class="text-sm text-gray-600 mb-3">Equipo a cargo</div>
+          <div class="flex flex-wrap justify-center gap-2">
+            {% for subordinado in user.subordinados[:5] %}
+            <div class="inline-flex items-center px-3 py-2 bg-gray-50 rounded-lg text-xs">
+              <div class="w-6 h-6 bg-gray-300 rounded-full mr-2"></div>
+              {{ subordinado.nombre }} {{ subordinado.apellido_paterno }}
+            </div>
+            {% endfor %}
+            {% if user.subordinados|length > 5 %}
+            <div class="inline-flex items-center px-3 py-2 bg-gray-100 rounded-lg text-xs text-gray-600">
+              +{{ user.subordinados|length - 5 }} más
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

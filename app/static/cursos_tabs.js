@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch('/cursos/eliminar/${cursoId}', {
+                fetch(`/cursos/eliminar/${cursoId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',

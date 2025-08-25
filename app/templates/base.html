@@ -106,6 +106,8 @@
       <img src="{{ url_for('static', filename='img/logo_inside.png') }}" alt="Inside" class="h-10 max-w-[160px] object-contain hidden sm:block" style="border-radius: 0.7rem; box-shadow: none;" />
       <!-- Logo pequeño (móvil) -->
       <img src="{{ url_for('static', filename='logo_inside.png') }}" alt="Inside" class="h-8 w-8 object-contain block sm:hidden" style="border-radius: 0.7rem; box-shadow: none;" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
+      <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
     </a>
     <!-- <form role="search" action="{{ url_for('search.search') }}" method="GET" class="flex-1 max-w-lg relative">
       <input type="search" name="q" placeholder="Buscar..." aria-label="Buscar" value="{{ request.args.get('q', '') }}" class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[var(--inside-yellow)] focus:bg-white bg-gray-50 text-gray-700 shadow-sm" />

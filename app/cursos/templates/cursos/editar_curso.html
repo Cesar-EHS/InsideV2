@@ -183,25 +183,58 @@
               <div>
                 <label class="text-sm font-bold text-gray-800 mb-2 block">Recursos</label>
                 <!-- Ejemplo de recurso -->
-                <div class="flex gap-4">
+                <div id="recursos-container" class="flex gap-4">
+                  {% if curso.archivos %}
+                    {% for archivo in curso.archivos %}
+                      {% set extension = archivo.nombre.split('.')[-1]|lower %}
+                        <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
+                          {% if extension == 'pdf' %}
+                            <img
+                              src="{{ url_for('static', filename='img/pdf.png') }}"
+                              alt="PDF"
+                              class="w-12 h-12 mb-2"
+                            />
+                          {% elif extension in ['docx', 'doc'] %}
+                            <img
+                              src="{{ url_for('static', filename='img/oficina.png') }}"
+                              alt="DOCX"
+                              class="w-12 h-12 mb-2"
+                            />
+                          {% elif extension == 'ppt' %}
+                            <img
+                              src="{{ url_for('static', filename='img/ppt.png') }}"
+                              alt="PPT"
+                              class="w-12 h-12 mb-2"
+                            />
+                          {% elif extension == 'xlsx' %}
+                            <img
+                              src="{{ url_for('static', filename='img/xlsx.png') }}"
+                              alt="XLSX"
+                              class="w-12 h-12 mb-2"
+                            />
+                          {% elif extension == 'png' %}
+                            <img
+                                src="{{ url_for('static', filename='img/png.png') }}"
+                                alt="PNG"
+                                class="w-12 h-12 mb-2"
+                              />
+                          {% endif %}
+                          <span class="text-xs text-gray-700">{{archivo.nombre}}</span>
+                          <!-- <span class="text-xs text-gray-400">000 kb</span> -->
+                        </div>
+                    {% endfor %}
+                  {% else %}
+                    <div class="text-gray-400 text-sm">No tiene recursos.</div>
+                  {% endif %}
                   <div
-                    class="bg-white rounded-xl shadow p-4 flex flex-col items-center"
-                  >
-                    <img
-                      src="{{ url_for('static', filename='img/pdf.png') }}"
-                      alt="PDF"
-                      class="w-12 h-12 mb-2"
-                    />
-                    <span class="text-xs text-gray-700">Lorem_ipsum.pdf</span>
-                    <span class="text-xs text-gray-400">000 kb</span>
-                  </div>
-                  <div
+                    id="add-resource-btn"
                     class="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center w-32 h-32 text-gray-400 cursor-pointer"
                   >
                     <span class="material-icons text-3xl">add</span>
-                    <span class="text-xs">Cargar recurso</span>
+                    <span class="text-xs">Añadir recurso</span>
                   </div>
                 </div>
+                <input type="file" name="nuevo_archivo" id="add-resource-input" class="hidden" />
               </div>
               <!-- Botón guardar -->
               <div class="flex flex-col h-full justify-end mt-2">
@@ -222,4 +255,5 @@
     </div>
   </div>
 </div>
+<script src="{{ url_for('static', filename='js/editar_curso.js') }}"></script>
 {% endblock %}

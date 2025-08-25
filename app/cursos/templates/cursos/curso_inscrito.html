@@ -1,41 +1,149 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="flex flex-col md:flex-row gap-6 min-h-[80vh]">
   <!-- Sección 1: Video y descripción -->
   <div class="basis-[65%] bg-white rounded-2xl shadow-lg p-6 mb-6 md:mb-0">
-    <h2 class="text-2xl font-bold mb-4 text-[#3b3b3c] font-sfpro">{{ curso.nombre }}</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+      <a
+        href="{{ url_for('cursos.index') }}"
+        class="inline-flex items-center gap-2"
+      >
+        <!-- Icono de flecha (puedes usar un SVG o una fuente de iconos) -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-gray-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        <span class="text-base text-gray-700 font-semibold">Regresar</span>
+      </a>
+    </div>
+    <h2 class="text-2xl font-bold mb-4 text-[#3b3b3c] font-sfpro">
+      {{ curso.nombre }}
+    </h2>
     <div class="aspect-video mb-4 rounded-lg overflow-hidden">
-      <iframe id="youtube-player"
-        width="100%" height="100%"
+      <iframe
+        id="youtube-player"
+        width="100%"
+        height="100%"
         src="https://www.youtube.com/embed/{{ curso.video_url|replace('https://youtu.be/', '')|replace('https://www.youtube.com/watch?v=', '') }}"
         title="YouTube video player"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
+        allowfullscreen
+      >
       </iframe>
     </div>
     <div class="mb-4">
       <span class="text-sm text-gray-500">Avance del curso</span>
-      <input type="range" id="video-progress" min="0" max="100" value="0" class="w-full accent-[#fab522] mt-1">
-      <div id="progress-text" class="text-right text-xs text-gray-500 mt-1">0%</div>
+      <input
+        type="range"
+        id="video-progress"
+        min="0"
+        max="100"
+        value="0"
+        class="w-full accent-[#fab522] mt-1"
+        disabled
+      />
+      <div id="progress-text" class="text-right text-xs text-gray-500 mt-1">
+        {{ avance|int }}%
+      </div>
     </div>
   </div>
   <!-- Sección 2: Recuadro adicional -->
-  <div class="basis-[35%] bg-white rounded-2xl shadow-lg p-6 h-fit">
-    <!-- Aquí puedes agregar el contenido que desees -->
-    <h3 class="text-lg font-bold mb-4 text-[#3b3b3c] font-sfpro">Otra sección</h3>
-    <div>
-      <!-- Tu contenido aquí -->
+  <div class="basis-[35%] flex flex-col gap-6">
+    <!-- RECURSOS -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 h-fit">
+      <div class="flex items-center justify-between cursor-pointer" id="recursos-toggle">
+        <div class="flex items-center gap-2">
+          <span class="text-lg font-bold text-[#3b3b3c] font-sfpro">Recursos</span>
+        </div>
+        <span id="recursos-arrow" class="material-icons transition-transform duration-200">expand_more</span>
+      </div>
+      <!-- Aquí agregar contenido -->
+      <div id="recursos-content" class="mt-4 hidden">
+        {% if curso.archivos %}
+          <div class="flex gap-4 flex-wrap">
+            {% for archivo in curso.archivos %}
+              {% set extension = archivo.nombre.split('.')[-1]|lower %}
+                <a class="recurso-link rounded-2xl shadow p-4 flex flex-col items-center hover:bg-gray-100 transition"
+                  href="{{ url_for('static', filename='cursos/recursos/' ~ archivo.nombre) }}"
+                  data-url="{{ url_for('static', filename='cursos/recursos/' ~ archivo.nombre) }}"
+                  data-extension="{{ extension }}"
+                  title="Abrir {{ archivo.nombre }}">
+                  {% if extension == 'pdf' %}
+                    <img
+                      src="{{ url_for('static', filename='img/pdf.png') }}"
+                      alt="PDF"
+                      class="w-12 h-12 mb-2"
+                    />
+                  {% elif extension in ['docx', 'doc'] %}
+                    <img
+                      src="{{ url_for('static', filename='img/oficina.png') }}"
+                      alt="DOCX"
+                      class="w-12 h-12 mb-2"
+                    />
+                  {% elif extension == 'ppt' %}
+                    <img
+                      src="{{ url_for('static', filename='img/ppt.png') }}"
+                      alt="PPT"
+                      class="w-12 h-12 mb-2"
+                    />
+                  {% elif extension == 'xlsx' %}
+                    <img
+                      src="{{ url_for('static', filename='img/xlsx.png') }}"
+                      alt="XLSX"
+                      class="w-12 h-12 mb-2"
+                    />
+                  {% elif extension == 'png' %}
+                    <img
+                        src="{{ url_for('static', filename='img/png.png') }}"
+                        alt="PNG"
+                        class="w-12 h-12 mb-2"
+                      />
+                  {% endif %}
+                  <span class="text-xs text-gray-700">{{archivo.nombre}}</span>
+                </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-gray-400 text-sm">No tiene recursos.</div>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Sección 3: para actividades -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 h-fit">
+      <div class="flex items-center justify-between cursor-pointer" id="actividades-toggle">
+        <div class="flex items-center gap-2">
+          <span class="text-lg font-bold text-[#3b3b3c] font-sfpro">Actividades</span>
+        </div>
+        <span id="actividades-arrow" class="material-icons transition-transform duration-200">expand_more</span>
+      </div>
+      <!-- Aquí agregar contenido -->
+      <div id="actividades-content" class="mt-4 hidden">
+        <p>Insertar aquí las actividades que se tenga.</p>
+      </div>
     </div>
   </div>
 </div>
 
-<script>
-  const progress = document.getElementById('video-progress');
-  const progressText = document.getElementById('progress-text');
-  progress.addEventListener('input', function() {
-    progressText.textContent = `${this.value}%`;
-  });
-</script>
+<!-- Modal visualizador PDF -->
+<div id="pdf-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-xl shadow-lg p-4 relative w-full max-w-5xl h-[85vh] flex flex-col">
+    <button id="close-pdf-modal" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
+    <iframe id="pdf-viewer" src="" class="flex-1 w-full rounded-lg border" style="min-height: 70vh;"></iframe>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/avance_curso.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dropdown_blocks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modal_viewer.js') }}"></script>
 
 {% endblock %}

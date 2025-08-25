@@ -183,7 +183,7 @@ def agregar_curso():
     return render_template('cursos/agregar_curso.html', form=form)
 
 
-@bp_cursos.route('/eliminar/<int:curso_id>', methods=['DELETE'])
+@bp_cursos.route('/eliminar/<int:curso_id>', methods=['DELETE', 'POST'])
 @login_required
 def eliminar_curso(curso_id):
     curso = Curso.query.get_or_404(curso_id)
@@ -191,7 +191,7 @@ def eliminar_curso(curso_id):
     # Cambia por soft delete, porque #prevenido
     curso.eliminado = 1
     db.session.commit()
-    return jsonify({'message': 'Curso eliminado correctamente.'}), 200
+    return jsonify({'success': True}) if request.method == 'DELETE' else redirect(url_for('cursos.index'))
 
 @bp_cursos.route('/curso/<int:curso_id>/editar', methods=['GET', 'POST'])
 @login_required
@@ -252,7 +252,23 @@ def inscribirse(curso_id):
 @bp_cursos.route('/mis-cursos/<int:curso_id>')
 def curso_inscrito(curso_id):
     curso = Curso.query.get_or_404(curso_id)
-    return render_template('cursos/curso_inscrito.html', curso=curso)
+    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=curso_id).first()
+    avance = inscripcion.avance if inscripcion else 0.0
+    return render_template('cursos/curso_inscrito.html', curso=curso, avance=avance)
+
+@bp_cursos.route('/curso/<int:curso_id>/avance', methods=['POST'])
+@login_required
+def avance(curso_id):
+    data = request.get_json()
+    avance = data.get('avance')
+    inscripcion = Inscripcion.query.filter_by(
+        usuario_id = current_user.id,
+        curso_id = curso_id,
+        activo = True
+    ).first_or_404()
+    inscripcion.avance = float(avance)
+    db.session.commit()
+    return jsonify({'success': True, 'avance': inscripcion.avance})
 
 
 # ---------- EXÁMENES ----------

@@ -1,0 +1,208 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+body,
+    .helpdesk-scope {
+    /* background: linear-gradient(120deg, #f7f8fa 0%, #f2f3f7 100%) !important; */
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+        "Inter", Arial, sans-serif;
+}
+
+.helpdesk-scope {
+    min-height: 92vh; /* Ajusta el porcentaje según lo que necesites */
+    /* width: 100vw; */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.glassmorphism {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+@keyframes fadein { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+.animate-fadein { animation: fadein .5s cubic-bezier(.4,0,.2,1); }
+
+.glassmorphism-modal {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    border: 1px solid #ececec;
+}
+.tab-btn {
+    transition: background 0.2s, color 0.2s;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    background: transparent;
+    border-bottom: 2px solid transparent; /* Para la transición del borde inferior */
+}
+
+.tab-btn.active {
+    background: #fffbe6;
+    color: #3b3b3c;
+    border-bottom: 2px solid #fab522;
+}
+
+.tab-btn.active i { /* Estilo para el icono dentro del botón de pestaña cuando está activo */
+    color: #232323 !important;
+}
+
+.tab-content.active {
+    display: block; /* Visible cuando se activa con JS */
+}
+
+/* .tab-btn.border-b-2 {
+background: #fffbe6;
+color: #3b3b3c;
+border-bottom: 2px solid #fab522;
+} */
+.badge-prioridad {
+    display: inline-block;
+    padding: 0.25em 0.8em;
+    border-radius: 999px;
+    font-size: 0.95em;
+    font-weight: 500;
+    background: #f7f7fa;
+    color: #3b3b3c;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+}
+.badge-prioridad.urgente {
+    background: #ff3b30;
+    color: #fff;
+}
+.badge-prioridad.alta {
+    background: #ffe08a;
+    color: #3b3b3c;
+}
+.badge-prioridad.media {
+    background: #e5e5ea;
+    color: #3b3b3c;
+}
+.badge-prioridad.baja {
+    background: #f2f3f7;
+    color: #3b3b3c;
+}
+.badge-estatus {
+    display: inline-block;
+    padding: 0.25em 0.8em;
+    border-radius: 999px;
+    font-size: 0.95em;
+    font-weight: 500;
+    background: #C7FBB0;
+    color: #143A04;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+}
+.badge-estatus.abierto {
+    background: #e5e5ea;
+    color: #3b3b3c;
+}
+.badge-estatus.en-progreso {
+    background: #ffe08a;
+    color: #3b3b3c;
+}
+.badge-estatus.resuelto {
+    background: #b7ebc6;
+    color: #2e7d32;
+}
+.tab-content {
+    display: none;
+    min-height: 320px;
+}
+table {
+    border-collapse: separate;
+    border-spacing: 0 0.5em;
+    font-family: inherit;
+}
+th, td {
+    font-family: inherit;
+    font-size: 1em;
+}
+th {
+    font-weight: 600;
+    background: transparent;
+}
+tr {
+    transition: background 0.18s;
+}
+tr:hover {
+    background: #fffbe6 !important;
+}
+.btn-ver-ticket {
+    background: #fff;
+    border: 1px solid #ececec;
+    color: #3b3b3c;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px 0 rgba(31, 38, 135, 0.04);
+    font-family: inherit;
+}
+.btn-ver-ticket:hover {
+    background: #ffe08a;
+    color: #3b3b3c;
+    box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.08);
+}
+#btnNuevoTicket {
+    background: #fff;
+    color: #3b3b3c;
+    border: 1.5px solid #fab522;
+    border-radius: 16px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.04);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+#btnNuevoTicket:hover {
+    background: #ffe08a;
+    color: #3b3b3c;
+    box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.08);
+}
+.font-sfpro {
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Inter", Arial, sans-serif !important;
+}
+
+  /* Estilo para cards de cursos */
+.card-curso {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px 0 rgba(31,38,135,0.08);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  cursor: pointer;
+}
+.card-curso:hover {
+  background: #fffbe6;
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.16);
+  transform: translateY(-6px);
+}
+.card-curso .card-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.card-curso:hover .card-actions {
+  opacity: 1;
+}
+
+.catalogo-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 270px);
+  min-height: 320px;
+}

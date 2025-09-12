@@ -3,16 +3,20 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from app import db
-from app.cursos.models import (
-    CategoriaCurso, Curso, Inscripcion, Examen, Pregunta,
-    ExamenResultado, Actividad, ActividadResultado, Archivo
+from app.cursos.models import ( # Asegúrate de que Seccion esté importado
+    CategoriaCurso, Curso, Inscripcion, Examen, Pregunta, Seccion,
+    ExamenResultado, Actividad, ActividadResultado, Archivo, TipoExamen
 )
 from app.cursos.forms import CursoForm, ExamenForm, PreguntaForm, ActividadForm
+from datetime import datetime, timezone
 from werkzeug.utils import secure_filename
-import os
+import os, pytz
 from flask import current_app
 
 bp_cursos = Blueprint('cursos', __name__, template_folder='templates', static_folder='static')
+
+# Zona horaria de México
+mexico_tz = pytz.timezone('America/Mexico_City')
 
 encargados = {
     10: 'Soporte Sistemas',
@@ -52,6 +56,9 @@ def index():
     creados = request.args.get('creados')
     inactivos = request.args.get('inactivos')
     page = request.args.get('page', 1, type=int)
+    
+    #Verficar si el usuario es encargado de cursos
+    es_encargado = current_user.puesto_trabajo_id in encargados
 
     query = Curso.query.filter_by(eliminado=0)
 
@@ -73,32 +80,28 @@ def index():
     #Instancia del formulario para pasarla a la plantilla principal
     form_curso = CursoForm()
 
-    catalogo_cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=9)
-    mis_cursos_creados = Curso.query.filter_by(creador_id=current_user.id).order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=9)
-
-    subq = db.session.query(Inscripcion.curso_id).filter(
-        Inscripcion.usuario_id == current_user.id,
-        Inscripcion.activo == True
-    ).subquery()
-    query = query.filter(~Curso.id.in_(subq))
-
-    cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=16)
+    catalogo_cursos = query.order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=6)
+    
+    if es_encargado:
+        mis_cursos_creados = Curso.query.filter_by(creador_id=current_user.id).order_by(Curso.fecha_creacion.desc()).paginate(page=page, per_page=6)
+    else:
+        mis_cursos_creados = None
 
     categorias = [
         'Protección Civil', 'Seguridad y Salud en el Trabajo', 'Soporte IT',
         'Protección del Medio Ambiente', 'Técnico EHSmart', 'Desarrollo Organizacional'
     ]
 
-    #Verficar si el usuario es encargado de cursos
-    es_encargado = current_user.puesto_trabajo_id in encargados
     print("Encargado:", es_encargado)
 
     return render_template('cursos/index.html',
-                           mis_cursos_inscrito=mis_cursos_inscrito, cursos=cursos,
+                           mis_cursos_inscrito=mis_cursos_inscrito,
                            mis_cursos_creados=mis_cursos_creados,
                            catalogo_cursos=catalogo_cursos,
                            categorias=categorias, categoria_filtro=categoria_filtro,
-                           es_encargado=es_encargado, form=form_curso)
+                           es_encargado=es_encargado, form=form_curso,
+                           creados=creados,
+                           inactivos=inactivos)
 
 
 @bp_cursos.route('/curso/<int:curso_id>')
@@ -118,74 +121,123 @@ def curso_detalle(curso_id):
     if curso.creador_id != current_user.id:
         #Nos traerá datos del curso que se seleccionó.
         curso = Curso.query.get_or_404(curso_id)
-    
-    
-        
 
     return render_template('cursos/curso_detalle.html', curso=curso)
 
 
-@bp_cursos.route('/agregar', methods=['GET', 'POST']) #Dejar solo POST (antes tambien tenia get)
+@bp_cursos.route('/agregar', methods=['GET','POST']) #Dejar solo POST (antes tambien tenia get)
 @login_required
 def agregar_curso():
     # Ajusta los puestos permitidos según tu lógica
-    puestos_permitidos = [2, 5, 7, 8, 23, 24]
+    puestos_permitidos = [2, 5, 6, 7, 8, 23, 24]
     if current_user.puesto_trabajo_id not in puestos_permitidos:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'message': 'Permiso denegado.'}), 403
         abort(403)
-
+    
     form = CursoForm()
-    if form.validate_on_submit():
-        filename = None
-        if form.imagen.data:
-            filename = secure_filename(form.imagen.data.filename)
-            # Define la ruta absoluta donde guardar la imagen
-            abs_path = os.path.join(current_app.static_folder, 'cursos', 'img')
-            os.makedirs(abs_path, exist_ok=True) # Crea el directorio si no existe
-            form.imagen.data.save(os.path.join(abs_path, filename))
-            ruta = ruta = f'cursos/img/{filename}' # Ruta relativa para guardar en la DB
+    if request.method == 'POST':
+        # Lógica para procesar el formulario cuando se envía
+        if form.validate_on_submit():
+            # 1. Creamos curso sin secciones aun ni nada
+            curso = Curso()
+            curso.nombre = form.nombre.data
+            curso.fecha_creacion = datetime.now(mexico_tz)
+            curso.modalidad_id = form.modalidad.data.id
+            curso.categoria_id = form.categoria.data.id
+            curso.objetivo_id = form.objetivo.data.id
+            curso.area_tematica_id = form.area_tematica.data.id
+            curso.tipo_agente_id = form.tipo_agente.data.id
+            curso.duracion = form.duracion.data
+            curso.creador_id = current_user.id
+            curso.video_url = form.video_url.data
+            curso.eliminado = 0
+
+            # Manejar la imagen principal
+            imagen = request.files.get('imagen')
+            if imagen and imagen.filename:
+                filename = secure_filename(imagen.filename)
+                # Define la ruta absoluta donde guardar la imagen
+                static_folder = current_app.static_folder or os.path.join(current_app.root_path, 'static')
+                abs_path = os.path.join(static_folder, 'cursos', 'img')
+
+                #Crea el directorio si no existe
+                os.makedirs(abs_path, exist_ok=True)
+                imagen.save(os.path.join(abs_path, filename))
+                curso.imagen = f'cursos/img/{filename}'
+            else:
+                curso.imagen = None
+
+            db.session.add(curso)
+            db.session.commit()  # Necesario para obtener el ID del curso
+
+            # 2. Procesar y gaurdar los archivos adjuntos (recursos)
+            archivos_guardados = 0
+
+            # Definimos la ruat estatica de los recursos para asegurar que sea un string válido
+            static_folder = current_app.static_folder or os.path.join(current_app.root_path, 'static')
+            ruta_absoluta_base = os.path.join(static_folder, 'cursos', 'recursos')
+
+            # creamos el directorio si es que aun no existe.
+            os.makedirs(ruta_absoluta_base, exist_ok=True)
+
+            for key in request.files:
+                if key.startswith('archivo'):
+                    archivo = request.files[key]
+                    if archivo and archivo.filename:
+                        filename = secure_filename(archivo.filename)
+
+                        #Unimos las rutas seguras
+                        ruta_relativa = os.path.join('cursos', 'recursos', filename)
+                        ruta_absoluta = os.path.join(ruta_absoluta_base, 'cursos', 'recursos')
+                        os.makedirs(ruta_absoluta, exist_ok=True)
+
+                        # Guarda el archivo en la ruta absoluta
+                        archivo.save(os.path.join(ruta_absoluta, filename))
+                        nuevo_archivo = Archivo()
+                        nuevo_archivo.nombre=filename
+                        nuevo_archivo.ruta=ruta_relativa
+                        nuevo_archivo.curso_id=curso.id
+                        
+                        db.session.add(nuevo_archivo)
+                        archivos_guardados += 1
+
+            # --- Guardar secciones ---
+            secciones_data = {}
+            for key in request.form:
+                if key.startswith('secciones['):
+                    try:
+                        # Parsear 'secciones[0][nombre]' -> index=0, field='nombre'
+                        parts = key.replace(']', '').split('[') # ['secciones', '0', 'nombre']
+                        index = int(parts[1])
+                        field = parts[2]
+                        if index not in secciones_data:
+                            secciones_data[index] = {}
+                        secciones_data[index][field] = request.form[key]
+                    except (IndexError, ValueError):
+                        continue # Ignorar claves mal formadas
+            
+            secciones_guardadas = 0
+            for index in sorted(secciones_data.keys()):
+                data = secciones_data[index]
+                if data.get('nombre'): # Solo guardar si tiene un nombre
+                    seccion = Seccion()
+                    seccion.curso_id=curso.id
+                    seccion.nombre=data.get('nombre')
+                    seccion.descripcion=data.get('descripcion', '')
+                    seccion.orden = index
+                    
+                    db.session.add(seccion)
+                    secciones_guardadas += 1
+
+            db.session.commit()
+            flash(f'Curso "{curso.nombre}" creado con {secciones_guardadas} sección(es) y {archivos_guardados} recurso(s).', 'success')
+            return redirect(url_for('cursos.editar_curso', curso_id=curso.id))
         else:
-            ruta = None # Si no se sube imagen, la ruta es None
-
-        curso = Curso(
-            nombre=form.nombre.data,
-            modalidad_id=form.modalidad.data.id,
-            categoria_id=form.categoria.data.id,
-            objetivo_id=form.objetivo.data.id,
-            area_tematica_id=form.area_tematica.data.id,
-            tipo_agente_id=form.tipo_agente.data.id,
-            duracion=form.duracion.data,
-            creador_id=current_user.id,
-            imagen=ruta,
-            video_url=form.video_url.data,
-            eliminado=0
-        )
-        db.session.add(curso)
-        db.session.commit()  # Necesario para obtener el ID del curso
-
-        # --- Guardar archivos adjuntos ---
-        archivos_guardados = 0
-        for key in request.files:
-            if key.startswith('archivo'):
-                archivo = request.files[key]
-                if archivo and archivo.filename:
-                    filename = secure_filename(archivo.filename)
-                    ruta_relativa = os.path.join('cursos', 'recursos', filename)
-                    ruta_absoluta = os.path.join(current_app.static_folder, 'cursos', 'recursos')
-                    os.makedirs(ruta_absoluta, exist_ok=True)
-                    archivo.save(os.path.join(ruta_absoluta, filename))
-                    nuevo_archivo = Archivo(
-                        nombre=filename,
-                        ruta=ruta_relativa,
-                        curso_id=curso.id
-                    )
-                    db.session.add(nuevo_archivo)
-                    archivos_guardados += 1
-        db.session.commit()
-        flash(f'Curso guardado. {archivos_guardados} archivo(s) adjunto(s) guardado(s).', 'success')
-        return redirect(url_for('cursos.index'))
-
+            # Si el formulario no es válido, mostrar el formulario con los errores
+            return render_template('cursos/agregar_curso.html', form=form)
+        
+    # Lógica para mostrar el formulario (cuando la solicitud es GET)
     return render_template('cursos/agregar_curso.html', form=form)
 
 
@@ -197,7 +249,7 @@ def eliminar_curso(curso_id):
     # Cambia por soft delete, porque #prevenido
     curso.eliminado = 1
     db.session.commit()
-    return jsonify({'message': 'Curso eliminado correctamente.'}), 200
+    return jsonify({'success': True})
 
 @bp_cursos.route('/curso/<int:curso_id>/editar', methods=['GET', 'POST'])
 @login_required
@@ -205,6 +257,9 @@ def editar_curso(curso_id):
     curso = Curso.query.get_or_404(curso_id)
     if curso.creador_id != current_user.id:
         abort(403)  # Solo el creador puede editar
+
+    #Creamos la instancia para el formulario del examen
+    formExamen = ExamenForm()
 
     form = CursoForm(obj=curso)
     if form.validate_on_submit():
@@ -217,19 +272,37 @@ def editar_curso(curso_id):
         curso.duracion = form.duracion.data
         curso.video_url = form.video_url.data
 
-        # Si se sube una nueva imagen
-        if form.imagen.data:
+        # Solo si se sube una nueva imagen (no string)
+        if form.imagen.data and hasattr(form.imagen.data, "filename") and form.imagen.data.filename:
             filename = secure_filename(form.imagen.data.filename)
-            abs_path = os.path.join(current_app.static_folder, 'cursos', 'img')
+            static_folder = current_app.static_folder
+            if not static_folder:
+                raise RuntimeError("La carpeta 'static_folder' no está configurada en Flask.")
+            abs_path = os.path.join(static_folder, 'cursos', 'img')
             os.makedirs(abs_path, exist_ok=True)
             form.imagen.data.save(os.path.join(abs_path, filename))
             curso.imagen = f'cursos/img/{filename}'
 
+        # Guardar archivos adjunto nuevos, NO LOS QUE YA ESTÁN
+        nuevo_archivo = request.files.get('nuevo_archivo')
+        
+        if nuevo_archivo and nuevo_archivo.filename:
+            filename = secure_filename(nuevo_archivo.filename)
+            ruta_relativa = os.path.join('cursos', 'recursos', filename)
+            ruta_absoluta = os.path.join(current_app.static_folder, 'cursos', 'recursos')
+            os.makedirs(ruta_absoluta, exist_ok=True)
+            nuevo_archivo.save(os.path.join(ruta_absoluta, filename))
+            new_archivo = Archivo()
+            new_archivo.nombre = filename
+            new_archivo.ruta = ruta_relativa
+            new_archivo.curso_id = curso.id
+            db.session.add(new_archivo)
+
         db.session.commit()
         flash('Curso actualizado correctamente.', 'success')
-        return redirect(url_for('cursos.index'))
+        return redirect(url_for('cursos.editar_curso', curso_id=curso.id))
 
-    return render_template('cursos/editar_curso.html', form=form, curso=curso)
+    return render_template('cursos/editar_curso.html', form=form, curso=curso, formExamen=formExamen)
 
 @bp_cursos.route('/inscribirse/<int:curso_id>', methods=['POST'])
 @login_required
@@ -240,19 +313,63 @@ def inscribirse(curso_id):
         curso_id=curso.id,
         activo=True
     ).first()
+    # Si ya está inscrito, se debe ir a curso.inscrito
     if inscripcion:
         flash('Ya estás inscrito en este curso.', 'info')
         return redirect(url_for('cursos.curso_inscrito', curso_id=curso.id))
-    nueva_inscripcion = Inscripcion(
-        usuario_id=current_user.id,
-        curso_id=curso.id,
-        avance=0.0,
-        activo=True
-    )
+    
+    #Si no esta inscrito se debe hacer una nueva inscripcion
+    nueva_inscripcion = Inscripcion()
+    nueva_inscripcion.usuario_id = current_user.id
+    nueva_inscripcion.curso_id = curso.id
+    nueva_inscripcion.avance = 0.0
+    nueva_inscripcion.activo = True
     db.session.add(nueva_inscripcion)
     db.session.commit()
     flash(f'Se inscribió al curso "{curso.nombre}".', 'success')
     return redirect(url_for('cursos.index', tab='inscrito'))
+
+@bp_cursos.route('/mis-cursos/<int:curso_id>')
+def curso_inscrito(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=curso_id).first()
+    avance = inscripcion.avance if inscripcion else 0.0
+    mexico_tz = pytz.timezone('America/Mexico_City')
+    # Actualizar la fecha del utlimo acceso
+    if inscripcion:
+        inscripcion.fecha_ultimo_acceso = datetime.now(mexico_tz)
+        db.session.commit()
+    # Formatear la hora para que salga bien
+    fecha_ultimo_acceso_formateada = None
+    if inscripcion and inscripcion.fecha_ultimo_acceso:
+        fecha_ultimo_acceso_formateada = inscripcion.fecha_ultimo_acceso.strftime('%H:%M:%S')
+    return render_template('cursos/curso_inscrito.html', curso=curso, avance=avance, fecha_utlimo_acceso=fecha_ultimo_acceso_formateada)
+
+""" Al dar clic en el curso inscrito, te lleva a ver el desglose del curso:"""
+@bp_cursos.route('/curso/<int:curso_id>/desglose')
+def desglose_curso(curso_id):
+    curso = Curso.query.get_or_404(curso_id)
+    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=curso_id).first()
+    if not inscripcion:
+        flash('No estás inscrito en este curso.', 'warning')
+        return redirect(url_for('cursos.index'))
+    examenes = curso.examenes
+    actividades = curso.actividades
+    return render_template('cursos/desglose_curso.html', curso=curso, inscripcion=inscripcion, examenes=examenes, actividades=actividades)
+
+@bp_cursos.route('/curso/<int:curso_id>/avance', methods=['POST'])
+@login_required
+def avance(curso_id):
+    data = request.get_json()
+    avance = data.get('avance')
+    inscripcion = Inscripcion.query.filter_by(
+        usuario_id = current_user.id,
+        curso_id = curso_id,
+        activo = True
+    ).first_or_404()
+    inscripcion.avance = float(avance)
+    db.session.commit()
+    return jsonify({'success': True, 'avance': inscripcion.avance})
 
 
 # ---------- EXÁMENES ----------
@@ -281,19 +398,22 @@ def agregar_examen(curso_id):
     if curso.creador_id != current_user.id:
         abort(403)
 
-    form = ExamenForm()
-    if form.validate_on_submit():
-        examen = Examen(
-            curso_id=curso.id,
-            titulo=form.titulo.data,
-            descripcion=form.descripcion.data
-        )
+    formExamen = ExamenForm()
+    if formExamen.validate_on_submit():
+        examen = Examen()
+        examen.curso_id=curso.id,
+        examen.titulo=formExamen.titulo.data,
+        examen.descripcion=formExamen.descripcion.data
+        examen.duracion_minutos=formExamen.duracion.data
+        examen.fecha_inicio=formExamen.fecha_inicio.data
+        examen.fecha_cierre=formExamen.fecha_cierre.data
+
         db.session.add(examen)
         db.session.commit()
         flash('Examen agregado correctamente.', 'success')
         return redirect(url_for('cursos.examenes_curso', curso_id=curso.id))
 
-    return render_template('cursos/agregar_examen.html', form=form, curso=curso)
+    return render_template('cursos/agregar_examen.html', formExamen=formExamen, curso=curso)
 
 
 @bp_cursos.route('/examen/<int:examen_id>/editar', methods=['GET', 'POST'])

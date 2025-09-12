@@ -1,162 +1,167 @@
-<h1 class="text-3xl font-bold mb-6">Nuevo curso</h1>
+<h1 class="text-3xl font-bold">Nuevo curso</h1>
 
-<form id="formNuevoCurso" method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-8">
-  {{ form.hidden_tag() }}
+<!-- Tabs de naevgación para la creación del examen. -->
+<div class="flex gap-4 border-b">
+  <button id="tab-datos-curso-btn" type="button" class="py-2 px-4 font-semibold text-gray-800 border-b-2 focus:outline-none" onclick="showTab('datos')">
+    Datos curso
+  </button>
+  <button id="tab-content-secciones-btn" type="button" class="py-2 px-4 font-semibold text-gray-800 border-b-2 border-transparent hover:border-yellow-400 focus:outline-none" onclick="showTab('secciones')">
+    Añadir secciones
+  </button>
+</div>
 
-  <!-- Primera fila: imagen y datos principales -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Imagen del curso -->
-    <div class="md:row-span-2 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full relative min-h-[192px] h-[192px] overflow-hidden">
-      <label for="{{ form.imagen.id }}" id="label-imagen" class="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-        <span id="icono-imagen" class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
-          <i class="fas fa-image text-4xl mb-2"></i>
-          <span class="block mt-1 font-semibold">+ Añadir imagen</span>
-        </span>
-        {{ form.imagen(class="hidden") }}
-      </label>
-      <div id="preview-img" class="absolute inset-0 flex items-center justify-center w-full h-full pointer-events-none"></div>
-    </div>
-    <!-- Nombre del curso -->
-    <div>
-      {{ form.nombre.label(class="block font-semibold mb-1") }}
-      {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
-      {% if form.nombre.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
-      {% endif %}
-      <!-- Creador debajo del nombre -->
-      <label class="block font-semibold mb-1 mt-4">Creador</label>
-      <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 text-sm" value="{{ current_user.nombre }}" readonly>
-
-      <label for="{{ form.video_url.id }}" class="block font-semibold mt-4 mb-1">URL del video (YouTube)</label>
-      {{ form.video_url(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", placeholder="https://www.youtube.com/watch?v=...") }}
-      {% if form.video_url.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.video_url.errors[0] }}</p>
-      {% endif %}
-
-    </div>
-  </div>
-
-  <!-- Segunda fila: grid de 3 columnas para los campos select -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Opciones para las categorías de los cursos -->
-    <div>
-      {{ form.categoria.label(class="block font-semibold mb-1") }}
-      {{ form.categoria(class="w-full border border-gray-300 rounded px-3 py-2 font-light text-sm", required=True) }}
-      {% if form.categoria.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.categoria.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <!-- Campo de Área temática en formulario -->
-    <div>
-      {{ form.area_tematica.label(class="block font-semibold mb-1") }}
-      {{ form.area_tematica(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
-      {% if form.area_tematica.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.area_tematica.errors[0] }}</p>
-      {% endif %}
-    </div>
-    
-    <!-- Campo de Objetivo en formulario -->
-    <div>
-      {{ form.objetivo.label(class="block font-semibold mb-1") }}
-      {{ form.objetivo(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
-      {% if form.objetivo.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.objetivo.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <!-- Campo de Modalidad en formulario -->
-    <div>
-      {{ form.modalidad.label(class="block font-semibold mb-1") }}
-      {{ form.modalidad(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
-      {% if form.modalidad.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
-      {% endif %}
-    </div>
-    
-    <!-- Campo de Tipo de Agente en formulario -->
-    <div>
-      {{ form.tipo_agente.label(class="block font-semibold mb-1") }}
-      {{ form.tipo_agente(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True ) }}
-      {% if form.tipo_agente.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.tipo_agente.errors[0] }}</p>
-      {% endif %}
-    </div>
-    
-    <!-- Campo de Duración en formulario -->
-    <div>
-      {{ form.duracion.label(class="block font-semibold mb-1") }}
-      <select name="{{ form.duracion.name }}" id="{{ form.duracion.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
-        <option value="" disabled selected>Selecciona la duración</option>
-        {% for value, label in form.duracion.choices if value %}
-          <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-      {% if form.duracion.errors %}
-        <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Sección de recursos -->
-  <div>
-    <label class="block text-xl font-bold mb-2">Cargar recursos</label>
-    <div id="contenedor-archivos" class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <!-- Recuadro de archivo 1 -->
-      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
-        <label for="archivo1" id="label-archivo1" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
-          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
-            <i class="fas fa-file-upload text-4xl mb-2"></i>
-            <span class="block mt-1 font-semibold">+ Recurso</span>
+<div id="tab-datos-curso" class="overflow-y-auto max-h-[70vh] sm:max-h-[60vh] md:max-h-[80vh] pr-2">
+  <form id="formNuevoCurso" method="POST" action="{{ url_for('cursos.agregar_curso') }}" enctype="multipart/form-data" class="space-y-4">
+    {{ form.hidden_tag() }}
+    <!-- Primera fila: imagen y datos principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Imagen del curso -->
+      <div class="md:row-span-2 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full relative min-h-[192px] h-[192px] overflow-hidden">
+        <label for="{{ form.imagen.id }}" id="label-imagen" class="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+          <span id="icono-imagen" class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+            <i class="fas fa-image text-4xl mb-2"></i>
+            <span class="block mt-1 font-semibold">+ Añadir imagen</span>
           </span>
-          <input type="file" id="archivo1" name="archivo1" class="hidden">
+          {{ form.imagen(class="hidden") }}
         </label>
-        <div id="preview-archivo1" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+        <div id="preview-img" class="absolute inset-0 flex items-center justify-center w-full h-full pointer-events-none"></div>
       </div>
-      <!-- Recuadro de archivo 2 -->
-      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
-        <label for="archivo2" id="label-archivo2" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
-          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
-            <i class="fas fa-file-upload text-4xl mb-2"></i>
-            <span class="block mt-1 font-semibold">+ Recurso</span>
-          </span>
-          <input type="file" id="archivo2" name="archivo2" class="hidden">
-        </label>
-        <div id="preview-archivo2" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+      <!-- Nombre del curso -->
+      <div>
+        {{ form.nombre.label(class="block font-semibold mb-1") }}
+        {{ form.nombre(class="w-full border border-gray-300 rounded px-3 py-2 text-sm") }}
+        {% if form.nombre.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.nombre.errors[0] }}</p>
+        {% endif %}
+        <!-- Creador debajo del nombre -->
+        <label class="block font-semibold mb-1 mt-4">Creador</label>
+        <input type="text" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 text-sm" value="{{ current_user.nombre }} {{ current_user.apellido_paterno}} {{ current_user.apellido_materno if current_user.apellido_materno else ''}}" readonly>
+
+        <label for="{{ form.video_url.id }}" class="block font-semibold mt-4 mb-1">URL del video (YouTube)</label>
+        {{ form.video_url(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", placeholder="https://www.youtube.com/watch?v=...") }}
+        {% if form.video_url.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.video_url.errors[0] }}</p>
+        {% endif %}
+
       </div>
-      <!-- Recuadro de archivo 3 -->
-      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
-        <label for="archivo3" id="label-archivo3" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
-          <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
-            <i class="fas fa-file-upload text-4xl mb-2"></i>
-            <span class="block mt-1 font-semibold">+ Recurso</span>
-          </span>
-          <input type="file" id="archivo3" name="archivo3" class="hidden">
-        </label>
-        <div id="preview-archivo3" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
+    </div>
+
+    <!-- Segunda fila: grid de 3 columnas para los campos select -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Opciones para las categorías de los cursos -->
+      <div>
+        {{ form.categoria.label(class="block font-semibold mb-1") }}
+        {{ form.categoria(class="w-full border border-gray-300 rounded px-3 py-2 font-light text-sm", required=True) }}
+        {% if form.categoria.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.categoria.errors[0] }}</p>
+        {% endif %}
       </div>
-      <!-- Recuadro visual para Formulario -->
-      <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 transition group h-full min-h-[140px] h-[140px] overflow-hidden">
-        <div class="w-full flex flex-col items-center justify-center text-center">
-          <span class="text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
-            <i class="fas fa-list-alt text-4xl mb-2"></i>
-            <span class="block mt-1 font-semibold">Formulario</span>
-          </span>
-          <span class="mt-2 text-xs text-gray-500">Próximamente</span>
+
+      <!-- Campo de Área temática en formulario -->
+      <div>
+        {{ form.area_tematica.label(class="block font-semibold mb-1") }}
+        {{ form.area_tematica(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
+        {% if form.area_tematica.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.area_tematica.errors[0] }}</p>
+        {% endif %}
+      </div>
+      
+      <!-- Campo de Objetivo en formulario -->
+      <div>
+        {{ form.objetivo.label(class="block font-semibold mb-1") }}
+        {{ form.objetivo(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
+        {% if form.objetivo.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.objetivo.errors[0] }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Campo de Modalidad en formulario -->
+      <div>
+        {{ form.modalidad.label(class="block font-semibold mb-1") }}
+        {{ form.modalidad(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True) }}
+        {% if form.modalidad.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.modalidad.errors[0] }}</p>
+        {% endif %}
+      </div>
+      
+      <!-- Campo de Tipo de Agente en formulario -->
+      <div>
+        {{ form.tipo_agente.label(class="block font-semibold mb-1") }}
+        {{ form.tipo_agente(class="w-full border border-gray-300 rounded px-3 py-2 text-sm", required=True ) }}
+        {% if form.tipo_agente.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.tipo_agente.errors[0] }}</p>
+        {% endif %}
+      </div>
+      
+      <!-- Campo de Duración en formulario -->
+      <div>
+        {{ form.duracion.label(class="block font-semibold mb-1") }}
+        <select name="{{ form.duracion.name }}" id="{{ form.duracion.id }}" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+          <option value="" disabled selected>Selecciona la duración</option>
+          {% for value, label in form.duracion.choices if value %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if form.duracion.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.duracion.errors[0] }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sección de recursos -->
+    <div>
+      <label class="block text-xl font-bold mb-2">Cargar recursos</label>
+      <div id="contenedor-archivos" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Recuadro de archivo 1 -->
+        <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-[#fab522] transition group h-full min-h-[140px] h-[140px] overflow-hidden relative">
+          <label for="archivo1" id="label-archivo1" class="w-full flex flex-col items-center justify-center cursor-pointer text-center">
+            <span class="icono-recurso text-gray-400 group-hover:text-[#fab522] text-lg mb-2 flex flex-col items-center justify-center">
+              <i class="fas fa-file-upload text-4xl mb-2"></i>
+              <span class="block mt-1 font-semibold">+ Recurso</span>
+            </span>
+            <input type="file" id="archivo1" name="archivo1" class="hidden">
+          </label>
+          <div id="preview-archivo1" class="mt-2 text-xs text-gray-500 flex flex-col items-center w-full"></div>
         </div>
       </div>
+      <div class="mt-4">
+        <button type="button" id="btnAgregarArchivo" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition">+ Añadir otro archivo</button>
+      </div>
     </div>
-    <div class="mt-4">
-      <button type="button" id="btnAgregarArchivo" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition">+ Añadir otro archivo</button>
-    </div>
-  </div>
 
-  <!-- Botones -->
-  <div class="flex justify-end gap-2 mt-4">
-    <button type="button" id="btnCancelarFormCurso" class="bg-[#5e5e5e] hover:bg-[#3b3b3c]/10 text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none">Cancelar</button>
-    {{ form.submit(class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none") }}
+    <!-- Botones -->
+    <div class="flex justify-end gap-2 mt-4">
+      <button type="button" id="btnCancelarFormCurso" class="bg-[#5e5e5e] hover:bg-[#3b3b3c]/10 text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none">Cancelar</button>
+      <button type="button" id="btn-siguiente-secciones" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition font-sfpro focus:ring-2 focus:ring-[#fab522] focus:outline-none">Guardar y continuar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Secciones del curso -->
+<div id="tab-content-secciones" class="hidden h-full flex flex-col">
+  <!-- De aqui se hace el scroll -->
+  <div class="flex-1 overflow-y-auto overflow-x-visible pl-6 pr-3 pb-3 pt-3" style="min-height: 60vh; max-height: 60vh; overflow-y: auto; overflow-x: visible;">
+    <div id="contenedor-secciones" class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl">
+    <!-- Aquí van las tarjetas de sección -->
+    <!-- ...las tarjetas existentes... -->
+    </div>
   </div>
-</form>
+  <!-- Botón para añadir sección abajo a la izquierda -->
+  <div class="flex justify-between items-center w-full">
+    <button
+      id="btn-agregar-seccion"
+      type="button"
+      class="bg-[color:var(--inside-yellow)] hover:bg-yellow-400 text-white font-semibold px-6 py-2 rounded-full shadow transition"
+    >
+      <span class="material-icons align-middle mr-1">add</span>
+      Añadir sección
+    </button>
+    <!-- Guardar cambios de las secciones que se tengan y mandar el curso completo -->
+    <button type="submit" form="formNuevoCurso" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-full shadow transition">
+      Finalizar y crear curso
+    </button>
+  </div>
+</div>
 
 <script>
 let archivoCount = 3; // Ya tienes archivo1, archivo2, archivo3
@@ -189,3 +194,34 @@ document.getElementById('contenedor-archivos').addEventListener('click', functio
   }
 });
 </script>
+<script>
+  // Tu función para tabs de examen
+  window.showTab = function(tab) {
+    const datosCursoTab = document.getElementById('tab-datos-curso');
+    const seccionesTab = document.getElementById('tab-content-secciones');
+    const datosCursoTabBtn = document.getElementById('tab-datos-curso-btn');
+    const seccionesTabBtn = document.getElementById('tab-content-secciones-btn');
+
+    if (tab === 'datos') {
+      datosCursoTab.classList.remove('hidden');
+      seccionesTab.classList.add('hidden');
+      datosCursoTabBtn.classList.add('border-yellow-400');
+      datosCursoTabBtn.classList.remove('border-transparent');
+      seccionesTabBtn.classList.remove('border-yellow-400');
+      seccionesTabBtn.classList.add('border-transparent');
+    } else if (tab === 'secciones') {
+      datosCursoTab.classList.add('hidden');
+      seccionesTab.classList.remove('hidden');
+      datosCursoTabBtn.classList.remove('border-yellow-400');
+      datosCursoTabBtn.classList.add('border-transparent');
+      seccionesTabBtn.classList.add('border-yellow-400');
+      seccionesTabBtn.classList.remove('border-transparent');
+    }
+  };
+  // Inicializa el tab activo al cargar
+  document.addEventListener('DOMContentLoaded', function() {
+    showTab('datos');
+  });
+</script>
+<script src="{{ url_for('static', filename='js/agregar_examen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/agregar_seccion.js') }}"></script>

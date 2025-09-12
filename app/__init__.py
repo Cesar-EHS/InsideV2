@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 import os
+import re
 
 csrf = CSRFProtect()
 
@@ -119,6 +120,16 @@ def create_app(config_name=None):
     @app.route('/')
     def root():
         return redirect(url_for('home.home'))
+    
+    def youtube_id(url):
+        """
+        Extrae el ID de un video de YouTube desde una URL.
+        """
+        regex = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
+        match = re.search(regex, url)
+        return match.group(1) if match else url
+
+    app.jinja_env.filters['youtube_id'] = youtube_id    
 
     # Contexto global para templates - configuraciones del sistema
     @app.context_processor

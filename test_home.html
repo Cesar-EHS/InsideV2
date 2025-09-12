@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Home Functions</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        .hidden { display: none; }
+        .text-red-500 { color: #ef4444; }
+        .text-gray-600 { color: #4b5563; }
+        .text-blue-600 { color: #2563eb; }
+        button { cursor: pointer; padding: 8px; margin: 4px; border: 1px solid #ccc; }
+        .comments-section { padding: 10px; background: #f3f4f6; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Test de Funciones Home</h1>
+    
+    <!-- Test botón me gusta -->
+    <div>
+        <h2>Test Botón Me Gusta</h2>
+        <button onclick="toggleReaction(this)" data-post-id="1" data-reaction="love" class="text-gray-600">
+            ❤️ <span id="love-count-1">5</span>
+        </button>
+    </div>
+
+    <!-- Test botón comentarios -->
+    <div>
+        <h2>Test Botón Comentarios</h2>
+        <button id="btn-comments-toggle-1" onclick="toggleComments('1')" class="text-blue-600">
+            💬 Comentarios
+        </button>
+        <div id="comments-section-1" class="hidden comments-section">
+            <p>Aquí van los comentarios...</p>
+        </div>
+    </div>
+
+    <!-- Test modal simple -->
+    <div>
+        <h2>Test Modal Simple</h2>
+        <button onclick="document.getElementById('test-modal').classList.remove('hidden')">Abrir Modal</button>
+        
+        <div id="test-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px;">
+                <h3>Test Modal</h3>
+                <select id="visibility-select" onchange="toggleProjectSelection()">
+                    <option value="public">Público</option>
+                    <option value="private">Privado</option>
+                </select>
+                <div id="projects-container" class="hidden" style="margin-top: 10px; padding: 10px; background: #f0f0f0;">
+                    <label><input type="checkbox" name="proyectos_visibles" value="1"> Proyecto 1</label><br>
+                    <label><input type="checkbox" name="proyectos_visibles" value="2"> Proyecto 2</label>
+                </div>
+                <input type="hidden" name="proyectos_visibles" value="todos" id="public-visibility-input">
+                <button onclick="document.getElementById('test-modal').classList.add('hidden')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSRF Token para testing -->
+    <input type="hidden" name="csrf_token" value="test-token">
+
+    <script>
+// --- FUNCIONES GLOBALES ---
+
+window.toggleComments = function (postId) {
+  console.log('toggleComments llamado para post:', postId);
+  const commentsSection = document.getElementById(`comments-section-${postId}`);
+  const btnToggle = document.getElementById(`btn-comments-toggle-${postId}`);
+  
+  if (!commentsSection) {
+    console.error('No se encontró comments-section para post:', postId);
+    return;
+  }
+  if (!btnToggle) {
+    console.error('No se encontró btn-comments-toggle para post:', postId);
+    return;
+  }
+
+  const isHidden = commentsSection.classList.toggle('hidden');
+  btnToggle.setAttribute('aria-expanded', (!isHidden).toString());
+  console.log('Comentarios', isHidden ? 'ocultados' : 'mostrados', 'para post:', postId);
+};
+
+window.toggleReaction = async function (button) {
+  console.log('toggleReaction llamado');
+  const postId = button.getAttribute('data-post-id');
+  const reactionType = button.getAttribute('data-reaction');
+  
+  console.log('Post ID:', postId, 'Reaction Type:', reactionType);
+
+  // Simular la acción sin hacer fetch real
+  const countSpan = document.getElementById('love-count-' + postId);
+  if (countSpan) {
+    let currentCount = parseInt(countSpan.textContent) || 0;
+    countSpan.textContent = currentCount + 1;
+  }
+
+  button.classList.toggle('text-red-500');
+  button.classList.toggle('text-gray-600');
+  console.log('Reacción simulada correctamente');
+};
+
+function toggleProjectSelection() {
+  const select = document.getElementById('visibility-select');
+  const container = document.getElementById('projects-container');
+  const publicInput = document.getElementById('public-visibility-input');
+  
+  if (select.value === 'private') {
+    container.classList.remove('hidden');
+    publicInput.disabled = true;
+  } else {
+    container.classList.add('hidden');
+    publicInput.disabled = false;
+    // Limpiar selecciones de proyectos
+    document.querySelectorAll('input[name="proyectos_visibles"]:not(#public-visibility-input)').forEach(cb => {
+      cb.checked = false;
+    });
+  }
+}
+
+console.log('Script de test cargado');
+console.log('toggleComments disponible:', typeof window.toggleComments);
+console.log('toggleReaction disponible:', typeof window.toggleReaction);
+    </script>
+</body>
+</html>

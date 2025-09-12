@@ -46,6 +46,8 @@ from app.auth.models import (
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth', template_folder='templates', static_folder='static')
 
+#Definir zona horaria
+mexico_city_tz = pytz.timezone('America/Mexico_City')
 
 def has_management_permissions(user) -> bool:
     """Verificar si un usuario tiene permisos para gestionar usuarios."""
@@ -76,12 +78,29 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
+
+        #Obtener hora actual con Aware
+        now = datetime.now(mexico_city_tz)
         
         # Verificar si el usuario está bloqueado
-        if user and user.locked_until and user.locked_until > datetime.now(pytz.UTC):
+        """ if user and user.locked_until and user.locked_until > datetime.now(pytz.UTC):
             remaining_time = int((user.locked_until - datetime.now(pytz.UTC)).total_seconds() / 60)
             flash(f"Su cuenta está temporalmente bloqueada. Por favor, intente nuevamente en {remaining_time} minutos.", "danger")
-            return render_template('auth/login.html', form=form)
+            return render_template('auth/login.html', form=form) """
+        
+        # Si user.locked_until existe, convertirlo a aware antes de la comparación
+        if user and user.locked_until:
+            locked_until_aware = user.locked_until
+            # Si el objeto es 'naive', asignarle la zona horaria de México
+            if locked_until_aware.tzinfo is None or locked_until_aware.tzinfo.utcoffset(locked_until_aware) is None:
+                # Usa .localize() para añadir la información de zona horaria
+                locked_until_aware = mexico_city_tz.localize(locked_until_aware)
+        
+            # Ahora la comparación es segura
+            if locked_until_aware > now:
+                remaining_time = int((locked_until_aware - now).total_seconds() / 60)
+                flash(f"Su cuenta está temporalmente bloqueada. Por favor, intente nuevamente en {remaining_time} minutos.", "danger")
+                return render_template('auth/login.html', form=form)
 
         if user and form.password.data is not None and check_password_hash(user.password_hash, form.password.data):
             # Verificar estatus del usuario (si existe)

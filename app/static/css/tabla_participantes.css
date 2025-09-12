@@ -1,0 +1,27 @@
+:root {
+  --inside-yellow: #FAB522;
+}
+.status-aprobado {
+  background: #b2f5ea;
+  color: #1a4747;
+}
+.status-activo {
+  background: var(--inside-yellow);
+  color: #3b3b3c;
+}
+.status-suspendido {
+  background: #e2e8f0;
+  color: #3b3b3c;
+}
+.table-inside th {
+  background: var(--inside-yellow);
+  color: #3b3b3c;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.table-inside tr:nth-child(even) {
+  background: #f9fafb;
+}
+.table-inside tr:hover {
+  background: #fffbe6;
+}

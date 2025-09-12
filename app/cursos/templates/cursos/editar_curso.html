@@ -1,234 +1,448 @@
 {% extends 'base.html' %} {% block content %}
 
 <div class="flex justify-center items-center min-h-[80vh]">
-  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-2xl p-10">
-    <div
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
-    >
-      <a
-        href="{{ url_for('cursos.index') }}"
-        class="inline-flex items-center gap-2"
-      >
-        <!-- Icono de flecha (puedes usar un SVG o una fuente de iconos) -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6 text-gray-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="3"
-            d="M15 19l-7-7 7-7"
-          />
+  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-2xl p-10 flex flex-col relative" style="min-height: 85vh;">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <a href="{{ url_for('cursos.index') }}" class="inline-flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/>
         </svg>
         <span class="text-base text-gray-700 font-semibold">Regresar</span>
       </a>
+      <!-- Indicador para saber que se está realizando -->
+      <div class="flex justify-end">
+        <div class="flex items-center gap-2 bg-[color:var(--inside-yellow)] bg-opacity-20 px-4 py-1 rounded-full">
+          <span class="material-icons text-[color:var(--inside-light)] text-base align-middle">edit</span>
+          <span class="font-semibold text-[color:var(--inside-light)] text-sm">Editando curso</span>
+        </div>
+      </div>
     </div>
+    
     <!-- Ubicación -->
     <h4 class="pb-4 pt-4 pr-4 text-gray-800">
-      {{ curso.nombre }} > Configuración del curso
+      {{ curso.nombre }} <span id="ubicacion-tab"> > Configuración del curso </span>
     </h4>
     <div class="border-b border-gray-200 mb-6">
       <nav class="flex space-x-8" aria-label="Tabs">
         <button
           id="tab-generales"
-          class="py-2 px-1 border-b-2 font-semibold text-sm focus:outline-none text-gray-700 border-yellow-400"
+          class="tab-btn px-1 pb-2 border-b font-semibold text-sm focus:outline-none text-gray-700 border-yellow-400"
           onclick="showTab('generales')"
         >
           Generales del curso
         </button>
         <button
+          id="tab-secciones"
+          class="tab-btn px-1 pb-2 border-b font-semibold text-sm focus:outline-none text-gray-700 border-transparent hover:text-yellow-500 hover:border-yellow-400"
+          onclick="showTab('secciones')"
+        >
+          Secciones
+        </button>
+        <button
           id="tab-participantes"
-          class="py-2 px-1 border-b-2 font-semibold text-sm focus:outline-none text-gray-700 border-transparent hover:text-yellow-500 hover:border-yellow-400"
+          class="tab-btn px-1 pb-2 border-b font-semibold text-sm focus:outline-none text-gray-700 border-transparent hover:text-yellow-500 hover:border-yellow-400"
           onclick="showTab('participantes')"
         >
           Participantes
         </button>
-        <button
-          id="tab-actividades"
-          class="py-2 px-1 border-b-2 font-semibold text-sm focus:outline-none text-gray-700 border-transparent hover:text-yellow-500 hover:border-yellow-400"
-          onclick="showTab('actividades')"
-        >
-          Actividades
-        </button>
       </nav>
     </div>
+
+    <!-- Mensajes flash flotantes -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div id="toast-flash"
+          class="fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow-lg text-white
+            {% for category, message in messages %}
+              {% if category == 'success' %}bg-green-500
+              {% elif category == 'error' %}bg-red-500
+              {% else %}bg-gray-700{% endif %}
+            {% endfor %}">
+          {% for category, message in messages %}
+            {{ message }}
+          {% endfor %}
+        </div>
+        <script>
+          setTimeout(function() {
+            var toast = document.getElementById('toast-flash');
+            if (toast) toast.style.display = 'none';
+          }, 3500);
+        </script>
+      {% endif %}
+    {% endwith %}
+
     <!-- Contenido de la pestaña Generales del curso -->
-    <div id="tab-content-generales" class="mt-8">
-      <form method="POST" enctype="multipart/form-data">
+    <div id="tab-content-generales" class="tab-content flex flex-col flex-1">
+      <form method="POST" enctype="multipart/form-data" class="flex flex-col">
         {{ form.hidden_tag() }}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-4">
-          <!-- Foto de portada -->
-          <div class="md:col-span-1 flex flex-col items-center">
-            <label class="mb-2 text-sm font-semibold text-gray-800"
-              >Foto de portada</label
-            >
-            <div class="relative">
-              {% if curso.imagen %}
-              <img
-                src="{{ url_for('static', filename=curso.imagen) }}"
-                alt="Imagen actual"
-                class="rounded-xl w-96 h-48 object-cover"
-              />
-              {% else %}
-              <div
-                class="rounded-xl w-96 h-48 bg-gray-100 flex items-center justify-center text-gray-400"
-              >
-                Sin imagen
-              </div>
-              {% endif %}
-              <!-- Botones editar/eliminar sobre la imagen -->
-              <div
-                class="absolute inset-0 flex items-center justify-center gap-4 opacity-0 hover:opacity-100 transition-opacity"
-              >
-                <button
-                  type="button"
-                  class="bg-white p-2 rounded-full shadow hover:bg-gray-100"
-                  title="Editar imagen"
+        <!-- Área con scroll interno -->
+        <div class="flex-1 overflow-y-auto">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-4 pr-2">
+            <!-- Foto de portada -->
+            <div class="md:col-span-2 flex flex-col items-center">
+              <label class="mb-2 text-sm font-semibold text-gray-800">Foto de portada</label>
+              <div class="relative w-full max-w-xl">
+                {% if curso.imagen %}
+                <img
+                  src="{{ url_for('static', filename=curso.imagen) }}"
+                  alt="Imagen actual"
+                  class="rounded-xl h-48 w-full object-cover"
+                />
+                {% else %}
+                <div
+                  class="rounded-xl w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-gray-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm0 0L4 19l5-5z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  class="bg-white p-2 rounded-full shadow hover:bg-gray-100"
-                  title="Eliminar imagen"
+                  Sin imagen
+                </div>
+                {% endif %}
+                <!-- Botones editar/eliminar sobre la imagen -->
+                <div
+                  class="absolute inset-0 flex items-center justify-center gap-4 opacity-0 hover:opacity-100 transition-opacity"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-gray-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <button
+                    type="button"
+                    class="bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                    title="Editar imagen"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          <!-- Datos generales -->
-          <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="text-sm font-bold text-gray-800">Nombre</label>
-              {{ form.nombre(class="text-sm w-full border border-gray-300
-              rounded px-3 py-2") }}
-            </div>
-            <div>
-              <label
-                class="text-sm font-bold text-gray-800 flex items-center gap-1"
-                >Duración
-                <span class="material-icons text-gray-400 text-base"
-                  >schedule</span
-                >
-              </label>
-              {{ form.duracion(class="text-sm text-gray-800 w-full border
-              border-gray-300 rounded px-3 py-2") }}
-            </div>
-            <div>
-              <label class="text-sm font-bold text-gray-800">Creador</label>
-              <input
-                type="text"
-                class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                value="{{ curso.creador.nombre }} {{curso.creador.apellido_paterno}} {{curso.creador.apellido_materno}}"
-                readonly
-              />
-            </div>
-            <div>
-              <label class="text-sm font-bold text-gray-800">Categoría</label>
-              {{ form.categoria(class="text-sm text-gray-800 w-full border
-              border-gray-300 rounded px-3 py-2") }}
-            </div>
-            <div>
-              <label class="text-sm font-bold text-gray-800">Modalidad</label>
-              {{ form.modalidad(class="text-sm text-gray-800 w-full border
-              border-gray-300 rounded px-3 py-2") }}
-            </div>
-            <div>
-              <label class="text-sm font-bold text-gray-800"
-                >Área temática</label
-              >
-              {{ form.area_tematica(class="text-sm text-gray-800 w-full border
-              border-gray-300 rounded px-3 py-2") }}
-            </div>
-            <div class="md:col-span-3">
-              <label class="text-sm font-bold text-gray-800">Objetivo</label>
-              {{ form.objetivo(class="text-sm text-gray-800 w-full border
-              border-gray-300 rounded px-3 py-2") }}
-            </div>
-          </div>
-          <!-- Recursos y actividades -->
-          <div class="md:col-start-2 md:col-span-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label class="text-sm font-bold text-gray-800 mb-2 block">Recursos</label>
-                <!-- Ejemplo de recurso -->
-                <div class="flex gap-4">
-                  <div
-                    class="bg-white rounded-xl shadow p-4 flex flex-col items-center"
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-gray-700"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm0 0L4 19l5-5z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                    title="Eliminar imagen"
                   >
-                    <img
-                      src="{{ url_for('static', filename='img/pdf.png') }}"
-                      alt="PDF"
-                      class="w-12 h-12 mb-2"
-                    />
-                    <span class="text-xs text-gray-700">Lorem_ipsum.pdf</span>
-                    <span class="text-xs text-gray-400">000 kb</span>
-                  </div>
-                  <div
-                    class="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center w-32 h-32 text-gray-400 cursor-pointer"
-                  >
-                    <span class="material-icons text-3xl">add</span>
-                    <span class="text-xs">Cargar recurso</span>
-                  </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-gray-700"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
+            </div>
+            <!-- Datos generales -->
+            <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="text-sm text-gray-800 font-bold mb-2 block flex items-center gap-1"
-                  >Actividades del curso
-                  <span
-                    class="material-icons text-gray-400 text-base cursor-pointer"
-                    title="Información"
-                    >info</span
-                  >
+                <label class="text-sm font-bold text-gray-800">Nombre</label>
+                {{ form.nombre(class="text-sm w-full border border-gray-300 rounded px-3 py-2") }}
+              </div>
+              <div>
+                <label class="text-sm font-bold text-gray-800 flex items-center gap-1">Duración
+                  <span class="material-icons text-gray-400 text-base">schedule</span>
                 </label>
-                <!-- Ejemplo de actividad -->
+                {{ form.duracion(class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2") }}
+              </div>
+              <div>
+                <label class="text-sm font-bold text-gray-800">Creador</label>
+                <input
+                  type="text"
+                  class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  value="{{ curso.creador.nombre }} {{curso.creador.apellido_paterno}} {{curso.creador.apellido_materno}}"
+                  readonly
+                />
+              </div>
+              <div>
+                <label class="text-sm font-bold text-gray-800">Categoría</label>
+                {{ form.categoria(class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2") }}
+              </div>
+              <div>
+                <label class="text-sm font-bold text-gray-800">Modalidad</label>
+                {{ form.modalidad(class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2") }}
+              </div>
+              <div>
+                <label class="text-sm font-bold text-gray-800">Área temática</label>
+                {{ form.area_tematica(class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2") }}
+              </div>
+              <div class="md:col-span-3">
+                <label class="text-sm font-bold text-gray-800">Objetivo</label>
+                {{ form.objetivo(class="text-sm text-gray-800 w-full border border-gray-300 rounded px-3 py-2") }}
+              </div>
+            </div>
+            <!-- Recursos -->
+            <div class="md:col-span-2">
+              <label class="text-sm font-bold text-gray-800 mb-2 block">Recursos</label>
+              <div
+                class="flex flex-nowrap overflow-x-auto gap-4 py-2"
+                style="scrollbar-width: none;"
+              >
+                {% if curso.archivos %} {% for archivo in curso.archivos %}
+                <div
+                  class="bg-white rounded-xl shadow p-4 flex flex-col items-center flex-none w-32"
+                >
+                  {% set extension = archivo.nombre.split('.')[-1]|lower %} {% if extension
+                  == 'pdf' %}
+                  <img
+                    src="{{ url_for('static', filename='img/pdf.png') }}"
+                    alt="PDF"
+                    class="w-12 h-12 mb-2"
+                  />
+                  {% elif extension in ['docx', 'doc'] %}
+                  <img
+                    src="{{ url_for('static', filename='img/oficina.png') }}"
+                    alt="DOCX"
+                    class="w-12 h-12 mb-2"
+                  />
+                  {% elif extension == 'ppt' %}
+                  <img
+                    src="{{ url_for('static', filename='img/ppt.png') }}"
+                    alt="PPT"
+                    class="w-12 h-12 mb-2"
+                  />
+                  {% elif extension == 'xlsx' %}
+                  <img
+                    src="{{ url_for('static', filename='img/xlsx.png') }}"
+                    alt="XLSX"
+                    class="w-12 h-12 mb-2"
+                  />
+                  {% elif extension == 'png' %}
+                  <img
+                    src="{{ url_for('static', filename='img/png.png') }}"
+                    alt="PNG"
+                    class="w-12 h-12 mb-2"
+                  />
+                  {% endif %}
+                  <span class="text-xs text-gray-700 break-all">{{archivo.nombre}}</span>
+                  <button
+                    class="absolute top-1 right-1 text-red-500 hover:text-red-700"
+                    title="Eliminar recurso"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                {% endfor %} {% else %}
+                <div class="text-gray-400 text-sm">No tiene recursos.</div>
+                {% endif %}
+                <div
+                  id="add-resource-btn"
+                  class="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center flex-none w-32 h-32 text-gray-400 cursor-pointer"
+                >
+                  <span class="material-icons text-3xl">add</span>
+                  <span class="text-xs">Añadir recurso</span>
+                </div>
+              </div>
+              <input type="file" name="nuevo_archivo" id="add-resource-input" class="hidden" />
+            </div>
+            <!-- Espacio para formularios, (examenes) -->
+            <div class="md:col-span-1">
+              <label class="text-sm font-bold text-gray-800 mb-2 block">Exámenes</label>
+              <div
+                class="flex flex-nowrap overflow-x-auto gap-4 py-2"
+                style="scrollbar-width: none;"
+              >
+                <div
+                  id="add-examen-btn"
+                  class="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center flex-none w-32 h-32 text-gray-400 cursor-pointer"
+                >
+                  <span class="material-icons text-3xl">add</span>
+                  <span class="text-xs">Añadir examen</span>
+            </div>
+              </div>
+            </div>
+            <!-- Botón para guardar cambios -->
+            <div class="grid grid-cols-1">
+              <div class="md:col-span-1 flex flex-col justify-end">
+                <div class="w-full flex justify-end">
+                  <button
+                    type="submit"
+                    class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-3 rounded-lg shadow"
+                  >
+                    Guardar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Botón guardar -->
-        <div class="flex justify-end mt-2">
-          <button
-            type="submit"
-            class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-3 rounded-lg shadow"
-          >
-            Guardar
-          </button>
         </div>
       </form>
     </div>
+
+    <!-- Secciones del curso -->
+    <div id="tab-content-secciones" class="tab-content hidden h-full flex flex-col">
+      <!-- De aqui se hace el scroll -->
+      <div class="flex-1 overflow-y-auto overflow-x-visible pl-6 pr-3 pb-3 pt-3" style="min-height: 48vh; max-height: 48vh; overflow-y: auto; overflow-x: visible;">
+        <div id="contenedor-secciones" class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl">
+        <!-- Aquí van las tarjetas de sección -->
+        <!-- ...las tarjetas existentes... -->
+        </div>
+      </div>
+      <!-- Botón para añadir sección abajo a la izquierda -->
+      <div class="flex justify-start mt-4">
+        <button
+          id="btn-agregar-seccion"
+          type="button"
+          class="bg-[color:var(--inside-yellow)] hover:bg-yellow-400 text-white font-semibold px-6 py-2 rounded-full shadow transition"
+        >
+          <span class="material-icons align-middle mr-1">add</span>
+          Añadir sección
+        </button>
+      </div>
+    </div>
+
+    <!-- Participantes del curso -->
+    <div id="tab-content-participantes" class="tab-content hidden">
+      <!-- POner participantes, con inscripcion -->
+      <div class="overflow-x-auto rounded-xl shadow border border-gray-200">
+        <table class="min-w-full table-inside">
+          <thead>
+            <tr>
+              <th class="py-3 px-4 text-left">#</th>
+              <th class="py-3 px-4 text-left">Estudiante</th>
+              <th class="py-3 px-4 text-left">Correo</th>
+              <th class="py-3 px-4 text-left">Estatus</th>
+              <th class="py-3 px-4 text-left">Último acceso</th>
+              <th class="py-3 px-4 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inscripcion in curso.inscripciones %}
+            <tr>
+              <td class="py-2 px-4 font-mono text-sm text-gray-500">{{ "%02d"|format(loop.index) }}</td>
+              <td class="py-2 px-4 font-medium text-sm text-gray-800">
+                {{ inscripcion.usuario.nombre }} {{ inscripcion.usuario.apellido_paterno }} {{ inscripcion.usuario.apellido_materno }} <br>
+              </td>
+              <td class="py-2 px-4 font-medium text-sm text-gray-800">{{ inscripcion.usuario.email }}</td>
+              <td class="py-2 px-4">
+                {% if inscripcion.activo == 'Aprobado' %}
+                  <span class="status-aprobado px-4 py-1 rounded-full text-xs font-bold inline-block">Aprobado</span>
+                {% elif inscripcion.activo == 1 %}
+                  <span class="status-activo px-4 py-1 rounded-full text-xs font-bold inline-block">Activo</span>
+                {% elif inscripcion.activo == 0 %}
+                  <span class="status-suspendido px-4 py-1 rounded-full text-xs font-bold inline-block">Suspendido</span>
+                {% else %}
+                  <span class="bg-gray-200 px-4 py-1 rounded-full text-xs font-bold inline-block">{{ inscripcion.estatus }}</span>
+                {% endif %}
+              </td>
+              <td class="py-2 px-4 text-gray-700">{{ inscripcion.fecha_ultimo_acceso.strftime('%d-%m-%Y | %H:%M:%S') if inscripcion.fecha_ultimo_acceso else '-' }}</td>
+              <td class="py-2 px-4">
+                <a href="#" class="text-gray-700 hover:text-[color:var(--inside-yellow)] flex items-center gap-2">
+                  <span class="material-icons text-lg align-middle">visibility</span>
+                  Ver
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="py-4 text-center text-gray-400">No hay participantes inscritos.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
+<!-- Modal para agregar examen -->
+<div id="modal-examen" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm transition-all hidden">
+  <div class="bg-white rounded-xl p-4 sm:p-6 md:p-8 shadow-xl w-full max-w-md sm:max-w-2xl md:max-w-6xl animate-fadein relative">
+    <button id="cerrar-modal-examen" onclick="closeModalExamen()" class="absolute top-2 right-2 sm:top-4 sm:right-4 bg-gray-200 px-2 py-1 rounded-full text-gray-700 hover:bg-gray-300 text-base sm:text-lg z-10">✕</button>
+    {% include 'cursos/agregar_examen.html' %}
+  </div>
+</div>
+
+<!-- Modal para crear seccion y actividad con tabs mejorado -->
+<div id="modal-actividad" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden bg-black/40 backdrop-blur-sm transition-all">
+  <div class="bg-white rounded-xl shadow-xl p-0 w-full max-w-2xl min-h-[480px] relative">
+    <button id="cerrar-modal-actividad" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+    <!-- Tabs nav -->
+    <div class="border-b flex">
+      <button id="tab-datos-btn" class="flex-1 py-4 px-4 font-semibold text-gray-700 border-b-2 border-transparent hover:border-yellow-400 focus:outline-none" onclick="showModalTab('datos')">
+        Datos de sección
+      </button>
+      <button id="tab-actividades-btn" class="flex-1 py-4 px-4 font-semibold text-gray-700 border-b-2 border-transparent hover:border-yellow-400 focus:outline-none" onclick="showModalTab('actividades')">
+        Actividades
+      </button>
+    </div>
+    <!-- Tabs content -->
+    <div id="modal-tab-datos" class="p-8 flex flex-col h-[420px]">
+      <h2 class="text-lg font-bold mb-4 text-gray-800">Datos de la sección</h2>
+      <form class="flex-1 flex flex-col">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold mb-1 text-gray-700">Nombre de la sección</label>
+          <input type="text" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ejemplo: Introducción">
+        </div>
+        <div class="mb-4 flex-1">
+          <label class="block text-sm font-semibold mb-1 text-gray-700">Descripción</label>
+          <textarea class="w-full border rounded px-3 py-2 text-sm h-24 resize-none" placeholder="Descripción de la sección"></textarea>
+        </div>
+        <!-- Continuar con actividades -->
+        <div class="flex justify-end items-end mt-auto">
+          <label class="text-yellow-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline" onclick="showModalTab('actividades')">
+            Guardar y continuar con actividades
+            <span class="material-icons text-base">arrow_forward</span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div id="modal-tab-actividades" class="p-8 flex flex-col h-[420px] hidden">
+      <h2 class="text-lg font-bold mb-6 text-gray-800">Selecciona el tipo de actividad</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+        <!-- Archivo -->
+        <button type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-yellow-100 rounded-xl py-8 transition w-full shadow group">
+          <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-yellow-500">attach_file</span>
+          <span class="font-semibold text-gray-700">Archivo</span>
+        </button>
+        <!-- Video -->
+        <button type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-blue-100 rounded-xl py-8 transition w-full shadow group">
+          <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-blue-500">videocam</span>
+          <span class="font-semibold text-gray-700">Video</span>
+        </button>
+        <!-- Examen -->
+        <button type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-green-100 rounded-xl py-8 transition w-full shadow group">
+          <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-green-500">assignment</span>
+          <span class="font-semibold text-gray-700">Examen</span>
+        </button>
+      </div>
+      <!-- Acciones abajo -->
+      <div class="flex justify-between items-end mt-8">
+        <label class="text-yellow-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline" onclick="showModalTab('datos')">
+          <span class="material-icons text-base">arrow_back</span>
+          Regresar a Datos
+        </label>
+        <button type="button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-2 rounded-lg shadow transition">
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/editar_curso.js') }}"></script>
+<script src="{{ url_for('static', filename='js/agregar_examen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/guardar_examen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/agregar_seccion.js') }}"></script>
 {% endblock %}

@@ -1,32 +1,136 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mx-auto p-6 max-w-lg">
+<h1 class="text-3xl md:text-3xl font-bold mb-4 md:mb-6">Nuevo examen</h1>
 
-  <h1 class="text-3xl font-bold mb-6">{{ 'Editar' if examen else 'Agregar' }} Examen</h1>
-
-  <form method="POST" action="" class="space-y-6">
-    {{ form.hidden_tag() }}
-
-    <div>
-      {{ form.titulo.label(class="block font-semibold mb-1") }}
-      {{ form.titulo(class="w-full border border-gray-300 rounded px-3 py-2") }}
-      {% if form.titulo.errors %}
-      <p class="text-red-600 text-sm mt-1">{{ form.titulo.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div>
-      {{ form.descripcion.label(class="block font-semibold mb-1") }}
-      {{ form.descripcion(class="w-full border border-gray-300 rounded px-3 py-2 h-32 resize-y") }}
-      {% if form.descripcion.errors %}
-      <p class="text-red-600 text-sm mt-1">{{ form.descripcion.errors[0] }}</p>
-      {% endif %}
-    </div>
-
-    <div class="text-right">
-      {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded") }}
-    </div>
-  </form>
-
+<!-- Tabs de naevgación para la creación del examen. -->
+<div class="flex gap-4 mb-4 border-b">
+  <button id="tab-datos-btn" type="button" class="py-2 px-4 font-semibold text-gray-800 border-b-2 border-yellow-400 focus:outline-none" onclick="showTabExamen('datos')">
+    Datos del examen
+  </button>
+  <button id="tab-preguntas-btn" type="button" class="py-2 px-4 font-semibold text-gray-800 border-b-2 border-transparent hover:border-yellow-400 focus:outline-none" onclick="showTabExamen('preguntas')">
+    Añadir preguntas
+  </button>
 </div>
-{% endblock %}
+
+<!-- Contendiod de las 2 tabs -->
+<div id="tab-datos-examen">
+  <form id="formNuevoExamen" method="POST" action="{{ url_for('cursos.agregar_examen', curso_id=curso.id) }}" enctype="multipart/form-data" class="flex flex-col gap-4">
+    {{ formExamen.hidden_tag() }}
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+      <div>
+        <label class="text-sm font-bold text-gray-800">Curso</label>
+        <input type="text" value="{{ curso.nombre }}" disabled class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 text-sm">
+      </div>
+      
+      <div>
+        <label class="text-sm font-bold text-gray-800">Título</label>
+        {{ formExamen.titulo(class="text-sm w-full border border-gray-300 rounded px-3 py-2") }}
+      </div>
+
+      <div>
+        {{ formExamen.tipo_examen.label(class="text-sm font-bold text-gray-800") }}
+        {{ formExamen.tipo_examen(class="text-sm w-full border border-gray-300 rounded px-3 py-2") }}
+        {% if formExamen.tipo_examen.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ formExamen.tipo_examen.errors[0] }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <label for="fechaInicio" class="text-sm font-bold text[var(--inside-dark)]">Fecha de inicio</label>
+        <input type="date" id="fechaInicio" name="fechaInicio" class="text-sm w-full border border-gray-300 rounded px-3 py-2" value="{{ formExamen.fecha_inicio.data }}">
+      </div>
+      <div>
+        <label for="fechaCierre" class="text-sm font-bold text[var(--inside-dark)]">Fecha de cierre</label>
+        <input type="date" id="fechaCierre" name="fechaCierre" class="text-sm w-full border border-gray-300 rounded px-3 py-2" value="{{ formExamen.fecha_inicio.data }}"min="{{ formExamen.fecha_inicio.data }}">
+      </div>
+      <!-- Campor para seleccionar el tiempo maximo de un examen estará abierto -->
+      <div>
+        <label for="tiempoMaximo" class="text-sm font-bold text[var(--inside-dark)]">Tiempo máximo (minutos)</label>
+        {{ formExamen.duracion(class="text-sm w-full border border-gray-300 rounded px-3 py-2") }}
+      </div>
+    </div>
+
+    <div>
+      <label class="text-sm font-bold text-gray-800">Descripción</label>
+      {{ formExamen.descripcion(class="text-sm w-full border border-gray-300 rounded px-3 py-2") }}
+    </div>
+
+    <div class="flex justify-end mt-4">
+      <span id="btn-preguntas-modal"
+        onclick="showTabExamen('preguntas')"
+        class="flex items-center gap-2 font-bold text-l text-gray-800 cursor-pointer select-none hover:text-[#fab522] transition">
+        Continuar con preguntas
+        <span class="material-icons text-xl text-[#fab522]">arrow_forward</span>
+      </span>
+    </div>
+
+    <!-- <div class="flex justify-end mt-4">
+      <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-6 py-2 rounded-lg shadow">
+        Guardar examen
+      </button>
+    </div> -->
+  </form>
+</div>
+
+<!-- Tab para las preguntas -->
+<div id="tab-preguntas-examen" class="hidden">
+  <div class="overflow-y-auto max-h-[60vh] pr-2">
+    <!-- El formulario o componentes para añadir preguntas -->
+    <!-- Pregunta individual -->
+    <!-- <div class="bg-gray-200 rounded-2xl p-6 mb-6 shadow flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <div class="flex gap-2">
+          <button title="Bajar pregunta" class="text-gray-500 hover:text-gray-700"><span class="material-icons">arrow_downward</span></button>
+          <button title="Eliminar" class="text-red-500 hover:text-red-700"><span class="material-icons">delete</span></button>
+        </div>
+      </div>
+      <input type="text" class="text-sm w-full border border-gray-300 rounded px-3 py-2" placeholder="Descripción de la actividad">
+      <textarea class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100" placeholder="insertar texto"></textarea>
+      <div class="flex items-center gap-2">
+        <label class="font-medium text-gray-700">Obligatorio</label>
+        <label class="inline-flex items-center cursor-pointer">
+          <input type="checkbox" class="sr-only peer">
+          <div class="w-10 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 transition"></div>
+        </label>
+      </div>
+    </div> -->
+    <div id="preguntas-container"></div>
+    
+    <!-- Agregar nueva pregunta -->
+    <div class="mb-6">
+      <span class="flex items-center gap-2 text-base font-medium mb-4" style="color: var(--inside-yellow);">
+        <span class="material-icons">add</span>
+        Seleccione para agregar una nueva pregunta
+      </span>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <button id="btn-opcion-multiple" class="bg-gray-100 rounded-lg px-6 py-4 flex flex-col items-center font-semibold text-gray-700 hover:bg-yellow-100 transition">
+          <span class="material-icons mb-1">radio_button_checked</span>
+          Opción múltiple
+        </button>
+        <button id="btn-verdadero-falso" class="bg-gray-100 rounded-lg px-6 py-4 flex flex-col items-center font-semibold text-gray-700 hover:bg-yellow-100 transition">
+          <span class="material-icons mb-1">check_circle</span>
+          Verdadero / Falso
+        </button>
+        <button id="btn-abierta" class="bg-gray-100 rounded-lg px-6 py-4 flex flex-col items-center font-semibold text-gray-700 hover:bg-yellow-100 transition">
+          <span class="material-icons mb-1">short_text</span>
+          Abierta
+        </button>
+      </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <!-- <div class="flex justify-end gap-2 mt-6">
+      <button class="bg-gray-200 text-blue-700 font-bold px-6 py-2 rounded-lg">Cancelar</button>
+      <button class="bg-blue-600 text-white font-bold px-6 py-2 rounded-lg">Guardar</button>
+    </div> -->
+  </div>
+  <div class="flex justify-start mt-4">
+      <span class="pr-2 material-icons text-xl text-[#fab522]">arrow_back</span>
+      <span
+        onclick="showTabExamen('datos')"
+        class="flex items-center gap-2 font-bold text-l text-gray-800 cursor-pointer select-none hover:text-[#fab522] transition">
+        Regresar a datos del examen
+      </span>
+    </div>
+</div>

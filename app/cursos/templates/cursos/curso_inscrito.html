@@ -1,6 +1,108 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="flex justify-center items-center min-h-[80vh]">
-  <div class="w-full max-w-7xl bg-white rounded-2xl shadow-2xl p-10"></div>
+{% extends 'base.html' %} {% block content %}
+<div class="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl w-full max-w-md sm:max-w-2xl md:max-w-6xl h-[85vh] mx-auto">
+
+  <!-- Apartado de Recursos -->
+  <h2 class="text-2xl font-bold mb-3">{{ curso.nombre }}</h2>
+  <div class="w-full h-0.5 bg-[#fab522] rounded mb-6"></div>
+
+  <!-- Secciones del curso -->
+  <h2 class="text-xl font-bold mb-4">Secciones</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Sección 1 -->
+    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center cursor-pointer section-card"
+         onclick="abrirSeccionModal('Sección 1', 'Contenido de la Sección 1')">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-[#3b3b3c]">1</div>
+        <span class="text-sm text-gray-500">Progreso % <span class="font-bold">0</span></span>
+      </div>
+      <div class="text-center font-semibold">Sesión 1</div>
+    </div>
+    <!-- Sección 2 -->
+    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center cursor-pointer section-card"
+         onclick="abrirSeccionModal('Sección 2', 'Contenido de la Sección 2')">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-[#3b3b3c]">2</div>
+        <span class="text-sm text-gray-500">Progreso % <span class="font-bold">0</span></span>
+      </div>
+      <div class="text-center font-semibold">Sesión 2</div>
+    </div>
+    <!-- Sección 3 -->
+    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center cursor-pointer section-card"
+         onclick="abrirSeccionModal('Sección 3', 'Contenido de la Sección 3')">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-[#3b3b3c]">M</div>
+      </div>
+      <div class="text-center font-semibold">Mosaico 1</div>
+    </div>
+  </div>
+
+  <!-- Recursos -->
+  <div class="flex items-center justify-between mt-4">
+    <div class="flex items-center gap-2">
+      <span class="text-lg font-bold text-[#3b3b3c] font-sfpro">Recursos</span>
+    </div>
+  </div>
+  <div id="recursos-content" class="mt-4">
+    {% if curso.archivos %}
+      <div class="flex gap-4 flex-wrap">
+        {% for archivo in curso.archivos %}
+          {% set extension = archivo.nombre.split('.')[-1]|lower %}
+            <a class="recurso-link rounded-2xl shadow p-4 flex flex-col items-center hover:bg-gray-100 transition"
+              href="{{ url_for('static', filename='cursos/recursos/' ~ archivo.nombre) }}"
+              data-url="{{ url_for('static', filename='cursos/recursos/' ~ archivo.nombre) }}"
+              data-extension="{{ extension }}"
+              title="Abrir {{ archivo.nombre }}">
+              {% if extension == 'pdf' %}
+                <img
+                  src="{{ url_for('static', filename='img/pdf.png') }}"
+                  alt="PDF"
+                  class="w-12 h-12 mb-2"
+                />
+              {% elif extension in ['docx', 'doc'] %}
+                <img
+                  src="{{ url_for('static', filename='img/oficina.png') }}"
+                  alt="DOCX"
+                  class="w-12 h-12 mb-2"
+                />
+              {% elif extension == 'ppt' %}
+                <img
+                  src="{{ url_for('static', filename='img/ppt.png') }}"
+                  alt="PPT"
+                  class="w-12 h-12 mb-2"
+                />
+              {% elif extension == 'xlsx' %}
+                <img
+                  src="{{ url_for('static', filename='img/xlsx.png') }}"
+                  alt="XLSX"
+                  class="w-12 h-12 mb-2"
+                />
+              {% elif extension == 'png' %}
+                <img
+                    src="{{ url_for('static', filename='img/png.png') }}"
+                    alt="PNG"
+                    class="w-12 h-12 mb-2"
+                  />
+              {% endif %}
+              <span class="text-xs text-gray-700">{{archivo.nombre}}</span>
+            </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-gray-400 text-sm">No tiene recursos.</div>
+    {% endif %}
+  </div>
 </div>
+
+<!-- Modal para detalle de secciones -->
+<div id="seccion-modal-overlay" class="fixed inset-0 bg-gray-700 bg-opacity-60 flex items-center justify-center z-50 hidden transition-opacity duration-300">
+  <div id="seccion-modal" class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl relative opacity-0 scale-95 transition-all duration-300">
+    <button onclick="cerrarSeccionModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full border border-gray-400 flex items-center justify-center text-2xl text-gray-500 hover:bg-gray-100 transition">&times;</button>
+    <h2 id="seccion-modal-titulo" class="text-2xl font-bold mb-2"></h2>
+    <div class="w-32 h-1 bg-[#fab522] rounded mb-6"></div>
+    <div id="seccion-modal-contenido" class="mb-4"></div>
+    <!-- Aquí puedes agregar el video o recursos si lo necesitas -->
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/abrir_secciones.js') }}"></script>
 {% endblock %}

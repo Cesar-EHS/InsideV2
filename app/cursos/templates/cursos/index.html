@@ -9,14 +9,6 @@
       "Inter", Arial, sans-serif;
   }
 
-  .helpdesk-scope {
-    min-height: 92vh; /* Ajusta el porcentaje según lo que necesites */
-    /* width: 100vw; */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-
   .glassmorphism {
     background: rgba(255, 255, 255, 0.85);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
@@ -211,78 +203,79 @@
 }
 
 </style>
-<div class="helpdesk-scope">
-  <div class="w-full max-w-7xl mx-auto px-2 sm:px-6 pt-4 pb-8">
-    <div
-      class="glassmorphism rounded-2xl border border-[#fab522]/30 p-0 pb-6 animate-fadein shadow-xl"
-    >
-      <div class="flex border-b border-[#fab522]/20 bg-white/95 rounded-t-2xl">
-        
-        <button
-          id="tab-catalogo"
-          class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c] bg-white rounded-t-2xl focus:outline-none transition-all border-b-2 border-[#fab522]"
-        >
-          Catálogo
-        </button>
-        
-        <button
-          id="tab-inscrito"
-          class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all"
-        >
-          Inscrito
-        </button>
-        <button
-          id="tab-terminados"
-          class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all"
-        >
-          Terminados
-        </button>
-      </div>
 
-      <!-- Filyro de cursos, categorias -->
-      <div class="flex flex-wrap items-center justify-between mb-4 mt-4 gap-4">
-        <form method="get" class="flex flex-wrap gap-4 items-center flex-1 pl-6" id="filtro-cursos">
+<div class="w-full max-w-7xl mx-auto sm:px-6" style="min-height: 85vh;">
+  <div
+    class="glassmorphism rounded-2xl border border-[#fab522]/30 p-0 animate-fadein shadow-xl flex flex-col
+    style="min-height: 85vh;"
+    >
+    <div class="flex border-b border-[#fab522]/20 bg-white/95 rounded-t-2xl">
+      
+      <button
+        id="tab-catalogo"
+        class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c] bg-white rounded-t-2xl focus:outline-none transition-all border-b-2 border-[#fab522]"
+      >
+        Catálogo
+      </button>
+      
+      <button
+        id="tab-inscrito"
+        class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all"
+      >
+        Inscrito
+      </button>
+      <button
+        id="tab-terminados"
+        class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c]/80 bg-white rounded-t-2xl focus:outline-none transition-all"
+      >
+        Terminados
+      </button>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 mt-4 gap-4">
+      <form method="get" class="flex flex-col sm:flex-row gap-4 items-center flex-1 pl-0 sm:pl-6 w-full" id="filtro-cursos">
         <!-- Filtro por categoría -->
-          <label class="font-semibold text-[#3b3b3c]">
-            Categoría:
-            <select name="categoria" class="border rounded px-3 py-2 ml-2">
-              <option value="">Todas</option>
-              {% for cat in categorias %}
-                <option value="{{ cat }}" {% if categoria_filtro == cat %}selected{% endif %}>{{ cat }}</option>
-              {% endfor %}
-            </select>
-          </label>
-        
-          {% if es_encargado %}
-          <!-- Filtro por creados por mí -->
-          <label class="font-semibold text-[#3b3b3c] flex items-center">
+        <label class="font-semibold text-[#3b3b3c] text-base font-sfpro flex items-center w-full sm:w-auto">
+          Categoría:
+          <select name="categoria"
+            class="border border-[#fab522]/40 rounded-lg px-4 py-2 ml-2 text-[15px] font-medium text-[#3b3b3c] bg-white focus:border-[#fab522] focus:ring-2 focus:ring-[#ffe08a] transition-all shadow-sm w-full sm:w-auto">
+            <option value="">Todas</option>
+            {% for cat in categorias %}
+              <option value="{{ cat }}" {% if categoria_filtro == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        {% if es_encargado %}
+          <label class="font-semibold text-[#3b3b3c] flex items-center w-full sm:w-auto">
             <input type="checkbox" name="creados" value="1" {% if request.args.get('creados') %}checked{% endif %} class="mr-2">
             Mis cursos creados
           </label>
-          <!-- Filtro por inactivos -->
-          <label class="font-semibold text-[#3b3b3c] flex items-center">
+          <label class="font-semibold text-[#3b3b3c] flex items-center w-full sm:w-auto">
             <input type="checkbox" name="inactivos" value="1" {% if request.args.get('inactivos') %}checked{% endif %} class="mr-2">
             Inactivos
           </label>
-          {% endif %}
-          <button type="submit" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded transition-all">Filtrar</button>
-        </form>
-        {% if es_encargado %}
-        <div class="flex justify-end mt-4 mb-4 pr-6 sm:pr-10">
+        {% endif %}
+        <button type="submit" class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-semibold px-4 py-2 rounded-xl transition-all w-full sm:w-auto">Filtrar</button>
+      </form>
+      {% if es_encargado %}
+        <div class="flex justify-end mt-2 mb-2 pr-0 sm:pr-10 w-full sm:w-auto">
           <a
             href="#"
             id="btnNuevoCurso"
-            class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-sfpro font-semibold px-6 py-2 rounded-xl shadow transition-all duration-200"
+            class="bg-[#fab522] hover:bg-[#ffe08a] text-[#3b3b3c] font-sfpro font-semibold px-6 py-2 rounded-xl shadow transition-all duration-200 w-full sm:w-auto text-center"
           >
             + Nuevo
           </a>
         </div>
-        {% endif %}
-      </div>
+      {% endif %}
+    </div>
 
-      <div id="tab-content-catalogo" class="tab-content pl-6 pt-6 pr-6 pb-0 overflow-y-auto max-h-[calc(100vh-270px)]">
-        <!-- Aquí va el contenido de Catálogo (antes Gestión de cursos) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="text-[var(--inside-dark)] font-semibold pl-10">Cursos disponibles</div>
+
+    <div id="tab-content-catalogo" class="tab-content pl-6 pt-6 pr-6 flex flex-col flex-1 h-full">
+      <!-- Aquí va el contenido de Catálogo (antes Gestión de cursos) -->
+      <div class="catalogo-scroll grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 pt-4 pr-2 pl-4 pb-4" style="max-height: calc(100vh - 370px); overflow-y: auto;">
+        {% if catalogo_cursos %}
           {% for curso in catalogo_cursos.items %}
             {% set es_mio = curso.creador_id == current_user.id %}
             {% if not es_mio %}
@@ -328,7 +321,7 @@
                     </svg>
                   </a>
                   <button
-                    class="mx-2 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center btn-eliminar-curso"
+                    class="btn-eliminar-curso mx-2 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
                     title="Eliminar"
                     data-id="{{ curso.id }}"
                     type="button">
@@ -342,80 +335,81 @@
               </div>
             {% endif %}
           {% endfor %}
-        </div>
-        <div class="flex justify-end mt-6">
-          <nav class="inline-flex gap-2">
-            {% if catalogo_cursos.has_prev %}
-              <a href="{{ url_for('cursos.index', page=catalogo_cursos.prev_num) }}"
-                class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
-                &lt;
-              </a>
-            {% else %}
-              <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&lt;</span>
-            {% endif %}
-
-            <span class="px-3 py-2 font-semibold text-[#fab522]">{{ catalogo_cursos.page }}</span>
-
-            {% if catalogo_cursos.has_next %}
-              <a href="{{ url_for('cursos.index', page=mis_cursos_creados.next_num) }}"
-                class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
-                &gt;
-              </a>
-            {% else %}
-              <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&gt;</span>
-            {% endif %}
-          </nav>
-        </div>
+        {% else %}
+          <div class="text-center text-gray-700 py-8">No hay cursos disponibles.</div>
+        {% endif %}
       </div>
-      
-      <div id="tab-content-inscrito" class="tab-content p-6 {% if es_encargado %}hidden{% endif %}">
-        <!-- Aquí va el contenido de Inscrito (antes Mis cursos) -->
-        <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
-          Mis cursos
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {% for curso in mis_cursos_inscrito %}
-            <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="card-curso group block">
-              {% if curso.imagen %}
-                <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
-              {% else %}
-                <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
-              {% endif %}
-              <div class="p-4">
-                <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
-                <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
-                  {{ curso.estado }}
-                </span>
-                <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
-              </div>
+      <div class="flex justify-end pt-2 pb-4">
+        <nav class="inline-flex gap-2">
+          {% if catalogo_cursos.has_prev %}
+            <a href="{{ url_for('cursos.index', page=catalogo_cursos.prev_num, categoria=categoria_filtro, creados=creados, inactivos=inactivos) }}"
+              class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
+              &lt;
             </a>
-            {% else %}
-            <div class="col-span-3 text-center text-gray-400 py-8 font-sfpro">
-              No estás inscrito en ningún curso.
-            </div>
-          {% endfor %}
-        </div>
-      </div>
+          {% else %}
+            <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&lt;</span>
+          {% endif %}
 
-      <div id="tab-content-terminados" class="tab-content p-6 hidden">
-        <!-- Aquí va el contenido de Terminados -->
-        <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
-          Cursos Terminados
-        </h2>
-        <!-- Puedes agregar aquí la tabla o cards de cursos terminados -->
+          <span class="px-3 py-2 font-semibold text-[#fab522]">{{ catalogo_cursos.page }}</span>
+
+          {% if catalogo_cursos.has_next %}
+            <a href="{{ url_for('cursos.index', page=catalogo_cursos.next_num, categoria=categoria_filtro, creados=creados, inactivos=inactivos) }}"
+              class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
+              &gt;
+            </a>
+          {% else %}
+            <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&gt;</span>
+          {% endif %}
+        </nav>
       </div>
     </div>
+    
+    <div id="tab-content-inscrito" class="tab-content p-6 {% if es_encargado %}hidden{% endif %}">
+      <!-- Aquí va el contenido de Inscrito (antes Mis cursos) -->
+      <h2 class="text-xl font-bold mb-6 font-sfpro" style="color: #3b3b3c">
+        Mis cursos
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for curso in mis_cursos_inscrito %}
+          <a href="{{ url_for('cursos.curso_inscrito', curso_id=curso.id) }}" class="card-curso group block">
+            {% if curso.imagen %}
+              <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+            {% else %}
+              <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+            {% endif %}
+            <div class="p-4">
+              <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
+              <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
+                {{ curso.estado }}
+              </span>
+              <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+            </div>
+          </a>
+          {% else %}
+          <div class="col-span-3 text-center text-gray-400 py-8 font-sfpro">
+            No estás inscrito en ningún curso.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div id="tab-content-terminados" class="tab-content p-6 hidden">
+      <!-- Aquí va el contenido de Terminados -->
+      <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
+        Cursos Terminados
+      </h2>
+      <!-- Puedes agregar aquí la tabla o cards de cursos terminados -->
+    </div>
   </div>
-</div> <!-- Cierre de .helpdesk-scope -->
+</div>
+
 
 <!-- Aquí el modal del neuvo curso, fuera del contenedor principal -->
 <div id="cursoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all">
-  <div class="glassmorphism-modal w-full max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-2 sm:p-6 md:p-8 relative flex flex-col gap-4 animate-fadein
+  <div class="glassmorphism-modal w-full max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-6xl p-2 sm:p-6 md:p-8 relative flex flex-col gap-4 animate-fadein
               max-h-[90vh] sm:max-h-[80vh] md:max-h-[90vh]">
     <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-    <div class="overflow-y-auto max-h-[70vh] sm:max-h-[60vh] md:max-h-[80vh] pr-2">
       {% include 'cursos/agregar_curso.html' %}
-    </div>
   </div>
 </div>
 
@@ -426,4 +420,5 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ url_for('static', filename='modal_add_curso.js') }}"></script>
 <script src="{{ url_for('static', filename='cursos_tabs.js') }}"></script>
+<script src="{{ url_for('static', filename='js/eliminar_curso.js') }}"></script>
 {% endblock %}

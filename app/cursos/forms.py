@@ -1,11 +1,11 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
-    StringField, TextAreaField, SelectField, SubmitField
+    StringField, TextAreaField, SelectField, SubmitField, TimeField, DateTimeField
 )
 from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, Length, Optional, URL
-from app.cursos.models import CategoriaCurso, Modalidad, Objetivo, AreaTematica, TipoAgente
+from app.cursos.models import CategoriaCurso, Modalidad, Objetivo, AreaTematicaCurso, TipoAgente, Examen, TipoExamen
 from app import db
 
 def get_categorias_para_form():
@@ -63,7 +63,7 @@ class CursoForm(FlaskForm):
     
     area_tematica = QuerySelectField(
         'Área temática',
-        query_factory=lambda: AreaTematica.query.order_by(AreaTematica.nombre).all(),
+        query_factory=lambda: AreaTematicaCurso.query.order_by(AreaTematicaCurso.nombre).all(),
         get_label='nombre',
         allow_blank=True,
         blank_text='Selecciona el área temática',
@@ -96,7 +96,33 @@ class CursoForm(FlaskForm):
 
 
 class ExamenForm(FlaskForm):
-    titulo = StringField('Título del examen', validators=[DataRequired(), Length(max=150)])
+    titulo = StringField('Título:', validators=[DataRequired(), Length(max=150)])
+    descripcion = TextAreaField('Descripción', validators=[Optional()])
+    fecha_inicio = DateTimeField('Fecha de inicio', format='%d/%m/%Y %H:%M', validators=[Optional()])
+    fecha_cierre = DateTimeField('Fecha de cierre', format='%d/%m/%Y %H:%M', validators=[Optional()])
+    tipo_examen = QuerySelectField(
+        'Tipo de examen',
+        query_factory=lambda: TipoExamen.query.order_by(TipoExamen.nombre).all(),
+        get_label='nombre',
+        allow_blank=True,
+        blank_text='Selecciona el tipo de examen',
+        validators=[DataRequired()]
+    )
+    duracion = SelectField(
+        'Duración',
+        choices=[
+            ('', 'Selecciona la duración'),
+            ('30', '30'),
+            ('60', '60'),
+            ('90', '90'),
+            ('120', '120')
+        ],
+        validators=[DataRequired()]
+    )
+    submit = SubmitField('Guardar')
+
+class SeccionForm(FlaskForm):
+    titulo = StringField('Título de la sección', validators=[DataRequired(), Length(max=150)])
     descripcion = TextAreaField('Descripción')
     submit = SubmitField('Guardar')
 

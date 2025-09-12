@@ -1,0 +1,156 @@
+document.addEventListener('DOMContentLoaded', function () {
+  // --- ELEMENTOS DEL DOM ---
+  const btnAgregarSeccion = document.getElementById('btn-agregar-seccion');
+  const contenedorSecciones = document.getElementById('contenedor-secciones');
+  const formNuevoCurso = document.getElementById('formNuevoCurso');
+
+  // --- FUNCIONES ---
+
+  /**
+   * Actualiza el número visual de cada tarjeta y los nombres de los inputs ocultos.
+   */
+  function actualizarSecciones() {
+    const cards = contenedorSecciones.querySelectorAll('.card-container');
+    cards.forEach((card, idx) => {
+      // Actualizar número visual
+      const numDiv = card.querySelector('.seccion-numero');
+      if (numDiv) numDiv.textContent = idx + 1;
+
+      // Actualizar el índice en los nombres de los inputs para mantener el orden
+      card.querySelector('input[name$="[nombre]"]').name = `secciones[${idx}][nombre]`;
+      card.querySelector('input[name$="[descripcion]"]').name = `secciones[${idx}][descripcion]`;
+      
+      // Limpiar clases de error de validación
+      card.querySelector('.seccion-card').classList.remove('border-2', 'border-red-500');
+    });
+  }
+
+  /**
+   * Crea y añade una nueva tarjeta de sección al contenedor.
+   */
+  function agregarNuevaSeccion() {
+    const seccionIndex = contenedorSecciones.querySelectorAll('.card-container').length;
+    const nuevaSeccionContainer = document.createElement('div');
+    // Usamos un contenedor relativo para que la animación de la caja de edición funcione correctamente
+    nuevaSeccionContainer.className = 'card-container relative mb-4'; 
+
+    // HTML para la nueva sección, incluyendo la tarjeta, la caja de edición y los inputs ocultos
+    nuevaSeccionContainer.innerHTML = `
+      <!-- Inputs ocultos que se enviarán con el formulario principal del curso -->
+      <input type="hidden" name="secciones[${seccionIndex}][nombre]" value="" form="formNuevoCurso">
+      <input type="hidden" name="secciones[${seccionIndex}][descripcion]" value="" form="formNuevoCurso">
+
+      <!-- Tarjeta visible (con z-index para estar por encima de la caja de edición) -->
+      <div class="seccion-card relative z-10 flex w-full max-w-xs h-28 mx-auto overflow-hidden rounded-xl shadow-lg bg-white transition-transform duration-200 hover:-translate-y-2 hover:shadow-2xl hover:scale-105 cursor-pointer">
+          <button type="button" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none eliminar-seccion" title="Eliminar sección">&times;</button>
+          <div class="flex items-center justify-center w-1/3 bg-[color:var(--inside-yellow)] text-white text-2xl font-bold seccion-numero rounded-l-xl h-full">
+              <!-- Número se inserta dinámicamente -->
+          </div>
+          <div class="flex flex-col justify-center w-2/3 p-3 overflow-hidden">
+            <div class="font-bold text-base text-gray-800 mb-1 seccion-nombre truncate">Nueva sección</div>
+            <div class="text-gray-500 text-xs seccion-descripcion truncate">Presione aquí para editar la sección.</div>
+          </div>
+      </div>
+
+      <!-- Caja de edición (con margen negativo para que se solape y padding superior para compensar) -->
+      <div class="edit-box relative z-0 bg-white rounded-xl shadow-lg -mt-4 p-4 pt-6 transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
+          <div class="mb-2">
+            <label class="block text-sm font-semibold mb-1 text-gray-700">Nombre</label>
+            <input type="text" class="edit-nombre w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1 text-gray-700">Descripción</label>
+            <textarea rows="3" class="edit-descripcion w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
+          </div>
+        </div>
+    `;
+
+    // --- LÓGICA DE EVENTOS PARA LA NUEVA TARJETA ---
+    const seccionCard = nuevaSeccionContainer.querySelector('.seccion-card');
+    const editBox = nuevaSeccionContainer.querySelector('.edit-box');
+    const inputNombre = nuevaSeccionContainer.querySelector('.edit-nombre'); // Usamos clase, no ID
+    const inputDescripcion = nuevaSeccionContainer.querySelector('.edit-descripcion'); // Usamos clase, no ID
+    const hiddenInputNombre = nuevaSeccionContainer.querySelector('input[name$="[nombre]"]');
+    const hiddenInputDescripcion = nuevaSeccionContainer.querySelector('input[name$="[descripcion]"]');
+    const displayNombre = nuevaSeccionContainer.querySelector('.seccion-nombre');
+    const displayDescripcion = nuevaSeccionContainer.querySelector('.seccion-descripcion');
+
+    // Sincronizar el input de nombre con la tarjeta y el input oculto
+    inputNombre.addEventListener('input', function() {
+        const valor = this.value.trim();
+        displayNombre.textContent = valor || 'Nueva sección';
+        hiddenInputNombre.value = valor;
+    });
+
+    // Sincronizar el input de descripción con la tarjeta y el input oculto
+    inputDescripcion.addEventListener('input', function() {
+        const valor = this.value.trim();
+        displayDescripcion.textContent = valor || 'Presione aquí para editar la sección.';
+        hiddenInputDescripcion.value = valor;
+    });
+
+    // Evento para eliminar la tarjeta
+    nuevaSeccionContainer.querySelector('.eliminar-seccion').addEventListener('click', function (e) {
+      e.stopPropagation();
+      nuevaSeccionContainer.remove();
+      actualizarSecciones();
+    });
+
+    // Evento para mostrar/ocultar la caja de edición
+    seccionCard.addEventListener('click', function (e) {
+      if (!e.target.closest('.eliminar-seccion')) {
+        const isVisible = editBox.style.maxHeight && editBox.style.maxHeight !== '0px';
+        if (isVisible) {
+          editBox.style.maxHeight = '0px';
+        } else {
+          // Se expande a su altura natural y se enfoca el input de nombre
+          editBox.style.maxHeight = editBox.scrollHeight + 'px';
+                inputNombre.focus();
+            }
+      }
+    });
+
+    contenedorSecciones.appendChild(nuevaSeccionContainer);
+    actualizarSecciones();
+  });
+
+  // --- EVENT LISTENERS PRINCIPALES ---
+
+  // Botón para agregar una nueva sección
+  if (btnAgregarSeccion) {
+    btnAgregarSeccion.addEventListener('click', agregarNuevaSeccion);
+  }
+
+  // Validación antes de enviar el formulario principal del curso
+  if (formNuevoCurso) {
+    formNuevoCurso.addEventListener('submit', function(e) {
+      let seccionesValidas = true;
+      const secciones = contenedorSecciones.querySelectorAll('.card-container');
+
+      if (secciones.length > 0) {
+        secciones.forEach(seccion => {
+          const nombreInput = seccion.querySelector('input[name$="[nombre]"]');
+          const seccionCard = seccion.querySelector('.seccion-card');
+          
+          if (!nombreInput.value.trim()) {
+            seccionesValidas = false;
+            // Marcar la sección inválida visualmente
+            seccionCard.classList.add('border-2', 'border-red-500');
+            
+            // Abrir la caja de edición para que el usuario vea el error
+            const editBox = seccion.querySelector('.edit-box');
+            if (editBox) {
+                editBox.style.maxHeight = editBox.scrollHeight + 'px';
+            }
+          }
+        });
+      }
+
+      if (!seccionesValidas) {
+        e.preventDefault(); // Detiene el envío del formulario
+        alert('Hay secciones sin nombre. Por favor, completa todos los campos de nombre antes de guardar el curso.');
+      }
+      // Si todo es válido, el formulario se envía normalmente.
+    });
+  }
+});

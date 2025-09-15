@@ -48,11 +48,11 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="p-2">
           <div class="mb-2">
             <label for="secciones-${index}-nombre" class="block text-sm font-semibold mb-1">Nombre</label>
-            <input type="text" id="secciones-${index}-nombre" name="secciones[${index}][nombre]" class="edit-nombre w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            <input type="text" id="secciones-${index}-nombre" name="secciones[${index}][nombre]" class="text-sm edit-nombre w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400">
           </div>
           <div>
             <label for="secciones-${index}-descripcion" class="block text-sm font-semibold mb-1">Descripción</label>
-            <textarea id="secciones-${index}-descripcion" name="secciones[${index}][descripcion]" rows="2" class="edit-descripcion w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
+            <textarea id="secciones-${index}-descripcion" name="secciones[${index}][descripcion]" rows="2" class="text-sm edit-descripcion w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
           </div>
         </div>
       </div>

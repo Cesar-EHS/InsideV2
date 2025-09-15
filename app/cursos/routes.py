@@ -137,9 +137,33 @@ def agregar_curso():
     
     form = CursoForm()
     if request.method == 'POST':
+        print("\n--- DEBUG: Contenido de la solicitud ---")
+    
+        # 1. Imprimir todos los datos del formulario
+        print("--- Form Data (request.form):")
+        for key, value in request.form.items():
+            print(f"  '{key}': '{value}'")
+        
+        # 2. Imprimir los archivos recibidos
+        print("\n--- Files Data (request.files):")
+        for key, file_storage in request.files.items():
+            print(f"  '{key}': '{file_storage.filename}'")
+
+        # 3. Imprimir el JSON completo de los datos del formulario (si lo envías por AJAX)
+        # Esto es útil para ver la estructura de secciones[]
+        try:
+            data = request.json
+            print("\n--- JSON Data (request.json):")
+            if data:
+                import json
+                print(json.dumps(data, indent=2))
+            else:
+                print("  No JSON data.")
+        except Exception:
+            print("  No JSON data.")
+
         # Lógica para procesar el formulario cuando se envía
         if form.validate_on_submit():
-            # 1. Creamos curso sin secciones aun ni nada
             curso = Curso()
             curso.nombre = form.nombre.data
             curso.fecha_creacion = datetime.now(mexico_tz)
@@ -168,11 +192,19 @@ def agregar_curso():
             else:
                 curso.imagen = None
 
-            db.session.add(curso)
-            db.session.commit()  # Necesario para obtener el ID del curso
+            try:
+                db.session.add(curso)
+                db.session.commit()  # Necesario para obtener el ID del curso
+                print(f"--- DEBUG: Curso principal guardado con éxito. ID: {curso.id} ---")
+            except Exception as e:
+                print(f"--- ERROR: Falló al guardar el curso principal. Error: {e} ---")
+                db.session.rollback() # Revierte cualquier cambio si hay un error
+                # Si hay un error aquí, las secciones no se guardarán.
+                return jsonify({'success': False, 'message': 'Error al guardar el curso principal.'}), 500
 
             # 2. Procesar y gaurdar los archivos adjuntos (recursos)
             archivos_guardados = 0
+            print(f"--- DEBUG: Archivos procesados. Total guardados: {archivos_guardados} ---")
 
             # Definimos la ruat estatica de los recursos para asegurar que sea un string válido
             static_folder = current_app.static_folder or os.path.join(current_app.root_path, 'static')
@@ -229,12 +261,23 @@ def agregar_curso():
                     
                     db.session.add(seccion)
                     secciones_guardadas += 1
-
-            db.session.commit()
+            try:
+                db.session.commit() # Guardar las secciones
+                print(f"--- DEBUG: Secciones guardadas con éxito. Total: {secciones_guardadas} ---")
+            except Exception as e:
+                print(f"--- ERROR: Falló al guardar las secciones. Error: {e} ---")
+                db.session.rollback()
+                return jsonify({'success': False, 'message': 'Error al guardar las secciones.'}), 500
+            
+            # Si todo fue exitoso, el código continuará aquí
+            print("--- DEBUG: Proceso de guardado completado. ---")
             flash(f'Curso "{curso.nombre}" creado con {secciones_guardadas} sección(es) y {archivos_guardados} recurso(s).', 'success')
             return redirect(url_for('cursos.editar_curso', curso_id=curso.id))
         else:
-            # Si el formulario no es válido, mostrar el formulario con los errores
+            # Esto se ejecutará si form.validate_on_submit() devuelve False
+            print("--- DEBUG: El formulario NO es válido. Mostrando errores de validación. ---")
+            for field, errors in form.errors.items():
+                print(f"--- ERROR de validación: Campo '{field}': {', '.join(errors)}")
             return render_template('cursos/agregar_curso.html', form=form)
         
     # Lógica para mostrar el formulario (cuando la solicitud es GET)

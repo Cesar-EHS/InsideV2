@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import List
 from app.auth.models import User
 from app import db
 
@@ -28,7 +29,6 @@ class Curso(db.Model):
     categoria = db.relationship('CategoriaCurso', backref='cursos')
     creador = db.relationship('User', backref='cursos')
     examenes = db.relationship('Examen', back_populates='curso', cascade='all, delete-orphan')
-    actividades = db.relationship('Actividad', back_populates='curso', cascade='all, delete-orphan')
     inscripciones = db.relationship('Inscripcion', back_populates='curso', cascade='all, delete-orphan')
     archivos = db.relationship('Archivo', back_populates='curso', cascade='all, delete-orphan')
 
@@ -190,7 +190,7 @@ class Seccion(db.Model):
     orden = db.Column(db.Integer, nullable=False)  # Orden de la sección dentro del curso
     
     curso = db.relationship('Curso', back_populates='secciones')
-    actividades = db.relationship('Actividad', back_populates='seccion', cascade='all, delete-orphan')
+    actividades = db.relationship('Actividad', back_populates='seccion', cascade='all, delete-orphan', order_by='Actividad.orden')
 
     def __repr__(self):
         return f'<Seccion {self.nombre} curso {self.curso_id}>'
@@ -200,29 +200,36 @@ class Actividad(db.Model):
     __tablename__ = 'actividades'
 
     id = db.Column(db.Integer, primary_key=True)
-    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
     seccion_id = db.Column(db.Integer, db.ForeignKey('secciones.id'), nullable=False)
     titulo = db.Column(db.String(150), nullable=False)
-    descripcion = db.Column(db.Text, nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
     fecha_entrega = db.Column(db.DateTime, nullable=True)
+    tipo_actividad = db.Column(db.String(50), nullable=False) # 'video', 'documento', 'examen'
+    orden = db.Column(db.Integer, nullable=False, default=0)
 
-    curso = db.relationship('Curso', back_populates='actividades')
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'titulo': self.titulo,
+            'tipo': self.tipo_actividad
+            # Añade cualquier otro campo que necesites en tu JavaScript
+        }
+
     seccion = db.relationship('Seccion', back_populates='actividades')
-
     videos = db.relationship('ActividadVideo', back_populates='actividad', cascade='all, delete-orphan')
     documentos = db.relationship('ActividadDocumento', back_populates='actividad', cascade='all, delete-orphan')
     examenes = db.relationship('ActividadExamen', back_populates='actividad', cascade='all, delete-orphan')
+    # Relación con los resultados de los usuarios
+    resultados = db.relationship('ActividadResultado', back_populates='actividad', cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Actividad {self.titulo} curso {self.curso_id} seccion {self.seccion_id}>'
+        return f'<Actividad {self.titulo} curso seccion {self.seccion_id}>'
 
 class ActividadVideo(db.Model):
     __tablename__ = 'actividades_videos'
     id = db.Column(db.Integer, primary_key=True)
     actividad_id = db.Column(db.Integer, db.ForeignKey('actividades.id'), nullable=False)
     url = db.Column(db.String(255), nullable=False)
-    titulo = db.Column(db.String(150), nullable=False)
     actividad = db.relationship('Actividad', back_populates='videos')
 
 class ActividadDocumento(db.Model):

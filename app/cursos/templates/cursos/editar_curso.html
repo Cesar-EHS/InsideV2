@@ -294,16 +294,48 @@
     <!-- Secciones del curso -->
     <div id="tab-content-secciones" class="tab-content hidden h-full flex flex-col">
       <!-- De aqui se hace el scroll -->
-      <div class="flex-1 overflow-y-auto overflow-x-visible pl-6 pr-3 pb-3 pt-3" style="min-height: 48vh; max-height: 48vh; overflow-y: auto; overflow-x: visible;">
+      <div class="flex-1 overflow-y-auto overflow-x-visible pl-2 pr-3 pb-3 pt-3" style="min-height: 48vh; max-height: 48vh; overflow-y: auto; overflow-x: visible;">
         <div id="contenedor-secciones" class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl">
         <!-- Aquí van las tarjetas de sección -->
+        {% for seccion in curso.secciones %}
+        <div class="card-container">
+          <div
+              class="seccion-card flex w-full max-w-xs h-28 mx-auto overflow-hidden rounded-xl shadow-lg bg-white relative transition-transform duration-200 hover:-translate-y-2 hover:shadow-2xl hover:scale-105 cursor-pointer"
+              data-seccion-id="{{ seccion.id }}"
+              data-nombre="{{ seccion.nombre }}"
+              data-descripcion="{{ seccion.descripcion }}"
+              data-actividades='{{ seccion.actividades_json_string | safe }}'>
+            <button type="button" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl font-bold focus:outline-none eliminar-seccion" title="Eliminar sección" data-seccion-id="{{ seccion.id }}">&times;</button>
+            
+            <div class="flex items-center justify-center w-1/3 bg-[color:var(--inside-yellow)] text-white text-2xl font-bold seccion-numero rounded-l-xl h-full">{{ loop.index }}</div>
+            
+            <div class="flex flex-col justify-center w-2/3 p-3">
+              <div class="font-bold text-base text-gray-800 mb-1 nombre-card">{{ seccion.nombre }}</div>
+              <div class="text-gray-500 text-xs descripcion-card">{{ seccion.descripcion if seccion.descripcion else 'Sin descripción.' }}</div>
+            </div>
+          </div>
+          
+          <div class="edit-box h-0 overflow-hidden bg-white rounded-xl shadow-lg -mt-4 transition-all duration-300 ease-in-out">
+            <div class="p-2">
+              <div class="mb-2">
+                <label for="secciones-{{ loop.index0 }}-nombre" class="block text-sm font-semibold mb-1">Nombre</label>
+                <input type="text" id="secciones-{{ loop.index0 }}-nombre" name="secciones[{{ loop.index0 }}][nombre]" class="edit-nombre w-full p-2 border border-gray-300 rounded-md" value="{{ seccion.nombre }}">
+              </div>
+              <div>
+                <label for="secciones-{{ loop.index0 }}-descripcion" class="block text-sm font-semibold mb-1">Descripción</label>
+                <textarea id="secciones-{{ loop.index0 }}-descripcion" name="secciones[{{ loop.index0 }}][descripcion]" rows="2" class="edit-descripcion w-full p-2 border border-gray-300 rounded-md">{{ seccion.descripcion }}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
         <!-- ...las tarjetas existentes... -->
         </div>
       </div>
       <!-- Botón para añadir sección abajo a la izquierda -->
       <div class="flex justify-start mt-4">
         <button
-          id="btn-abrir-seccion"
+          id="btn-agregar-seccion"
           type="button"
           class="bg-[color:var(--inside-yellow)] hover:bg-yellow-400 text-white font-semibold px-6 py-2 rounded-full shadow transition"
         >
@@ -374,18 +406,25 @@
   </div>
 </div>
 
+
+
 <!-- Modal para crear seccion y actividad con tabs mejorado -->
 <div id="modal-actividad" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden bg-black/40 backdrop-blur-sm transition-all">
   <div class="bg-white rounded-xl shadow-xl p-0 w-full max-w-2xl min-h-[480px] relative">
     <button id="cerrar-modal-actividad" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
     <!-- Tabs nav -->
-    <div class="border-b flex">
-      <button id="tab-datos-btn" class="flex-1 py-4 px-4 font-semibold text-gray-700 border-b-2 border-transparent hover:border-yellow-400 focus:outline-none" onclick="showModalTab('datos')">
-        Datos de sección
-      </button>
-      <button id="tab-actividades-btn" class="flex-1 py-4 px-4 font-semibold text-gray-700 border-b-2 border-transparent hover:border-yellow-400 focus:outline-none" onclick="showModalTab('actividades')">
-        Actividades
-      </button>
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-4 px-4" aria-label="Tabs">
+        <button id="tab-datos-btn" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-400" onclick="showModalTab('datos')">
+          Datos de sección
+        </button>
+        <button id="tab-actividades-btn" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-400" onclick="showModalTab('actividades')">
+          Añadir actividades
+        </button>
+        <button id="tab-visualizar-btn" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-400" onclick="showModalTab('visualizar')">
+            Visualizar actividades
+        </button>
+      </nav>
     </div>
     <!-- Tabs content -->
     <div id="modal-tab-datos" class="p-8 flex flex-col h-[420px]">
@@ -393,49 +432,124 @@
       <form class="flex-1 flex flex-col">
         <div class="mb-4">
           <label class="block text-sm font-semibold mb-1 text-gray-700">Nombre de la sección</label>
-          <input type="text" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ejemplo: Introducción">
+          <input type="text" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ejemplo: Introducción" name="nombre-seccion" />
         </div>
         <div class="mb-4 flex-1">
           <label class="block text-sm font-semibold mb-1 text-gray-700">Descripción</label>
-          <textarea class="w-full border rounded px-3 py-2 text-sm h-24 resize-none" placeholder="Descripción de la sección"></textarea>
+          <textarea class="w-full border rounded px-3 py-2 text-sm h-24 resize-none" placeholder="Descripción de la sección" name="descripcion-seccion"></textarea>
         </div>
         <!-- Continuar con actividades -->
         <div class="flex justify-end items-end mt-auto">
-          <label class="text-yellow-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline" onclick="showModalTab('actividades')">
-            Guardar y continuar con actividades
-            <span class="material-icons text-base">arrow_forward</span>
+          <label class="text-gray-800 font-semibold cursor-pointer flex items-center gap-2 group" onclick="showModalTab('actividades')">
+            <span class="group-hover:text-black transition-colors">Guardar y continuar</span>
+            <span class="material-icons text-base text-yellow-500 group-hover:text-yellow-600 transition-colors">arrow_forward</span>
           </label>
         </div>
       </form>
     </div>
-    <div id="modal-tab-actividades" class="p-8 flex flex-col h-[420px] hidden">
-      <h2 class="text-lg font-bold mb-6 text-gray-800">Selecciona el tipo de actividad</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
-        <!-- Archivo -->
-        <button type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-yellow-100 rounded-xl py-8 transition w-full shadow group">
-          <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-yellow-500">attach_file</span>
-          <span class="font-semibold text-gray-700">Archivo</span>
-        </button>
-        <!-- Video -->
-        <button type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-blue-100 rounded-xl py-8 transition w-full shadow group">
-          <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-blue-500">videocam</span>
-          <span class="font-semibold text-gray-700">Video</span>
-        </button>
-        <!-- Examen -->
-        <button type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-green-100 rounded-xl py-8 transition w-full shadow group">
-          <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-green-500">assignment</span>
-          <span class="font-semibold text-gray-700">Examen</span>
-        </button>
+    <div id="modal-tab-actividades" class="pl-8 pr-8 pb-8 pt-4 flex flex-col h-[420px]">
+      <div id="select-activity-view" class="flex flex-col flex-1">
+        <h2 class="text-lg font-bold mb-6 text-gray-800">Selecciona el tipo de actividad</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Archivo -->
+          <button id="btn-archivo" type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-yellow-100 rounded-xl py-8 transition w-full shadow group">
+            <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-yellow-500">attach_file</span>
+            <span class="font-semibold text-gray-700">Archivo</span>
+          </button>
+          <!-- Video -->
+          <button id="btn-video" type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-blue-100 rounded-xl py-8 transition w-full shadow group">
+            <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-blue-500">videocam</span>
+            <span class="font-semibold text-gray-700">Video</span>
+          </button>
+          <!-- Examen -->
+          <button id="btn-examen" type="button" class="flex flex-col items-center justify-center bg-gray-100 hover:bg-green-100 rounded-xl py-8 transition w-full shadow group">
+            <span class="material-icons text-4xl text-gray-700 mb-2 group-hover:text-green-500">assignment</span>
+            <span class="font-semibold text-gray-700">Examen</span>
+          </button>
+        </div>
+        <!-- Acciones abajo -->
+        <div class="flex justify-between items-end m-auto">
+          <label class="text-gray-800 font-semibold cursor-pointer flex items-center gap-2 group" onclick="showModalTab('datos')">
+            <span class="material-icons text-base text-yellow-500 group-hover:text-yellow-600 transition-colors">arrow_back</span>
+            <span class="group-hover:text-black transition-colors">Regresar a Datos</span>
+          </label>
+          <!-- <button type="button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-2 rounded-lg shadow transition">
+            Guardar
+          </button> -->
+        </div>
       </div>
-      <!-- Acciones abajo -->
-      <div class="flex justify-between items-end mt-8">
-        <label class="text-yellow-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline" onclick="showModalTab('datos')">
-          <span class="material-icons text-base">arrow_back</span>
-          Regresar a Datos
-        </label>
-        <button type="button" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-2 rounded-lg shadow transition">
-          Guardar
-        </button>
+
+      <div id="archivo-view" class="hidden flex-col flex-1">
+        <h2 class="text-lg font-bold mb-4">Añadir Archivo</h2>
+        <form id="form-archivo" class="flex-1 flex flex-col" data-action-template="{{ url_for('cursos.crear_actividad_en_seccion', seccion_id=999999) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="block mb-2">Título del archivo</label>
+          <input type="text" name="titulo-archivo" class="w-full border rounded px-3 py-2 mb-4" placeholder="Título">
+          <label class="block mb-2">Seleccionar archivo</label>
+          <input type="file" name="archivo" class="w-full">
+          <div class="flex justify-end mt-auto gap-4 pt-4">
+            <button type="button" onclick="showActivityView('select')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Regresar</button>
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Guardar archivo</button>
+          </div>
+        </form>
+      </div>
+      <div id="video-view" class="hidden flex-col flex-1">
+        <h2 class="text-lg font-bold mb-4">Añadir Video</h2>
+        <form id="form-video" class="flex-1 flex flex-col">
+          <label class="block mb-2">Título del video</label>
+          <input type="text" name="titulo-video" class="w-full border rounded px-3 py-2 mb-4" placeholder="Título del video">
+          <label class="block mb-2">URL de YouTube</label>
+          <input type="url" name="video-url" class="w-full border rounded px-3 py-2" placeholder="https://www.youtube.com/watch?v=...">
+          <div class="flex justify-end mt-auto gap-4 pt-4">
+              <button type="button" onclick="showActivityView('select')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Regresar</button>
+              <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Guardar Video</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="modal-tab-visualizar" class="p-8 flex-col h-[420px] hidden">
+      <h2 class="text-lg font-bold mb-6 text-gray-800">Actividades existentes</h2>
+      <div id="activities-container" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 pb-4 pt-2">
+          <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="1" data-tipo="video">
+              <div class="flex items-center gap-4">
+                  <span class="material-icons text-4xl text-blue-500">videocam</span>
+                  <div>
+                      <h4 class="font-bold text-base text-gray-800">Video: Introducción al Curso</h4>
+                      <p class="text-xs text-gray-500">Creado: 2025-09-17</p>
+                  </div>
+              </div>
+              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar">
+                      <span class="material-icons">edit</span>
+                  </button>
+                  <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar">
+                      <span class="material-icons">delete</span>
+                  </button>
+              </div>
+          </div>
+
+          <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="2" data-tipo="archivo">
+              <div class="flex items-center gap-4">
+                  <span class="material-icons text-4xl text-yellow-500">attach_file</span>
+                  <div>
+                      <h4 class="font-bold text-base text-gray-800">Recurso: Manual en PDF</h4>
+                      <p class="text-xs text-gray-500">Creado: 2025-09-16</p>
+                  </div>
+              </div>
+              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar">
+                      <span class="material-icons">edit</span>
+                  </button>
+                  <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar">
+                      <span class="material-icons">delete</span>
+                  </button>
+              </div>
+          </div>
+      </div>
+      <div class="flex justify-start items-end mt-4">
+          <button id="add-new-activity" class="text-yellow-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline" onclick="showModalTab('actividades')">
+              <span class="material-icons text-base">add_circle</span> Añadir nueva actividad
+          </button>
       </div>
     </div>
   </div>
@@ -445,4 +559,6 @@
 <script src="{{ url_for('static', filename='js/agregar_examen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/guardar_examen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/agregar_seccion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editar_seccion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/agregar_actividad.js') }}"></script>
 {% endblock %}

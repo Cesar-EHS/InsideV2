@@ -11,9 +11,9 @@
         </svg>
         <span class="text-base text-gray-700 font-semibold">Regresar</span>
       </a>
-      <form method="POST" action="{{ url_for('cursos.inscribirse', curso_id=curso.id) }}">
+      <form id="inscripcionForm" method="POST" action="{{ url_for('cursos.inscribirse', curso_id=curso.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+        <button id="inscribirBtn" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
           Inscribirme
         </button>
       </form>
@@ -137,6 +137,7 @@
   </div>
 
 </div>
+<script src="{{ url_for('static', filename='js/inscribir_curso.js') }}"></script>
 <script>
   // Tabs simples con JS vanilla
   document.addEventListener('DOMContentLoaded', function() {

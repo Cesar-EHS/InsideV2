@@ -4,7 +4,7 @@ from flask import (
 from flask_login import login_required, current_user
 from app import db
 from app.cursos.models import ( # Asegúrate de que Seccion esté importado
-    CategoriaCurso, Curso, Inscripcion, Examen, Pregunta, Seccion,
+    ActividadDocumento, ActividadVideo, CategoriaCurso, Curso, Inscripcion, Examen, Pregunta, Seccion,
     ExamenResultado, Actividad, ActividadResultado, Archivo, TipoExamen
 )
 from app.cursos.forms import CursoForm, ExamenForm, PreguntaForm, ActividadForm
@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from werkzeug.utils import secure_filename
 import os, pytz
 from flask import current_app
+import json
 
 bp_cursos = Blueprint('cursos', __name__, template_folder='templates', static_folder='static')
 
@@ -108,15 +109,6 @@ def index():
 @login_required
 def curso_detalle(curso_id):
     curso = Curso.query.get_or_404(curso_id)
-
-    """ if curso.creador_id != current_user.id:
-        inscripcion = Inscripcion.query.filter_by(
-            usuario_id=current_user.id,
-            curso_id=curso.id,
-            activo=True
-        ).first()
-        if not inscripcion:
-            abort(403) """
     
     if curso.creador_id != current_user.id:
         #Nos traerá datos del curso que se seleccionó.
@@ -344,8 +336,119 @@ def editar_curso(curso_id):
         db.session.commit()
         flash('Curso actualizado correctamente.', 'success')
         return redirect(url_for('cursos.editar_curso', curso_id=curso.id))
+    
+    # Para cada sección, creamos una lista de actividades en formato de diccionario
+    # Esto se ejecuta solo en la petición GET, cuando se carga la página
+    for seccion in curso.secciones:
+        lista_de_dicts = [actividad.to_dict() for actividad in seccion.actividades]
+        seccion.actividades_json_string = json.dumps(lista_de_dicts)
 
     return render_template('cursos/editar_curso.html', form=form, curso=curso, formExamen=formExamen)
+
+@bp_cursos.route('/secciones/<int:seccion_id>/actividades/crear', methods=['POST'])
+@login_required
+def crear_actividad_en_seccion(seccion_id):
+    seccion = Seccion.query.get_or_404(seccion_id)
+    curso = seccion.curso
+
+    if not seccion:
+        return jsonify({'status': 'error', 'message': 'Sección no encontrada.'}), 404
+
+    print("--- ✅ RUTA 'crear_actividad_en_seccion' ALCANZADA ---")
+    
+    # Solo el creador del curso puede añadir actividades
+    if curso.creador_id != current_user.id:
+        return jsonify({'status': 'error', 'message': 'No tienes permiso para realizar esta acción.'}), 403
+    
+    try:
+        tipo_actividad = request.form.get('tipo_actividad')
+        
+        if not tipo_actividad:
+            return jsonify({'status': 'error', 'message': 'No se especificó un tipo de actividad.'}), 400
+
+        # El título se toma del campo específico del formulario que se envía
+        titulo = request.form.get('titulo-video') or request.form.get('titulo-archivo') or "Examen de la sección"
+        
+        # Calcula el orden para la nueva actividad
+        orden_actual_max = db.session.query(db.func.max(Actividad.orden)).filter_by(seccion_id=seccion.id).scalar() or 0
+        
+        # --- Creación del objeto Actividad paso a paso ---
+        nueva_actividad = Actividad()
+        nueva_actividad.titulo = titulo
+        nueva_actividad.fecha_creacion = datetime.now(mexico_tz)
+        nueva_actividad.tipo_actividad = tipo_actividad
+        nueva_actividad.seccion = seccion
+        nueva_actividad.orden = orden_actual_max + 1
+
+        if tipo_actividad == 'video':
+            video_url = request.form.get('video-url')
+            if not video_url:
+                raise ValueError("La URL del video es obligatoria.")
+            
+            # --- Creación del objeto ActividadVideo paso a paso ---
+            actividad_video = ActividadVideo()
+            actividad_video.url = video_url
+            
+            # Conecta el video a la actividad principal
+            nueva_actividad.videos.append(actividad_video)
+
+        elif tipo_actividad == 'documento':
+            archivo = request.files.get('archivo')
+            if not archivo or not archivo.filename:
+                raise ValueError("Debe seleccionar un archivo.")
+            
+            filename = secure_filename(archivo.filename)
+            # Usa la misma lógica que en 'agregar_curso' para la ruta
+            static_folder = current_app.static_folder or os.path.join(current_app.root_path, 'static')
+            ruta_absoluta_base = os.path.join(static_folder, 'cursos', 'recursos_actividades')
+            os.makedirs(ruta_absoluta_base, exist_ok=True)
+            
+            archivo.save(os.path.join(ruta_absoluta_base, filename))
+            
+            # --- Creación del objeto ActividadDocumento paso a paso ---
+            actividad_doc = ActividadDocumento()
+            actividad_doc.nombre_documento = filename
+            actividad_doc.ruta_documento = os.path.join('cursos', 'recursos_actividades', filename)
+
+            # Conecta el documento a la actividad principal
+            nueva_actividad.documentos.append(actividad_doc)
+        
+        elif tipo_actividad == 'examen':
+            # Aquí necesitarías lógica para seleccionar un examen existente
+            # o crear uno nuevo. Por ahora, lo dejamos pendiente.
+            # examen_id = request.form.get('examen_id')
+            # ...
+            raise ValueError('La creación de exámenes aún no está implementada.')
+
+        else:
+            raise ValueError(f"Tipo de actividad no válido: {tipo_actividad}")
+
+        # Guardar todo en la base de datos de forma atómica
+        db.session.add(nueva_actividad)
+        db.session.commit()
+        # Respuesta de éxito: devolvemos la actividad creada
+        return jsonify({
+            'status': 'success',
+            'message': 'Actividad creada con éxito.',
+            'actividad': {
+                'id': nueva_actividad.id,
+                'titulo': nueva_actividad.titulo,
+                'tipo': nueva_actividad.tipo_actividad,
+                'orden': nueva_actividad.orden
+            }
+        })
+    
+    except ValueError as ve:
+        # Errores de validación (datos faltantes)
+        return jsonify({'status': 'error', 'message': str(ve)}), 400
+
+    except Exception as e:
+        # Otros errores (base de datos, etc.)
+        db.session.rollback()
+        # Para depuración, es útil imprimir el error real en la consola del servidor
+        print(f"Error interno al crear actividad: {e}") 
+        return jsonify({'status': 'error', 'message': 'Ocurrió un error interno al guardar la actividad.'}), 500
+
 
 @bp_cursos.route('/inscribirse/<int:curso_id>', methods=['POST'])
 @login_required
@@ -358,19 +461,40 @@ def inscribirse(curso_id):
     ).first()
     # Si ya está inscrito, se debe ir a curso.inscrito
     if inscripcion:
-        flash('Ya estás inscrito en este curso.', 'info')
-        return redirect(url_for('cursos.curso_inscrito', curso_id=curso.id))
+        redirect_url = url_for('cursos.curso_inscrito', curso_id=curso.id)
+        return jsonify({
+            'status': 'info',
+            'message': 'Ya estabas inscrito en este curso.',
+            'redirect_url': redirect_url
+        })
     
     #Si no esta inscrito se debe hacer una nueva inscripcion
-    nueva_inscripcion = Inscripcion()
-    nueva_inscripcion.usuario_id = current_user.id
-    nueva_inscripcion.curso_id = curso.id
-    nueva_inscripcion.avance = 0.0
-    nueva_inscripcion.activo = True
-    db.session.add(nueva_inscripcion)
-    db.session.commit()
-    flash(f'Se inscribió al curso "{curso.nombre}".', 'success')
-    return redirect(url_for('cursos.index', tab='inscrito'))
+    try:
+        nueva_inscripcion = Inscripcion()
+        nueva_inscripcion.usuario_id = current_user.id
+        nueva_inscripcion.curso_id = curso.id
+        nueva_inscripcion.avance = 0.0
+        nueva_inscripcion.activo = True
+        db.session.add(nueva_inscripcion)
+        db.session.commit()
+        # Se dirige a la página del curso inscrito
+        redirect_url = url_for('cursos.curso_inscrito', curso_id=curso.id)
+
+        return jsonify({
+            'status': 'success',
+            'message': f'Te has inscrito al curso "{curso.nombre}".',
+            'redirect_url': redirect_url
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al inscribirse: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Hubo un error al procesar tu inscripción.'
+        }), 500
+    
+
 
 @bp_cursos.route('/mis-cursos/<int:curso_id>')
 def curso_inscrito(curso_id):

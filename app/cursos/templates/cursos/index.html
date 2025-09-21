@@ -230,6 +230,13 @@
       >
         Terminados
       </button>
+
+      <button
+        id="tab-mis-cursos"
+        class="tab-btn flex-1 py-3 text-center font-sfpro text-lg font-semibold text-[#3b3b3c] bg-white rounded-t-2xl focus:outline-none transition-all border-b-2 border-[#fab522]"
+      >
+        Mis Cursos
+      </button>
     </div>
 
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 mt-4 gap-4">
@@ -269,137 +276,135 @@
         </div>
       {% endif %}
     </div>
-
-    <div class="text-[var(--inside-dark)] font-semibold pl-10">Cursos disponibles</div>
-
-    <div id="tab-content-catalogo" class="tab-content pl-6 pt-6 pr-6 flex flex-col flex-1 h-full">
-      <!-- Aquí va el contenido de Catálogo (antes Gestión de cursos) -->
-      <div class="catalogo-scroll grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 pt-4 pr-2 pl-4 pb-4" style="max-height: calc(100vh - 370px); overflow-y: auto;">
-        {% if catalogo_cursos %}
-          {% for curso in catalogo_cursos.items %}
-            {% set es_mio = curso.creador_id == current_user.id %}
-            {% if not es_mio %}
-              <!-- Card clickeable para cursos que NO son míos -->
-              <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="card-curso group block">
-                {% if curso.imagen %}
-                  <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
-                {% else %}
-                  <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
-                {% endif %}
-                <div class="p-4">
-                  <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
-                  <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
-                    {{ curso.estado }}
-                  </span>
-                  <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
-                </div>
-              </a>
-            {% else %}
-              <!-- Card NO clickeable, con botones de editar/eliminar -->
-              <div class="card-curso group relative">
-                {% if curso.imagen %}
-                  <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
-                {% else %}
-                  <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
-                {% endif %}
-                <div class="p-4">
-                  <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
-                  <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
-                    {{ curso.estado }}
-                  </span>
-                  <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
-                </div>
-                <div class="absolute inset-0 flex items-center justify-center bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <a
-                    href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}"
-                    class="mx-2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
-                    title="Editar">
-                    <!-- Icono lápiz -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm0 0L4 19l5-5z" />
-                    </svg>
-                  </a>
-                  <button
-                    class="btn-eliminar-curso mx-2 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
-                    title="Eliminar"
-                    data-id="{{ curso.id }}"
-                    type="button">
-                    <!-- Icono basurero -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
-                    </svg>
-                  </button>
-                </div>
+  </div>
+  <div id="tab-content-catalogo" class="tab-content flex flex-col flex-1 h-full">
+    <div class="text-[var(--inside-dark)] font-semibold pl-10 pt-6">Cursos disponibles</div>
+    <!-- Aquí va el contenido de Catálogo (antes Gestión de cursos) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 flex-1 pt-4 pb-4">
+      {% if catalogo_cursos %}
+        {% for curso in catalogo_cursos.items %}
+          {% set es_mio = curso.creador_id == current_user.id %}
+          {% if not es_mio %}
+            <!-- Card clickeable para cursos que NO son míos -->
+            <a href="{{ url_for('cursos.curso_detalle', curso_id=curso.id) }}" class="card-curso group block">
+              {% if curso.imagen %}
+                <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+              {% else %}
+                <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+              {% endif %}
+              <div class="p-4">
+                <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
+                <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
               </div>
-            {% endif %}
-          {% endfor %}
-        {% else %}
-          <div class="text-center text-gray-700 py-8">No hay cursos disponibles.</div>
-        {% endif %}
-      </div>
-      <div class="flex justify-end pt-2 pb-4">
-        <nav class="inline-flex gap-2">
-          {% if catalogo_cursos.has_prev %}
-            <a href="{{ url_for('cursos.index', page=catalogo_cursos.prev_num, categoria=categoria_filtro, creados=creados, inactivos=inactivos) }}"
-              class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
-              &lt;
             </a>
           {% else %}
-            <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&lt;</span>
-          {% endif %}
-
-          <span class="px-3 py-2 font-semibold text-[#fab522]">{{ catalogo_cursos.page }}</span>
-
-          {% if catalogo_cursos.has_next %}
-            <a href="{{ url_for('cursos.index', page=catalogo_cursos.next_num, categoria=categoria_filtro, creados=creados, inactivos=inactivos) }}"
-              class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
-              &gt;
-            </a>
-          {% else %}
-            <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&gt;</span>
-          {% endif %}
-        </nav>
-      </div>
-    </div>
-    
-    <div id="tab-content-inscrito" class="tab-content p-6 {% if es_encargado %}hidden{% endif %}">
-      <!-- Aquí va el contenido de Inscrito (antes Mis cursos) -->
-      <h2 class="text-xl font-bold mb-6 font-sfpro" style="color: #3b3b3c">
-        Mis cursos
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for curso in mis_cursos_inscrito %}
-          <a href="{{ url_for('cursos.curso_inscrito', curso_id=curso.id) }}" class="card-curso group block">
-            {% if curso.imagen %}
-              <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
-            {% else %}
-              <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
-            {% endif %}
-            <div class="p-4">
-              <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
-              <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
-                {{ curso.estado }}
-              </span>
-              <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+            <!-- Card NO clickeable, con botones de editar/eliminar -->
+            <div class="card-curso group relative">
+              {% if curso.imagen %}
+                <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+              {% else %}
+                <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+              {% endif %}
+              <div class="p-4">
+                <label for=""> {{ curso.nombre }} </label>
+                <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+              </div>
+              <div class="absolute inset-0 flex items-center justify-center bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <a
+                  href="{{ url_for('cursos.editar_curso', curso_id=curso.id) }}"
+                  class="mx-2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
+                  title="Editar">
+                  <!-- Icono lápiz -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm0 0L4 19l5-5z" />
+                  </svg>
+                </a>
+                <button
+                  class="btn-eliminar-curso mx-2 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
+                  title="Eliminar"
+                  data-id="{{ curso.id }}"
+                  type="button">
+                  <!-- Icono basurero -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </a>
-          {% else %}
-          <div class="col-span-3 text-center text-gray-400 py-8 font-sfpro">
-            No estás inscrito en ningún curso.
-          </div>
+          {% endif %}
         {% endfor %}
-      </div>
+      {% else %}
+        <div class="text-center text-gray-700 py-8">No hay cursos disponibles.</div>
+      {% endif %}
     </div>
+  </div>
+  <div id="tab-content-inscrito" class="tab-content p-6 {% if es_encargado %}hidden{% endif %}">
+    <!-- Aquí va el contenido de Inscrito (antes Mis cursos) -->
+    <h2 class="text-xl font-bold mb-6 font-sfpro" style="color: #3b3b3c">
+      Mis cursos
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for curso in mis_cursos_inscrito %}
+        <a href="{{ url_for('cursos.curso_inscrito', curso_id=curso.id) }}" class="card-curso group block">
+          {% if curso.imagen %}
+            <img src="{{ url_for('static', filename=curso.imagen) }}" alt="{{ curso.nombre }}" class="w-full h-32 object-cover" />
+          {% else %}
+            <img src="{{ url_for('static', filename='cursos/img/default-curso.png') }}" alt="Sin imagen" class="w-full h-32 object-cover" />
+          {% endif %}
+          <div class="p-4">
+            <h2 class="text-xl font-semibold"> {{ curso.nombre }} </h2>
+            <span class="badge-estatus {{ curso.estado|lower|replace(' ', '-') }}">
+              {{ curso.estado }}
+            </span>
+            <p class="text-gray-600 text-sm"> {{ curso.objetivo.descripcion }} </p>
+          </div>
+        </a>
+        {% else %}
+        <div class="col-span-3 text-center text-gray-400 py-8 font-sfpro">
+          No estás inscrito en ningún curso.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 
-    <div id="tab-content-terminados" class="tab-content p-6 hidden">
-      <!-- Aquí va el contenido de Terminados -->
-      <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
-        Cursos Terminados
-      </h2>
-      <!-- Puedes agregar aquí la tabla o cards de cursos terminados -->
-    </div>
+  <div id="tab-content-terminados" class="tab-content p-6 hidden">
+    <!-- Aquí va el contenido de Terminados -->
+    <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
+      Cursos Terminados
+    </h2>
+    <!-- Puedes agregar aquí la tabla o cards de cursos terminados -->
+  </div>
+  <div id="tab-content-mis-cursos" class="tab-content p-6 hidden">
+    <!-- Aquí va el contenido de Terminados -->
+    <h2 class="text-xl font-bold mb-2 font-sfpro" style="color: #3b3b3c">
+      Gestión de mis cursos
+    </h2>
+    <!-- Puedes agregar aquí la tabla o cards de cursos terminados -->
+  </div>
+  <div class="flex justify-end pt-2 pb-4">
+    <nav class="inline-flex gap-2">
+      {% if catalogo_cursos.has_prev %}
+        <a href="{{ url_for('cursos.index', page=catalogo_cursos.prev_num, categoria=categoria_filtro, creados=creados, inactivos=inactivos) }}"
+          class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
+          &lt;
+        </a>
+      {% else %}
+        <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&lt;</span>
+      {% endif %}
+
+      <span class="px-3 py-2 font-semibold text-gray-800">{{ catalogo_cursos.page }}</span>
+
+      {% if catalogo_cursos.has_next %}
+        <a href="{{ url_for('cursos.index', page=catalogo_cursos.next_num, categoria=categoria_filtro, creados=creados, inactivos=inactivos) }}"
+          class="px-3 py-2 rounded-lg bg-white border border-[#fab522]/40 text-[#3b3b3c] hover:bg-[#ffe08a] transition">
+          &gt;
+        </a>
+      {% else %}
+        <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">&gt;</span>
+      {% endif %}
+    </nav>
   </div>
 </div>
 

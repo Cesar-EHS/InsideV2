@@ -20,12 +20,12 @@ document.addEventListener('DOMContentLoaded', function () {
     div.appendChild(deleteBtn);
   }
 
-  // Añadir botón eliminar a los recursos existentes
-  recursosContainer.querySelectorAll('.bg-white.rounded-xl.shadow.p-4').forEach(function(div) {
-    addDeleteButton(div);
-  });
-
   if (addBtn && fileInput && recursosContainer) {
+    // Añadir botón eliminar a los recursos existentes
+    recursosContainer.querySelectorAll('.bg-white.rounded-xl.shadow.p-4').forEach(function(div) {
+      addDeleteButton(div);
+    });
+    
     addBtn.addEventListener('click', function () {
       fileInput.click();
     });

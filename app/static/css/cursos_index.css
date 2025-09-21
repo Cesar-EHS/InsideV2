@@ -1,0 +1,79 @@
+/* Estilo general para cards de cursos */
+.card-curso {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px 0 rgba(31, 38, 135, 0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.card-curso:hover {
+  background: #fffbe6;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.16);
+  transform: translateY(-6px);
+}
+.card-curso .card-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.card-curso:hover .card-actions {
+  opacity: 1;
+}
+
+/* Badges de estado para los cursos */
+.badge-estatus {
+  display: inline-block;
+  padding: 0.25em 0.8em;
+  border-radius: 999px;
+  font-size: 0.95em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-family: inherit;
+}
+.badge-estatus.inactivo {
+  background: #e5e5ea;
+  color: #3b3b3c;
+}
+.badge-estatus.activo {
+  background: #b7ebc6;
+  color: #2e7d32;
+}
+
+/* Estilos para el sistema de TABS */
+.tab-btn {
+  transition: background 0.2s, color 0.2s;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  background: #fffbe6;
+  color: #3b3b3c;
+  border-bottom: 2px solid #fab522;
+}
+.tab-content {
+  display: none; /* Se gestiona con JS */
+  min-height: 320px;
+}
+.tab-content.active {
+  display: flex; /* O 'block', dependiendo de tu layout */
+}
+
+
+/* Estilos para el toggle switch de 'Mostrar Inactivos' */
+#toggle-inactivos:checked ~ .dot {
+  transform: translateX(100%);
+  background-color: #fab522;
+}
+#toggle-inactivos:checked ~ .block {
+  background-color: #fffbe6;
+}

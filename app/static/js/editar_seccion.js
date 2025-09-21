@@ -131,6 +131,81 @@ document.addEventListener('DOMContentLoaded', function () {
     
     const formArchivo = document.getElementById('form-archivo');
     if (formArchivo) {
-        // ... tu lógica de 'fetch' para guardar el archivo se queda igual ...
+        formArchivo.addEventListener('submit', function(event) {
+            // Previene el envío normal para que no se recargue la página
+            event.preventDefault(); 
+
+            // Crea un objeto FormData para recolectar TODOS los campos del formulario
+            const formData = new FormData(formArchivo);
+            
+            // Obtiene la URL de acción actualizada del atributo 'action' del form
+            const url = formArchivo.action;
+
+            // Usa fetch() para enviar los datos
+            fetch(url, {
+                method: 'POST',
+                body: formData, // Envía el objeto FormData directamente
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // --- PASO 1: Creamos el nuevo elemento HTML en segundo plano ---
+
+                    const activitiesContainer = document.getElementById('activities-container');
+                    const nuevaActividad = data.actividad;
+
+                    // Si existe un mensaje de "aún no tiene actividades", lo eliminamos
+                    const emptyMessage = activitiesContainer.querySelector('p');
+                    if (emptyMessage && emptyMessage.textContent.includes("aún no tiene actividades")) {
+                        emptyMessage.remove();
+                    }
+
+                    // Creamos el HTML para la nueva "tarjeta" de actividad
+                    const activityCardHTML = `
+                        <div class="activity-card flex items-center justify-between p-4 bg-white rounded-xl shadow-md border border-gray-200" data-id="${nuevaActividad.id}">
+                            <div class="flex items-center gap-4">
+                                ${getIconForActivityType(nuevaActividad.tipo)} 
+                                <div>
+                                    <h4 class="font-bold text-base text-gray-800">${nuevaActividad.titulo}</h4>
+                                    <p class="text-xs text-gray-500">Tipo: ${nuevaActividad.tipo}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar"><span class="material-icons">edit</span></button>
+                                <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar"><span class="material-icons">delete</span></button>
+                            </div>
+                        </div>`;
+
+                    // Insertamos la nueva tarjeta en el contenedor de visualización
+                    activitiesContainer.insertAdjacentHTML('beforeend', activityCardHTML);
+
+                    // --- PASO 2: Notificamos al usuario y cambiamos de pestaña ---
+
+                    Swal.fire({
+                        title: '¡Actividad Creada!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 1500, // La alerta se cierra sola después de 1.5 segundos
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Esta función se ejecuta después de que se cierra la alerta
+                        showModalTab('visualizar'); // Cambiamos a la pestaña deseada
+                    });
+
+                } else {
+                    // Manejo de errores
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error de red:', error);
+                alert('Ocurrió un error de conexión. Inténtalo de nuevo.');
+            });
+        });
     }
 });

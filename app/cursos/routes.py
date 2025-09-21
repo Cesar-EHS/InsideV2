@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify
+    Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify, send_from_directory
 )
 from flask_login import login_required, current_user
 from app import db
@@ -360,6 +360,8 @@ def crear_actividad_en_seccion(seccion_id):
     if curso.creador_id != current_user.id:
         return jsonify({'status': 'error', 'message': 'No tienes permiso para realizar esta acción.'}), 403
     
+    print("Datos recibidos del formulario:", request.form)
+    
     try:
         tipo_actividad = request.form.get('tipo_actividad')
         
@@ -448,6 +450,18 @@ def crear_actividad_en_seccion(seccion_id):
         # Para depuración, es útil imprimir el error real en la consola del servidor
         print(f"Error interno al crear actividad: {e}") 
         return jsonify({'status': 'error', 'message': 'Ocurrió un error interno al guardar la actividad.'}), 500
+
+@bp_cursos.route('/recursos/view/<path:filepath>')
+@login_required
+def ver_recurso(filepath):
+    # Define la carpeta donde están guardados los archivos de las actividades
+    # ¡Asegúrate de que esta ruta sea correcta para tu proyecto!
+    static_folder = current_app.static_folder or os.path.join(current_app.root_path, 'static')
+    directory = os.path.join(static_folder, 'cursos', 'recursos_actividades')
+    
+    # send_from_directory sirve el archivo de forma segura para evitar que
+    # los usuarios accedan a otros directorios del sistema.
+    return send_from_directory(directory, filepath)
 
 
 @bp_cursos.route('/inscribirse/<int:curso_id>', methods=['POST'])
@@ -614,13 +628,13 @@ def agregar_pregunta(examen_id):
 
     form = PreguntaForm()
     if form.validate_on_submit():
-        pregunta = Pregunta(
-            examen_id=examen.id,
-            texto=form.texto.data,
-            tipo=form.tipo.data,
-            opciones=form.opciones.data if form.tipo.data == 'opcion_multiple' else None,
-            respuesta_correcta=form.respuesta_correcta.data
-        )
+        pregunta = Pregunta()
+        examen_id=examen.id
+        texto=form.texto.data
+        tipo=form.tipo.data
+        opciones=form.opciones.data if form.tipo.data == 'opcion_multiple' else None
+        respuesta_correcta=form.respuesta_correcta.data
+        
         db.session.add(pregunta)
         db.session.commit()
         flash('Pregunta agregada correctamente.', 'success')
@@ -678,11 +692,11 @@ def agregar_actividad(curso_id):
 
     form = ActividadForm()
     if form.validate_on_submit():
-        actividad = Actividad(
-            curso_id=curso.id,
-            titulo=form.titulo.data,
-            descripcion=form.descripcion.data
-        )
+        actividad = Actividad()
+        curso_id=curso.id
+        titulo=form.titulo.data
+        descripcion=form.descripcion.data
+        
         db.session.add(actividad)
         db.session.commit()
         flash('Actividad agregada correctamente.', 'success')

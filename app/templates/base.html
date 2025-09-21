@@ -7,6 +7,7 @@
   <link rel="icon" type="image/webp" href="{{ url_for('static', filename='logo_inside.png') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tabla_participantes.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cursos_index.css') }}">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -19,6 +20,7 @@
       --inside-white: #fff;
       --inside-shadow: 0 4px 24px 0 #0001;
     }
+    
     body { font-family: 'Poppins', sans-serif; background: transparent; color: var(--inside-dark);
       background-image: url('/static/img/BACKGROUND.svg');
       background-repeat: no-repeat;
@@ -202,6 +204,19 @@
       padding: 1.5rem; /* Ajusta el padding para que el contenido sea visible */
     }
 
+    .contenido-seccion {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-in-out;
+    }
+
+    #viewerContainer {
+      overflow: auto;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
     .user-menu-dropdown .text-red-600 { color: #e53e3e !important; }
     .user-menu-dropdown .text-red-600:hover { color: #fff; background: #e53e3e !important; }
     @keyframes fadeIn {
@@ -221,6 +236,8 @@
 </head>
 <body class="min-h-screen">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{{ url_for('static', filename='lib/pdfjs/build/pdf.mjs') }}"></script>
+  <script src="{{ url_for('static', filename='lib/pdfjs/web/viewer.mjs') }}"></script>
   <header class="w-full bg-white apple-shadow flex items-center justify-between px-2 sm:px-8 py-2 fixed top-0 left-0 z-50 rounded-b-2xl">
     <a href="/" class="flex items-center mr-2 sm:mr-6">
       <!-- Logo grande (escritorio) -->

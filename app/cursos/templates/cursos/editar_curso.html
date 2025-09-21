@@ -410,7 +410,7 @@
 
 <!-- Modal para crear seccion y actividad con tabs mejorado -->
 <div id="modal-actividad" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden bg-black/40 backdrop-blur-sm transition-all">
-  <div class="bg-white rounded-xl shadow-xl p-0 w-full max-w-2xl min-h-[480px] relative">
+  <div class="bg-white rounded-2xl shadow-xl p-0 w-full max-w-2xl min-h-[480px] relative">
     <button id="cerrar-modal-actividad" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
     <!-- Tabs nav -->
     <div class="border-b border-gray-200">
@@ -481,8 +481,9 @@
 
       <div id="archivo-view" class="hidden flex-col flex-1">
         <h2 class="text-lg font-bold mb-4">Añadir Archivo</h2>
-        <form id="form-archivo" class="flex-1 flex flex-col" data-action-template="{{ url_for('cursos.crear_actividad_en_seccion', seccion_id=999999) }}">
+        <form id="form-archivo" class="flex-1 flex flex-col" data-action-template="{{ url_for('cursos.crear_actividad_en_seccion', seccion_id=999999) }}" enctype="multipart/form-data">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="tipo_actividad" value="documento">
           <label class="block mb-2">Título del archivo</label>
           <input type="text" name="titulo-archivo" class="w-full border rounded px-3 py-2 mb-4" placeholder="Título">
           <label class="block mb-2">Seleccionar archivo</label>
@@ -507,26 +508,26 @@
         </form>
       </div>
     </div>
-    <div id="modal-tab-visualizar" class="p-8 flex-col h-[420px] hidden">
-      <h2 class="text-lg font-bold mb-6 text-gray-800">Actividades existentes</h2>
-      <div id="activities-container" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 pb-4 pt-2">
-          <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="1" data-tipo="video">
-              <div class="flex items-center gap-4">
-                  <span class="material-icons text-4xl text-blue-500">videocam</span>
-                  <div>
-                      <h4 class="font-bold text-base text-gray-800">Video: Introducción al Curso</h4>
-                      <p class="text-xs text-gray-500">Creado: 2025-09-17</p>
-                  </div>
-              </div>
-              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar">
-                      <span class="material-icons">edit</span>
-                  </button>
-                  <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar">
-                      <span class="material-icons">delete</span>
-                  </button>
-              </div>
-          </div>
+    <div id="modal-tab-visualizar" class="p-8 flex flex-col h-[65vh] hidden">
+      <h2 class="text-lg font-bold text-gray-800">Actividades existentes</h2>
+      <div id="activities-container" class="space-y-4 flex-grow overflow-y-auto p-6">
+        <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="1" data-tipo="video">
+            <div class="flex items-center gap-4">
+                <span class="material-icons text-4xl text-blue-500">videocam</span>
+                <div>
+                    <h4 class="font-bold text-base text-gray-800">Video: Introducción al Curso</h4>
+                    <p class="text-xs text-gray-500">Creado: 2025-09-17</p>
+                </div>
+            </div>
+            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar">
+                    <span class="material-icons">delete</span>
+                </button>
+            </div>
+        </div>
 
           <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="2" data-tipo="archivo">
               <div class="flex items-center gap-4">
@@ -546,10 +547,11 @@
               </div>
           </div>
       </div>
-      <div class="flex justify-start items-end mt-4">
-          <button id="add-new-activity" class="text-yellow-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline" onclick="showModalTab('actividades')">
-              <span class="material-icons text-base">add_circle</span> Añadir nueva actividad
-          </button>
+      <div class="flex justify-end items-end mt-4">
+        <label class="text-gray-800 font-semibold cursor-pointer flex items-center gap-2 group" onclick="showModalTab('actividades')">
+            <span class="material-icons text-base text-yellow-500 group-hover:text-yellow-600 transition-colors">add_circle</span> 
+            <span class="group-hover:text-black transition-colors">Añadir nueva actividad</span>
+        </label>
       </div>
     </div>
   </div>

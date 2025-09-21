@@ -5,9 +5,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabCatalogoBtn = document.getElementById('tab-catalogo');
     const tabInscritoBtn = document.getElementById('tab-inscrito');
     const tabTerminadosBtn = document.getElementById('tab-terminados');
+    const tabMisCursosBtn = document.getElementById('tab-mis-cursos');
     const tabContentCatalogo = document.getElementById('tab-content-catalogo');
     const tabContentInscrito = document.getElementById('tab-content-inscrito');
     const tabContentTerminados = document.getElementById('tab-content-terminados');
+    const tabContentMisCursos = document.getElementById('tab-content-mis-cursos');
 
     function activateTab(activeBtn, activeContent) {
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -57,5 +59,11 @@ document.addEventListener('DOMContentLoaded', function () {
         tabTerminadosBtn.addEventListener('click', function () {
             activateTab(tabTerminadosBtn, tabContentTerminados);
         });
+    }
+    if (tabMisCursosBtn) {
+        tabMisCursosBtn.addEventListener('click', function () {
+            activateTab(tabMisCursosBtn, tabContentMisCursos);
+        });
+    
     }
 });

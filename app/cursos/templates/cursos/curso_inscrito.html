@@ -1,108 +1,74 @@
-{% extends 'base.html' %} {% block content %}
-<div class="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl w-full max-w-md sm:max-w-2xl md:max-w-6xl h-[85vh] mx-auto">
+{% extends 'base.html' %} 
+{% block content %}
 
-  <!-- Apartado de Recursos -->
-  <h2 class="text-2xl font-bold mb-3">{{ curso.nombre }}</h2>
-  <div class="w-full h-0.5 bg-[#fab522] rounded mb-6"></div>
-
-  <!-- Secciones del curso -->
-  <h2 class="text-xl font-bold mb-4">Secciones</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-    <!-- Sección 1 -->
-    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center cursor-pointer section-card"
-         onclick="abrirSeccionModal('Sección 1', 'Contenido de la Sección 1')">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-[#3b3b3c]">1</div>
-        <span class="text-sm text-gray-500">Progreso % <span class="font-bold">0</span></span>
-      </div>
-      <div class="text-center font-semibold">Sesión 1</div>
-    </div>
-    <!-- Sección 2 -->
-    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center cursor-pointer section-card"
-         onclick="abrirSeccionModal('Sección 2', 'Contenido de la Sección 2')">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-[#3b3b3c]">2</div>
-        <span class="text-sm text-gray-500">Progreso % <span class="font-bold">0</span></span>
-      </div>
-      <div class="text-center font-semibold">Sesión 2</div>
-    </div>
-    <!-- Sección 3 -->
-    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center cursor-pointer section-card"
-         onclick="abrirSeccionModal('Sección 3', 'Contenido de la Sección 3')">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-[#3b3b3c]">M</div>
-      </div>
-      <div class="text-center font-semibold">Mosaico 1</div>
-    </div>
+<div id="course-view-container" class="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl w-full max-w-4xl h-[85vh] mx-auto">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">{{ curso.nombre }}</h1>
+    <p class="text-gray-500 mt-1">Selecciona una sección para ver sus actividades.</p>
   </div>
 
-  <!-- Recursos -->
-  <div class="flex items-center justify-between mt-4">
-    <div class="flex items-center gap-2">
-      <span class="text-lg font-bold text-[#3b3b3c] font-sfpro">Recursos</span>
-    </div>
-  </div>
-  <div id="recursos-content" class="mt-4">
-    {% if curso.archivos %}
-      <div class="flex gap-4 flex-wrap">
-        {% for archivo in curso.archivos %}
-          {% set extension = archivo.nombre.split('.')[-1]|lower %}
-            <a class="recurso-link rounded-2xl shadow p-4 flex flex-col items-center hover:bg-gray-100 transition"
-              href="{{ url_for('static', filename='cursos/recursos/' ~ archivo.nombre) }}"
-              data-url="{{ url_for('static', filename='cursos/recursos/' ~ archivo.nombre) }}"
-              data-extension="{{ extension }}"
-              title="Abrir {{ archivo.nombre }}">
-              {% if extension == 'pdf' %}
-                <img
-                  src="{{ url_for('static', filename='img/pdf.png') }}"
-                  alt="PDF"
-                  class="w-12 h-12 mb-2"
-                />
-              {% elif extension in ['docx', 'doc'] %}
-                <img
-                  src="{{ url_for('static', filename='img/oficina.png') }}"
-                  alt="DOCX"
-                  class="w-12 h-12 mb-2"
-                />
-              {% elif extension == 'ppt' %}
-                <img
-                  src="{{ url_for('static', filename='img/ppt.png') }}"
-                  alt="PPT"
-                  class="w-12 h-12 mb-2"
-                />
-              {% elif extension == 'xlsx' %}
-                <img
-                  src="{{ url_for('static', filename='img/xlsx.png') }}"
-                  alt="XLSX"
-                  class="w-12 h-12 mb-2"
-                />
-              {% elif extension == 'png' %}
-                <img
-                    src="{{ url_for('static', filename='img/png.png') }}"
-                    alt="PNG"
-                    class="w-12 h-12 mb-2"
-                  />
-              {% endif %}
-              <span class="text-xs text-gray-700">{{archivo.nombre}}</span>
-            </a>
-        {% endfor %}
+  <div class="space-y-4">
+    {% for seccion in curso.secciones %}
+    <div class="seccion-acordeon border border-gray-200 rounded-lg overflow-hidden">
+      <button class="w-full flex justify-between items-center p-5 text-left bg-gray-50 hover:bg-gray-100 transition duration-300 focus:outline-none">
+        <div class="flex items-center space-x-4">
+          <div class="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-yellow-500 text-white font-bold text-lg">
+            {{ loop.index }}
+          </div>
+          <div>
+            <p class="text-lg font-semibold text-gray-800">{{ seccion.nombre }}</p>
+            <p class="text-sm text-gray-500">{{ seccion.actividades|length }} Actividades</p>
+          </div>
+        </div>
+        <span class="material-icons text-gray-500 transform transition-transform duration-300">expand_more</span>
+      </button>
+
+      <div class="contenido-seccion" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out;">
+        <ul class="space-y-2 p-5 border-t border-gray-200">
+          {% for actividad in seccion.actividades %}
+            {% if actividad.tipo_actividad == 'documento' %}
+              <li class="flex items-center p-3 -mx-3 rounded-lg text-gray-700 font-medium cursor-pointer transition-colors duration-200 hover:bg-yellow-50 hover:text-yellow-800"
+                  data-tipo-actividad="documento" 
+                  data-contenido="{{ actividad.documentos[0].ruta_documento if actividad.documentos else '' }}">
+                  <span class="material-icons text-yellow-600 mr-4">attach_file</span>
+                  <span class="flex-1">{{ actividad.titulo }}</span>
+                  <span class="text-sm font-bold text-yellow-600">Previsualizar</span>
+              </li>
+            {% elif actividad.tipo_actividad == 'video' %}
+              <li class="flex items-center p-3 -mx-3 rounded-lg text-gray-700 font-medium cursor-pointer transition-colors duration-200 hover:bg-blue-50 hover:text-blue-800"
+                  data-tipo-actividad="video" 
+                  data-contenido="{{ actividad.videos[0].url if actividad.videos else '' }}">
+                  <span class="material-icons text-blue-500 mr-4">videocam</span>
+                  <span class="flex-1">{{ actividad.titulo }}</span>
+                  <span class="text-sm text-gray-400">Ver Video</span>
+              </li>
+            {% endif %}
+          {% else %}
+            <li class="text-center text-gray-400">No hay actividades en esta sección.</li>
+          {% endfor %}
+        </ul>
       </div>
-    {% else %}
-      <div class="text-gray-400 text-sm">No tiene recursos.</div>
-    {% endif %}
+    </div>
+    {% endfor %}
   </div>
 </div>
 
-<!-- Modal para detalle de secciones -->
-<div id="seccion-modal-overlay" class="fixed inset-0 bg-gray-700 bg-opacity-60 flex items-center justify-center z-50 hidden transition-opacity duration-300">
-  <div id="seccion-modal" class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl relative opacity-0 scale-95 transition-all duration-300">
-    <button onclick="cerrarSeccionModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full border border-gray-400 flex items-center justify-center text-2xl text-gray-500 hover:bg-gray-100 transition">&times;</button>
-    <h2 id="seccion-modal-titulo" class="text-2xl font-bold mb-2"></h2>
-    <div class="w-32 h-1 bg-[#fab522] rounded mb-6"></div>
-    <div id="seccion-modal-contenido" class="mb-4"></div>
-    <!-- Aquí puedes agregar el video o recursos si lo necesitas -->
+<div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-xl shadow-2xl w-11/12 h-5/6 max-w-5xl flex flex-col">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 id="preview-title" class="text-xl font-semibold text-gray-800">Previsualización</h3>
+      <button id="close-preview-modal" class="text-gray-500 hover:text-red-600 text-3xl font-bold">&times;</button>
+    </div>
+    <div class="flex-1 relative bg-gray-200">
+      <div id="viewerContainer" class="absolute inset-0 overflow-auto">
+        <div id="viewer" class="pdfViewer"></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/abrir_secciones.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/pdfjs/build/pdf.mjs') }}" type="module"></script>
+<script src="{{ url_for('static', filename='lib/pdfjs/web/viewer.mjs') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/abrir_archivo_pdf.js') }}"></script>
+<script src="{{ url_for('static', filename='js/abrir_acordeones_secciones.js') }}"></script>
 {% endblock %}

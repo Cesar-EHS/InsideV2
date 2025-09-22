@@ -229,6 +229,7 @@ class ActividadVideo(db.Model):
     __tablename__ = 'actividades_videos'
     id = db.Column(db.Integer, primary_key=True)
     actividad_id = db.Column(db.Integer, db.ForeignKey('actividades.id'), nullable=False)
+    titulo = db.Column(db.String(255), nullable=False)
     url = db.Column(db.String(255), nullable=False)
     actividad = db.relationship('Actividad', back_populates='videos')
 

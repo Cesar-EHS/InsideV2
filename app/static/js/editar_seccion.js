@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
             formArchivo.action = finalUrl;
         }
         // (Aquí la lógica para formVideo)
+        const formVideo = document.getElementById('form-video');
+        if (formVideo && formVideo.dataset.actionTemplate) {
+            const finalUrlVideo = formVideo.dataset.actionTemplate.replace('999999', seccionId);
+            formVideo.action = finalUrlVideo;
+        }
 
         // "Pintar" las actividades existentes
         const activitiesContainer = document.getElementById('activities-container');
@@ -130,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     const formArchivo = document.getElementById('form-archivo');
+    const formVideo = document.getElementById('form-video');
     if (formArchivo) {
         formArchivo.addEventListener('submit', function(event) {
             // Previene el envío normal para que no se recargue la página
@@ -205,6 +211,78 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 console.error('Error de red:', error);
                 alert('Ocurrió un error de conexión. Inténtalo de nuevo.');
+            });
+        });
+    }
+    // Lógica para la ctividad de Video
+    if (formVideo) {
+        formVideo.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(formVideo);
+            const url = formVideo.action;
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const activitiesContainer = document.getElementById('activities-container');
+                    const nuevaActividad = data.actividad;
+
+                    // Si existe un mensaje de "aún no tiene actividades", lo eliminamos
+                    const emptyMessage = activitiesContainer.querySelector('p');
+                    if (emptyMessage && emptyMessage.textContent.includes("aún no tiene actividades")) {
+                        emptyMessage.remove();
+                    }
+
+                    // Creamos el HTML para la nueva tarjeta de actividad (VIDEO)
+                    const activityCardHTML = `
+                        <div class="activity-card flex items-center justify-between p-4 bg-white rounded-xl shadow-md border border-gray-200" data-id="${nuevaActividad.id}">
+                            <div class="flex items-center gap-4">
+                                ${getIconForActivityType(nuevaActividad.tipo)} 
+                                <div>
+                                    <h4 class="font-bold text-base text-gray-800">${nuevaActividad.titulo}</h4>
+                                    <p class="text-xs text-gray-500">Tipo: ${nuevaActividad.tipo}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar"><span class="material-icons">edit</span></button>
+                                <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar"><span class="material-icons">delete</span></button>
+                            </div>
+                        </div>`;
+
+                    activitiesContainer.insertAdjacentHTML('beforeend', activityCardHTML);
+
+                    Swal.fire({
+                        title: '¡Actividad Creada!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        showModalTab('visualizar'); // Cambiamos a la pestaña de visualización
+                    });
+
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error de red:', error);
+                Swal.fire({
+                    title: 'Error de Conexión',
+                    text: 'No se pudo comunicar con el servidor. Inténtalo de nuevo.',
+                    icon: 'error',
+                    confirmButtonText: 'Cerrar'
+                });
             });
         });
     }

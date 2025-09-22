@@ -389,6 +389,7 @@ def crear_actividad_en_seccion(seccion_id):
             
             # --- Creación del objeto ActividadVideo paso a paso ---
             actividad_video = ActividadVideo()
+            actividad_video.titulo = titulo
             actividad_video.url = video_url
             
             # Conecta el video a la actividad principal
@@ -551,6 +552,25 @@ def avance(curso_id):
     inscripcion.avance = float(avance)
     db.session.commit()
     return jsonify({'success': True, 'avance': inscripcion.avance})
+
+@bp_cursos.route('/actividad/<int:actividad_id>/realizar')
+@login_required
+def realizar_actividad(actividad_id):
+    # Buscamos la actividad
+    actividad = Actividad.query.get_or_404(actividad_id)
+    curso = actividad.seccion.curso
+
+    # Verificamos que la actividad sea un video
+    video_url = None
+    if actividad.tipo_actividad == 'video' and actividad.videos:
+        # Obtenemos el unico video asociado a esta actividad
+        video_url = actividad.videos[0].url
+    else:
+        abort(404, description="La actividad no es un video o no tiene video asociado.")
+
+    # Renderizamos la plantilla, pasando todos los datos de actividad y curso.
+    return render_template('cursos/realizar_actividad.html', actividad=actividad, curso=curso, video_url=video_url)
+    
 
 
 # ---------- EXÁMENES ----------

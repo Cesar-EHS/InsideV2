@@ -35,12 +35,13 @@
                   <span class="text-sm font-bold text-yellow-600">Previsualizar</span>
               </li>
             {% elif actividad.tipo_actividad == 'video' %}
-              <li class="flex items-center p-3 -mx-3 rounded-lg text-gray-700 font-medium cursor-pointer transition-colors duration-200 hover:bg-blue-50 hover:text-blue-800"
-                  data-tipo-actividad="video" 
-                  data-contenido="{{ actividad.videos[0].url if actividad.videos else '' }}">
-                  <span class="material-icons text-blue-500 mr-4">videocam</span>
-                  <span class="flex-1">{{ actividad.titulo }}</span>
-                  <span class="text-sm text-gray-400">Ver Video</span>
+              <li>
+                <a href="{{ url_for('cursos.realizar_actividad', actividad_id=actividad.id) }}" 
+                  class="flex items-center p-3 -mx-3 rounded-lg text-gray-700 font-medium transition-colors duration-200 hover:bg-blue-50 hover:text-blue-800">
+                    <span class="material-icons text-blue-500 mr-4">videocam</span>
+                    <span class="flex-1">{{ actividad.titulo }}</span>
+                    <span class="text-sm font-bold text-blue-600">Iniciar Video</span>
+                </a>
               </li>
             {% endif %}
           {% else %}

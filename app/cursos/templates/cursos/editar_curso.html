@@ -496,7 +496,10 @@
       </div>
       <div id="video-view" class="hidden flex-col flex-1">
         <h2 class="text-lg font-bold mb-4">Añadir Video</h2>
-        <form id="form-video" class="flex-1 flex flex-col">
+        <form id="form-video" class="flex-1 flex flex-col" data-action-template="{{ url_for('cursos.crear_actividad_en_seccion', seccion_id=999999) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="tipo_actividad" value="video">
+          
           <label class="block mb-2">Título del video</label>
           <input type="text" name="titulo-video" class="w-full border rounded px-3 py-2 mb-4" placeholder="Título del video">
           <label class="block mb-2">URL de YouTube</label>

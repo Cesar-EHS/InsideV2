@@ -43,6 +43,15 @@
                     <span class="text-sm font-bold text-blue-600">Iniciar Video</span>
                 </a>
               </li>
+            {% elif actividad.tipo_actividad == 'examen' %}
+              <li>
+                <a href="{{ url_for('cursos.tomar_examen', actividad_id=actividad.id) }}" 
+                  class="flex items-center p-3 -mx-3 rounded-lg text-gray-700 font-medium transition-colors duration-200 hover:bg-purple-50 hover:text-purple-800">
+                    <span class="material-icons text-purple-500 mr-4">quiz</span>
+                    <span class="flex-1">{{ actividad.titulo }}</span>
+                    <span class="text-sm font-semibold">Comenzar Examen</span>
+                </a>
+              </li>
             {% endif %}
           {% else %}
             <li class="text-center text-gray-400">No hay actividades en esta sección.</li>

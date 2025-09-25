@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Estilo para la opción de respuesta seleccionada */
+    input[type="radio"]:checked + span {
+        font-weight: 600; /* semi-bold */
+        color: #D97706; /* amber-600 */
+    }
+    input[type="radio"]:checked + span > div {
+        border-color: #FBBF24; /* amber-400 */
+        background-color: #FEF3C7; /* amber-100 */
+    }
+
+    .background-container {
+        position: relative;
+        z-index: 0;            /* IMPORTANT: crea el contexto de apilamiento */
+        overflow: hidden;      /* ya lo tenías, mantiene el blur recortado */
+    }
+
+    /* === NUEVO: Estilo para el fondo con la imagen del curso === */
+    .background-container::before {
+        content: '';
+        position: absolute;
+        inset: 0; /* top:0; right:0; bottom:0; left:0; */
+        background-image: url('{{ url_for("static", filename=actividad.seccion.curso.imagen) | default(url_for("static", filename="cursos/img/default-curso.png")) }}');
+        background-size: cover;
+        background-position: center;
+        opacity: 0.50;        /* ajusta si quieres más/menos visibilidad */
+        filter: blur(2px);
+        z-index: -1;          /* queda detrás del contenido, pero dentro del contexto */
+        pointer-events: none; /* no interfiera con clicks */
+        border-radius: inherit; /* si el contenedor tiene bordes redondeados */
+    }
+    #start-screen, #exam-screen {
+        position: relative;
+        z-index: 10;
+    }
+</style>
+
+<div class="background-container rounded-2xl relative h-[85vh] overflow-hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl">
+
+        <div id="start-screen" class="bg-white p-8 md:p-12 rounded-2xl shadow-2xl text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">{{ examen.titulo }}</h1>
+            <p class="text-gray-600 mb-8">{{ examen.descripcion }}</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-lg mb-10">
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <strong>Preguntas:</strong> {{ examen.preguntas|length }}
+                </div>
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <strong>Duración:</strong> {{ examen.duracion_minutos }} minutos
+                </div>
+                <div class="bg-blue-100 text-blue-800 p-4 rounded-lg">
+                    <strong>Intento:</strong> {{ intento_actual }} de {{ examen.intentos_permitidos }}
+                </div>
+            </div>
+            <button id="start-exam-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-12 py-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                Iniciar Examen
+            </button>
+        </div>
+
+        <div id="exam-screen" class="bg-white rounded-2xl shadow-xl overflow-hidden hidden">
+            <header class="p-6 border-b">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">{{ examen.titulo }}</h2>
+                    <div id="timer" class="text-xl font-mono font-semibold bg-red-100 text-red-700 px-4 py-2 rounded-lg">
+                        {{ examen.duracion_minutos }}:00
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-yellow-400 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <div id="progress-text" class="text-sm text-gray-500 text-right mt-1">Pregunta 0 de {{ examen.preguntas|length }}</div>
+            </header>
+
+            <form id="exam-form" action="{{ url_for('cursos.entregar_examen', actividad_id=actividad.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <main id="questions-container" class="p-8">
+                    {% for pregunta in examen.preguntas %}
+                    <div id="pregunta-{{ loop.index0 }}" class="question-slide {% if not loop.first %}hidden{% endif %}">
+                        <p class="font-bold text-l mb-6">{{ loop.index }}. {{ pregunta.texto }}</p>
+                        
+                        <div class="flex flex-col gap-3">
+                            {% if pregunta.tipo_pregunta_id == 1 %} {# Opción Múltiple #}
+                                {% for opcion in pregunta.opciones %}
+                                <label>
+                                    <input type="radio" name="pregunta-{{ pregunta.id }}" value="{{ opcion.id }}" class="sr-only peer">
+                                    <span class="block">
+                                        <div class="p-2 rounded-lg border-2 border-gray-200 peer-hover:border-yellow-400 peer-checked:bg-amber-100 peer-checked:border-amber-400 cursor-pointer">
+                                            {{ opcion.texto }}
+                                        </div>
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            {% elif pregunta.tipo_pregunta_id == 2 %} {# Verdadero o Falso #}
+                                <label>
+                                    <input type="radio" name="pregunta-{{ pregunta.id }}" value="Verdadero" class="sr-only peer">
+                                    <span class="block">
+                                        <div class="p-4 rounded-lg border-2 border-gray-200 peer-hover:border-yellow-400 peer-checked:bg-amber-100 peer-checked:border-amber-400 cursor-pointer">
+                                            Verdadero
+                                        </div>
+                                    </span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="pregunta-{{ pregunta.id }}" value="Falso" class="sr-only peer">
+                                    <span class="block">
+                                        <div class="p-4 rounded-lg border-2 border-gray-200 peer-hover:border-yellow-400 peer-checked:bg-amber-100 peer-checked:border-amber-400 cursor-pointer">
+                                            Falso
+                                        </div>
+                                    </span>
+                                </label>
+                            {% elif pregunta.tipo_pregunta_id == 3 %} {# Abierta #}
+                                <textarea name="pregunta-{{ pregunta.id }}" rows="5" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400" placeholder="Escribe tu respuesta..."></textarea>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                </main>
+
+                <footer class="p-6 bg-gray-50 border-t flex justify-between items-center">
+                    <button id="prev-btn" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-2 rounded-lg">Anterior</button>
+                    <button id="next-btn" type="button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-6 py-2 rounded-lg">Siguiente</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/tomar_examen.js') }}"></script>
+
+{% endblock %}

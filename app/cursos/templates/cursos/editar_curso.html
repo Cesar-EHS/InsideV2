@@ -406,10 +406,8 @@
   </div>
 </div>
 
-
-
 <!-- Modal para crear seccion y actividad con tabs mejorado -->
-<div id="modal-actividad" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden bg-black/40 backdrop-blur-sm transition-all">
+<div id="modal-actividad" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40 hidden bg-black/40 backdrop-blur-sm transition-all">
   <div class="bg-white rounded-2xl shadow-xl p-0 w-full max-w-2xl min-h-[480px] relative">
     <button id="cerrar-modal-actividad" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
     <!-- Tabs nav -->
@@ -514,42 +512,6 @@
     <div id="modal-tab-visualizar" class="p-8 flex flex-col h-[65vh] hidden">
       <h2 class="text-lg font-bold text-gray-800">Actividades existentes</h2>
       <div id="activities-container" class="space-y-4 flex-grow overflow-y-auto p-6">
-        <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="1" data-tipo="video">
-            <div class="flex items-center gap-4">
-                <span class="material-icons text-4xl text-blue-500">videocam</span>
-                <div>
-                    <h4 class="font-bold text-base text-gray-800">Video: Introducción al Curso</h4>
-                    <p class="text-xs text-gray-500">Creado: 2025-09-17</p>
-                </div>
-            </div>
-            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar">
-                    <span class="material-icons">edit</span>
-                </button>
-                <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar">
-                    <span class="material-icons">delete</span>
-                </button>
-            </div>
-        </div>
-
-          <div class="activity-card flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer group" data-id="2" data-tipo="archivo">
-              <div class="flex items-center gap-4">
-                  <span class="material-icons text-4xl text-yellow-500">attach_file</span>
-                  <div>
-                      <h4 class="font-bold text-base text-gray-800">Recurso: Manual en PDF</h4>
-                      <p class="text-xs text-gray-500">Creado: 2025-09-16</p>
-                  </div>
-              </div>
-              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar">
-                      <span class="material-icons">edit</span>
-                  </button>
-                  <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar">
-                      <span class="material-icons">delete</span>
-                  </button>
-              </div>
-          </div>
-      </div>
       <div class="flex justify-end items-end mt-4">
         <label class="text-gray-800 font-semibold cursor-pointer flex items-center gap-2 group" onclick="showModalTab('actividades')">
             <span class="material-icons text-base text-yellow-500 group-hover:text-yellow-600 transition-colors">add_circle</span> 
@@ -561,9 +523,10 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/editar_curso.js') }}"></script>
-<script src="{{ url_for('static', filename='js/agregar_examen.js') }}"></script>
-<script src="{{ url_for('static', filename='js/guardar_examen.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='js/agregar_examen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/guardar_examen.js') }}"></script> -->
 <script src="{{ url_for('static', filename='js/agregar_seccion.js') }}"></script>
 <script src="{{ url_for('static', filename='js/editar_seccion.js') }}"></script>
 <script src="{{ url_for('static', filename='js/agregar_actividad.js') }}"></script>
+<script src="{{ url_for('static', filename='js/manejo_examenes.js') }}"></script>
 {% endblock %}

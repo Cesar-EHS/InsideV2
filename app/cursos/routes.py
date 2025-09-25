@@ -4,8 +4,8 @@ from flask import (
 from flask_login import login_required, current_user
 from app import db
 from app.cursos.models import ( # Asegúrate de que Seccion esté importado
-    ActividadDocumento, ActividadVideo, CategoriaCurso, Curso, Inscripcion, Examen, Pregunta, Seccion,
-    ExamenResultado, Actividad, ActividadResultado, Archivo, TipoExamen
+    ActividadDocumento, ActividadVideo, CategoriaCurso, Curso, ExamenRespuestaUsuario, Inscripcion, Examen, Pregunta, Seccion,
+    ExamenResultado, Actividad, ActividadResultado, Archivo, ActividadExamen, PreguntaOpcion
 )
 from app.cursos.forms import CursoForm, ExamenForm, PreguntaForm, ActividadForm
 from datetime import datetime, timezone
@@ -18,6 +18,13 @@ bp_cursos = Blueprint('cursos', __name__, template_folder='templates', static_fo
 
 # Zona horaria de México
 mexico_tz = pytz.timezone('America/Mexico_City')
+
+#Diccionario con los tipos de pregunta.
+TIPO_PREGUNTA_MAP = {
+    'opcion_multiple': 1,
+    'verdadero_falso': 2,
+    'abierta': 3
+}
 
 encargados = {
     10: 'Soporte Sistemas',
@@ -364,28 +371,29 @@ def crear_actividad_en_seccion(seccion_id):
     
     try:
         tipo_actividad = request.form.get('tipo_actividad')
-        
         if not tipo_actividad:
             return jsonify({'status': 'error', 'message': 'No se especificó un tipo de actividad.'}), 400
 
         # El título se toma del campo específico del formulario que se envía
-        titulo = request.form.get('titulo-video') or request.form.get('titulo-archivo') or "Examen de la sección"
+        # titulo = request.form.get('titulo-video') or request.form.get('titulo-archivo') or "Examen de la sección"
         
         # Calcula el orden para la nueva actividad
         orden_actual_max = db.session.query(db.func.max(Actividad.orden)).filter_by(seccion_id=seccion.id).scalar() or 0
         
         # --- Creación del objeto Actividad paso a paso ---
         nueva_actividad = Actividad()
-        nueva_actividad.titulo = titulo
         nueva_actividad.fecha_creacion = datetime.now(mexico_tz)
         nueva_actividad.tipo_actividad = tipo_actividad
         nueva_actividad.seccion = seccion
         nueva_actividad.orden = orden_actual_max + 1
 
         if tipo_actividad == 'video':
+            titulo = request.form.get('titulo-video')
             video_url = request.form.get('video-url')
-            if not video_url:
-                raise ValueError("La URL del video es obligatoria.")
+            if not titulo or not video_url:
+                raise ValueError("El título y la URL del video son obligatorios.")
+            
+            nueva_actividad.titulo = titulo
             
             # --- Creación del objeto ActividadVideo paso a paso ---
             actividad_video = ActividadVideo()
@@ -396,9 +404,10 @@ def crear_actividad_en_seccion(seccion_id):
             nueva_actividad.videos.append(actividad_video)
 
         elif tipo_actividad == 'documento':
+            titulo = request.form.get('titulo-archivo')
             archivo = request.files.get('archivo')
-            if not archivo or not archivo.filename:
-                raise ValueError("Debe seleccionar un archivo.")
+            if not archivo or not archivo or not archivo.filename:
+                raise ValueError("El título y el archivo son obligatorios.")
             
             filename = secure_filename(archivo.filename)
             # Usa la misma lógica que en 'agregar_curso' para la ruta
@@ -407,6 +416,8 @@ def crear_actividad_en_seccion(seccion_id):
             os.makedirs(ruta_absoluta_base, exist_ok=True)
             
             archivo.save(os.path.join(ruta_absoluta_base, filename))
+
+            nueva_actividad.titulo = titulo
             
             # --- Creación del objeto ActividadDocumento paso a paso ---
             actividad_doc = ActividadDocumento()
@@ -417,18 +428,26 @@ def crear_actividad_en_seccion(seccion_id):
             nueva_actividad.documentos.append(actividad_doc)
         
         elif tipo_actividad == 'examen':
-            # Aquí necesitarías lógica para seleccionar un examen existente
-            # o crear uno nuevo. Por ahora, lo dejamos pendiente.
-            # examen_id = request.form.get('examen_id')
-            # ...
-            raise ValueError('La creación de exámenes aún no está implementada.')
+            # Ya tengo todas las vistas jeje, solo falta el bakcend
+            examen_id = request.form.get('examen_id')
+            examen_titulo = request.form.get('titulo')
+            if not examen_id or not examen_titulo:
+                raise ValueError("Faltan datos para la actividad de tipo examen.")
+            
+            nueva_actividad.titulo = examen_titulo
+
+            # Enlace entre Actividad y Examen
+            enlace = ActividadExamen()
+            enlace.examen_id = int(examen_id)
+            nueva_actividad.examenes.append(enlace)
 
         else:
             raise ValueError(f"Tipo de actividad no válido: {tipo_actividad}")
-
-        # Guardar todo en la base de datos de forma atómica
+        
         db.session.add(nueva_actividad)
+        # Guardar todo en la base de datos de forma atómica
         db.session.commit()
+
         # Respuesta de éxito: devolvemos la actividad creada
         return jsonify({
             'status': 'success',
@@ -442,6 +461,7 @@ def crear_actividad_en_seccion(seccion_id):
         })
     
     except ValueError as ve:
+        db.session.rollback()
         # Errores de validación (datos faltantes)
         return jsonify({'status': 'error', 'message': str(ve)}), 400
 
@@ -575,66 +595,239 @@ def realizar_actividad(actividad_id):
 
 # ---------- EXÁMENES ----------
 
-@bp_cursos.route('/curso/<int:curso_id>/examenes')
+@bp_cursos.route('examenes/crear', methods=['POST'])
 @login_required
-def examenes_curso(curso_id):
-    curso = Curso.query.get_or_404(curso_id)
-    if curso.creador_id != current_user.id:
-        inscripcion = Inscripcion.query.filter_by(
-            usuario_id=current_user.id,
-            curso_id=curso.id,
-            activo=True
-        ).first()
-        if not inscripcion:
-            abort(403)
+def crear_examen_completo():
+    data = request.get_json()
+    if not data:
+        return jsonify({'status': 'error', 'message': 'No se recibieron datos JSON.'}), 400
+    
+    try:
+        # Convertimos los datos a la forma en que están en la DB
+        duracion_str = data.get('duracion')
+        duracion_int = int(duracion_str) if duracion_str and duracion_str.isdigit() else None
+        print(f"Duración convertida: {duracion_int}")
 
-    examenes = curso.examenes
-    return render_template('cursos/examenes.html', curso=curso, examenes=examenes)
+        # Obtenemos el tipo de examen y lo convertimos a entero.
+        tipo_examen = data.get('tipo_examen')
+        tipo_examen_id_int = int(tipo_examen) if tipo_examen else None
+
+        # Obtenemos fechas y las convertimos a objetos datetime
+        fecha_inicio_str = data.get('fecha_inicio')
+        fecha_cierre_str = data.get('fecha_cierre')
+
+        fecha_inicio_obj  = datetime.fromisoformat(fecha_inicio_str) if fecha_inicio_str else None
+        fecha_cierre_obj  = datetime.fromisoformat(fecha_cierre_str) if fecha_cierre_str else None
 
 
-@bp_cursos.route('/curso/<int:curso_id>/examen/agregar', methods=['GET', 'POST'])
-@login_required
-def agregar_examen(curso_id):
-    curso = Curso.query.get_or_404(curso_id)
-    if curso.creador_id != current_user.id:
-        abort(403)
+        nuevo_examen = Examen()
+        nuevo_examen.titulo = data.get('titulo')
+        nuevo_examen.descripcion = data.get('descripcion')
+        nuevo_examen.fecha_creacion = datetime.now(mexico_tz)
+        nuevo_examen.fecha_inicio = fecha_inicio_obj
+        nuevo_examen.fecha_cierre = fecha_cierre_obj
+        nuevo_examen.duracion_minutos = duracion_int
+        nuevo_examen.tipo_examen_id = tipo_examen_id_int
+        
+        db.session.add(nuevo_examen)
+        db.session.flush() # Esto le pide a la DB un ID para nuevo_examen ANTES de continuar
 
-    formExamen = ExamenForm()
-    if formExamen.validate_on_submit():
-        examen = Examen()
-        examen.curso_id=curso.id,
-        examen.titulo=formExamen.titulo.data,
-        examen.descripcion=formExamen.descripcion.data
-        examen.duracion_minutos=formExamen.duracion.data
-        examen.fecha_inicio=formExamen.fecha_inicio.data
-        examen.fecha_cierre=formExamen.fecha_cierre.data
+        # Código para guardar las preguntas por tipo
+        for pregunta_data in data.get('preguntas', []):
+            tipo_pregunta_str = pregunta_data.get('tipo')
+            tipo_pregunta_id = TIPO_PREGUNTA_MAP.get(tipo_pregunta_str)
+            if not tipo_pregunta_id: continue # Tipo no válido, saltar
 
-        db.session.add(examen)
+            nueva_pregunta = Pregunta()
+            nueva_pregunta.texto = pregunta_data.get('texto')
+            nueva_pregunta.tipo_pregunta_id = tipo_pregunta_id
+            nueva_pregunta.examen_id = nuevo_examen.id
+            
+            db.session.add(nueva_pregunta)
+            db.session.flush() # Esto le pide a la DB un ID para nueva_pregunta
+
+            # Pasamos con las de opcion multilple
+            if tipo_pregunta_str == 'opcion_multiple':
+                for opcion_data in pregunta_data.get('opciones', []):
+                    nueva_opcion = PreguntaOpcion()
+                    nueva_opcion.texto = opcion_data.get('texto')
+                    nueva_opcion.es_correcta = opcion_data.get('es_correcta', False)
+                    nueva_opcion.pregunta_id = nueva_pregunta.id
+                    db.session.add(nueva_opcion)
+            
+            elif tipo_pregunta_str == 'verdadero_falso':
+                # Obtenemos la respuesta correcta que indicó quien creo el examen
+                respuesta_correcta = pregunta_data.get('respuesta_correcta_vf')
+
+                # Creamos las dos opciones de Verdadero y Falso en la DB
+                opcion_verdadero = PreguntaOpcion()
+                opcion_verdadero.texto = 'Verdadero'
+                opcion_verdadero.es_correcta = (respuesta_correcta == 'verdadero')
+                opcion_verdadero.pregunta_id = nueva_pregunta.id
+
+                opcion_falso = PreguntaOpcion()
+                opcion_falso.texto = 'Falso'
+                opcion_falso.es_correcta = (respuesta_correcta == 'falso')
+                opcion_falso.pregunta_id = nueva_pregunta.id
+
+                # Las añadimos a la sesión para guardarlas
+                db.session.add_all([opcion_verdadero, opcion_falso])
+
         db.session.commit()
-        flash('Examen agregado correctamente.', 'success')
-        return redirect(url_for('cursos.examenes_curso', curso_id=curso.id))
+        return jsonify({
+            'status': 'success',
+            'message': 'Examen creado con éxito.',
+            'examen_id': nuevo_examen.id,
+            'examen_titulo': nuevo_examen.titulo
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al crear examen: {e}")
+        return jsonify({'status': 'error', 'message': 'Error interno al guardar el examen.'}), 500
 
-    return render_template('cursos/agregar_examen.html', formExamen=formExamen, curso=curso)
-
-
-@bp_cursos.route('/examen/<int:examen_id>/editar', methods=['GET', 'POST'])
+@bp_cursos.route('/actividad/<int:actividad_id>/tomar_examen', methods=['GET'])
 @login_required
-def editar_examen(examen_id):
-    examen = Examen.query.get_or_404(examen_id)
-    curso = examen.curso
-    if curso.creador_id != current_user.id:
+def tomar_examen(actividad_id):
+    actividad = Actividad.query.get_or_404(actividad_id)
+    enlace_examen = ActividadExamen.query.filter_by(actividad_id=actividad.id).first_or_404()
+    examen = Examen.query.get_or_404(enlace_examen.examen_id)
+    curso = actividad.seccion.curso
+
+    # ===============================================================
+    # 👇 AÑADE ESTA VERIFICACIÓN DE INSCRIPCIÓN 👇
+    # ===============================================================
+    # Verificamos la inscripción
+    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=curso.id).first()
+    if not inscripcion:
+        flash('No estás inscrito en este curso.', 'warning')
+        return redirect(url_for('cursos.detalle_curso', curso_id=curso.id))
+
+    # --- LÓGICA DE INTENTOS ---
+    # 1. Contamos cuántos resultados ya existen para este usuario y este examen
+    intentos_realizados = ExamenResultado.query.filter_by(
+        inscripcion_id=inscripcion.id,
+        examen_id=examen.id
+    ).count()
+
+    # 2. Comparamos con los intentos permitidos
+    if intentos_realizados >= examen.intentos_permitidos:
+        flash(f'Ya has utilizado todos tus {examen.intentos_permitidos} intentos para este examen.', 'danger')
+        return redirect(url_for('cursos.ver_curso', curso_id=curso.id)) # Lo mandamos de vuelta al curso
+
+    # 3. Pasamos el número de intento actual a la plantilla
+    intento_actual = intentos_realizados + 1
+
+    return render_template('cursos/tomar_examen.html', 
+                           examen=examen, 
+                           actividad=actividad, 
+                           intento_actual=intento_actual)
+
+@bp_cursos.route('/actividad/<int:actividad_id>/entregar_examen', methods=['POST'])
+@login_required
+def entregar_examen(actividad_id):
+    actividad = Actividad.query.get_or_404(actividad_id)
+    examen = ActividadExamen.query.filter_by(actividad_id=actividad.id).first_or_404().examen
+    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=actividad.seccion.curso_id).first_or_404()
+    
+    # --- Lógica de Intentos ---
+    intentos_previos = ExamenResultado.query.filter_by(
+        inscripcion_id=inscripcion.id,
+        examen_id=examen.id
+    ).count()
+
+    if intentos_previos >= examen.intentos_permitidos:
+        flash('Ya has utilizado todos tus intentos para este examen.', 'danger')
+        return redirect(url_for('cursos.ver_curso', curso_id=actividad.seccion.curso_id))
+
+    # --- Procesamiento de Respuestas ---
+    respuestas_form = request.form
+    total_preguntas_calificables = 0
+    respuestas_correctas = 0
+    tiene_preguntas_abiertas = False
+
+    # 1. Creamos el ExamenResultado para este intento
+    nuevo_resultado_examen = ExamenResultado()
+    nuevo_resultado_examen.inscripcion_id = inscripcion.id
+    nuevo_resultado_examen.fecha_realizado = datetime.now(mexico_tz)
+    nuevo_resultado_examen.examen_id = examen.id
+    nuevo_resultado_examen.numero_intento=intentos_previos + 1
+    
+    db.session.add(nuevo_resultado_examen)
+    db.session.flush()
+
+    # 2. Guardamos y calificamos cada respuesta del usuario
+    for pregunta in examen.preguntas:
+        llave_form = f'pregunta-{pregunta.id}'
+        respuesta_usuario_str = respuestas_form.get(llave_form)
+        if not respuesta_usuario_str:
+            continue
+
+        respuesta = ExamenRespuestaUsuario()
+        respuesta.examen_resultado_id=nuevo_resultado_examen.id
+        respuesta.pregunta_id=pregunta.id
+        
+        # Calificación para opción multiple y v/f
+        if pregunta.tipo_pregunta_id == 1 or pregunta.tipo_pregunta_id == 2: # Opción Múltiple
+            total_preguntas_calificables += 1
+            opcion_seleccionada = None # Inicializamos como None por seguridad
+            try: #Intenamos buscar la opción que el usuario seleccionó
+                opcion_id_int = int(respuesta_usuario_str)
+                opcion_seleccionada = PreguntaOpcion.query.get(opcion_id_int)
+                if opcion_seleccionada:
+                    respuesta.pregunta_opcion_id = opcion_seleccionada.id
+                    if opcion_seleccionada.es_correcta:
+                        respuestas_correctas += 1
+            except (ValueError, TypeError):
+                pass
+        
+        elif pregunta.tipo_pregunta_id == 3: # Abierta
+            tiene_preguntas_abiertas = True
+            respuesta.respuesta_texto = respuesta_usuario_str
+        
+        db.session.add(respuesta)
+
+    # 3. Calculamos la calificación y definimos el estado
+    calificacion_final = 0.0
+    if total_preguntas_calificables > 0:
+        calificacion_final = (respuestas_correctas / total_preguntas_calificables) * 100
+    
+    nuevo_resultado_examen.calificacion = calificacion_final
+    
+    # 4. Creamos el ActividadResultado para marcar la actividad como completada
+    nuevo_resultado_actividad = ActividadResultado()
+    nuevo_resultado_actividad.inscripcion_id=inscripcion.id
+    nuevo_resultado_actividad.actividad_id=actividad.id
+    nuevo_resultado_actividad.entregado=True
+    nuevo_resultado_actividad.fecha_entregado=datetime.now(mexico_tz)
+    nuevo_resultado_actividad.calificacion=calificacion_final
+    # Enlazamos con el resultado del examen específico
+    nuevo_resultado_actividad.examen_resultado_id=nuevo_resultado_examen.id
+    
+    if tiene_preguntas_abiertas:
+        nuevo_resultado_actividad.retroalimentacion = "Pendiente de revisión."
+        # Podrías añadir un campo "status" a ActividadResultado también si quisieras
+    
+    db.session.add(nuevo_resultado_actividad)
+    db.session.commit()
+
+    flash('¡Examen entregado con éxito!', 'success')
+    # Redirigimos al usuario a una página de resultados
+    return redirect(url_for('cursos.ver_resultado', resultado_id=nuevo_resultado_examen.id))
+
+@bp_cursos.route('/examenes/resultados/<int:resultado_id>')
+@login_required
+def ver_resultado(resultado_id):
+    # BUscamos el resultado del examen mediante el id
+    resultado = ExamenResultado.query.get_or_404(resultado_id)
+
+    # Evidentemente solo el mismo ususario puede ver sus resultados
+    if resultado.inscripcion.usuario_id != current_user.id:
         abort(403)
+    
+    # Facilitamos el proceso creando un diccionario de respuestas
+    respuestas_dict = {r.pregunta_id: r for r in resultado.respuestas}
 
-    form = ExamenForm(obj=examen)
-    if form.validate_on_submit():
-        examen.titulo = form.titulo.data
-        examen.descripcion = form.descripcion.data
-        db.session.commit()
-        flash('Examen actualizado correctamente.', 'success')
-        return redirect(url_for('cursos.examenes_curso', curso_id=curso.id))
-
-    return render_template('cursos/editar_examen.html', form=form, examen=examen)
-
+    return render_template('cursos/ver_resultados_examen.html', resultado=resultado, examen=resultado.examen, respuestas_dict=respuestas_dict)
 
 # ---------- PREGUNTAS ----------
 
@@ -684,6 +877,80 @@ def editar_pregunta(pregunta_id):
 
     return render_template('cursos/editar_pregunta.html', form=form, pregunta=pregunta)
 
+@bp_cursos.route('/actividad/<int:actividad_id>/dashboard_examen')
+@login_required
+def dashboard_examen(actividad_id):
+    # Extraemos la info de la actividad
+    actividad = Actividad.query.get_or_404(actividad_id)
+
+    # Por seguridad: solo el creador del curso puede ver el dashboard
+    if actividad.seccion.curso.creador_id != current_user.id:
+        abort(403)
+    
+    # FIltramos el examen
+    examen = actividad.examenes[0].examen
+
+    resultados = ExamenResultado.query.filter_by(examen_id=examen.id).order_by(ExamenResultado.fecha_realizado.desc()).all()
+
+    # Contamos cuantas tienen la marca de Pendiente
+    pendientes_revision = [r for r in resultados if r.actividad_resultado and r.actividad_resultado.retroalimentacion == "Pendiente de revisión."]
+
+    # Calculo de estadisticas
+    resultados_calificados = [r for r in resultados if not (r.actividad_resultado and r.actividad_resultado.retroalimentacion == "Pendiente de revisión.")]
+    calificaciones = [r.calificacion for r in resultados_calificados if r.calificacion is not None]
+
+    if calificaciones:
+        promedio_final = round(sum(calificaciones) / len(calificaciones), 1)
+    else:
+        promedio_final = 0
+
+    estadisticas = {
+        'presentaron': len(resultados),
+        'promedio': promedio_final,
+        'pendientes': len(pendientes_revision)
+    }
+
+    return render_template('cursos/dashboard_examen.html', actividad=actividad, examen=examen, resultados=resultados, estadisticas=estadisticas)
+
+@bp_cursos.route('/examenes/resultados/<int:resultado_id>/revisar', methods=['GET', 'POST'])
+@login_required
+def revisar_intento(resultado_id):
+    resultado = ExamenResultado.query.get_or_404(resultado_id)
+    curso = resultado.inscripcion.curso
+
+    # Seguridad: solo el creador del curso puede calificar
+    if curso.creador_id != current_user.id:
+        abort(403)
+    
+    # Si el método es POST, el instructor está guardando la calificación
+    if request.method == 'POST':
+        calificacion_final = request.form.get('calificacion_final')
+        retroalimentacion = request.form.get('retroalimentacion', '')
+
+        if calificacion_final:
+            # Actualizamos el resultado del examen
+            resultado.calificacion = float(calificacion_final)
+            resultado.status = 'completado'
+            
+            # Buscamos y actualizamos el resultado de la actividad asociado
+            actividad_resultado = ActividadResultado.query.filter_by(examen_resultado_id=resultado.id).first()
+            if actividad_resultado:
+                actividad_resultado.calificacion = float(calificacion_final)
+                actividad_resultado.retroalimentacion = retroalimentacion
+
+            db.session.commit()
+            flash('La calificación ha sido guardada con éxito.', 'success')
+            # Redirigimos de vuelta al dashboard del examen
+            return redirect(url_for('cursos.dashboard_examen', actividad_id=actividad_resultado.actividad_id))
+
+    # Si es GET, simplemente mostramos la página de revisión
+    respuestas_dict = {r.pregunta_id: r for r in resultado.respuestas}
+    return render_template(
+        'cursos/revisar_intento.html', 
+        resultado=resultado,
+        examen=resultado.examen,
+        respuestas_dict=respuestas_dict
+    )
 
 # ---------- ACTIVIDADES ----------
 
@@ -777,50 +1044,3 @@ def resultado_actividad(inscripcion_id, actividad_id):
 
     # Similar a resultado_examen, para entregar archivo o respuestas
     return render_template('cursos/resultado_actividad.html', inscripcion=inscripcion, actividad=actividad)
-
-
-@bp_cursos.route('/enviar_resultado_examen/<int:examen_id>', methods=['POST'])
-@login_required
-def enviar_resultado_examen(examen_id):
-    examen = Examen.query.get_or_404(examen_id)
-    curso = examen.curso
-    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=curso.id, activo=True).first_or_404()
-    # Procesar respuestas y calificar automáticamente
-    aciertos = 0
-    total = len(examen.preguntas)
-    for pregunta in examen.preguntas:
-        respuesta = request.form.get(f'respuesta_{pregunta.id}')
-        if pregunta.tipo in ['opcion_multiple', 'verdadero_falso']:
-            if respuesta and respuesta.strip().lower() == (pregunta.respuesta_correcta or '').strip().lower():
-                aciertos += 1
-    calificacion = round((aciertos / total) * 100, 2) if total > 0 else 0
-    # Registrar resultado
-    resultado = ExamenResultado.query.filter_by(inscripcion_id=inscripcion.id, examen_id=examen.id).first()
-    if not resultado:
-        resultado = ExamenResultado(inscripcion_id=inscripcion.id, examen_id=examen.id)
-        db.session.add(resultado)
-    resultado.calificacion = calificacion
-    db.session.commit()
-    actualizar_avance(inscripcion)
-    flash(f'Examen enviado. Calificación: {calificacion}', 'success')
-    return redirect(url_for('cursos.curso_detalle', curso_id=curso.id))
-
-
-@bp_cursos.route('/enviar_resultado_actividad/<int:actividad_id>', methods=['POST'])
-@login_required
-def enviar_resultado_actividad(actividad_id):
-    actividad = Actividad.query.get_or_404(actividad_id)
-    curso = actividad.curso
-    inscripcion = Inscripcion.query.filter_by(usuario_id=current_user.id, curso_id=curso.id, activo=True).first_or_404()
-    resultado = ActividadResultado.query.filter_by(inscripcion_id=inscripcion.id, actividad_id=actividad.id).first()
-    if not resultado:
-        resultado = ActividadResultado(inscripcion_id=inscripcion.id, actividad_id=actividad.id)
-        db.session.add(resultado)
-    resultado.entregado = True
-    resultado.fecha_entregado = db.func.now()
-    resultado.retroalimentacion = request.form.get('comentario')
-    # (Opcional: guardar archivo de entrega)
-    db.session.commit()
-    actualizar_avance(inscripcion)
-    flash('Actividad entregada correctamente.', 'success')
-    return redirect(url_for('cursos.curso_detalle', curso_id=curso.id))

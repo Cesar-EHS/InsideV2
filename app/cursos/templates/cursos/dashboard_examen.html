@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-8 px-4">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">{{ examen.titulo }}</h1>
+        <p class="text-gray-500">{{ examen.descripcion }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+            <p class="text-4xl font-bold text-blue-500">{{ estadisticas.presentaron }}</p>
+            <p class="text-gray-500 font-semibold mt-2">Entregas Totales</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+            <p class="text-4xl font-bold text-green-500">{{ estadisticas.promedio }}%</p>
+            <p class="text-gray-500 font-semibold mt-2">Calificación Promedio</p>
+        </div>
+        <div class="bg-amber-100 p-6 rounded-xl shadow-lg text-center border-2 border-amber-400">
+            <p class="text-4xl font-bold text-amber-600">{{ estadisticas.pendientes }}</p>
+            <p class="text-amber-700 font-semibold mt-2">Pendientes de Revisión</p>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+        <h2 class="text-xl font-bold mb-4">Entregas de Alumnos</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="py-2 px-4 text-left font-semibold text-gray-600">Alumno</th>
+                        <th class="py-2 px-4 text-left font-semibold text-gray-600">Fecha</th>
+                        <th class="py-2 px-4 text-center font-semibold text-gray-600">Intento</th>
+                        <th class="py-2 px-4 text-center font-semibold text-gray-600">Calificación / Estado</th>
+                        <th class="py-2 px-4 text-right font-semibold text-gray-600">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resultado in resultados %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-4">{{ resultado.inscripcion.usuario.nombre }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-600">{{ resultado.fecha_realizado.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="py-3 px-4 text-center">{{ resultado.numero_intento }}</td>
+                        <td class="py-3 px-4 text-center">
+                            {% if resultado.status == 'pendiente_revision' %}
+                                <span class="bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Pendiente</span>
+                            {% else %}
+                                <span class="font-semibold">{{ resultado.calificacion|round(1) }}%</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{{ url_for('cursos.revisar_intento', resultado_id=resultado.id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm font-semibold">
+                                Revisar
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500">Aún no hay entregas para este examen.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

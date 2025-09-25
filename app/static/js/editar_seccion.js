@@ -89,15 +89,32 @@ document.addEventListener('DOMContentLoaded', function () {
         const actividadesData = JSON.parse(actividadesDataString);
         if (actividadesData && actividadesData.length > 0) {
             actividadesData.forEach(act => {
-                const activityCardHTML = `
-                    <div class="activity-card flex items-center justify-between p-4 bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-200 cursor-pointer hover:shadow-xl hover:-translate-y-1 group" data-id="${act.id}">
-                        <div class="flex items-center gap-4">
+                let cardContentHTML = '';
+                // Solo se llevará al dasboard los que son examenes
+                if(act.tipo === 'examen') {
+                    // SI es examen ps nos vamos al dashboard
+                    cardContentHTML = `
+                        <a href="/cursos/actividad/${act.id}/dashboard_examen" class="flex items-center gap-4 group flex-grow">
                             ${getIconForActivityType(act.tipo)}
                             <div>
-                                <h4 class="font-bold text-base text-gray-800">${act.titulo}</h4>
+                                <h4 class="font-bold text-gray-800 group-hover:text-yellow-500 transition">${act.titulo}</h4>
                                 <p class="text-xs text-gray-500">Tipo: ${act.tipo}</p>
                             </div>
-                        </div>
+                        </a>`;
+                } else {
+                    // Para otros tipos de actividad (video, documento), se queda como estaba (sin enlace principal)
+                    cardContentHTML = `
+                        <div class="flex items-center gap-4 flex-grow">
+                            ${getIconForActivityType(act.tipo)}
+                            <div>
+                                <h4 class="font-bold text-gray-800">${act.titulo}</h4>
+                                <p class="text-xs text-gray-500">Tipo: ${act.tipo}</p>
+                            </div>
+                        </div>`;
+                }
+                const activityCardHTML = `
+                    <div class="activity-card flex items-center justify-between p-4 bg-white rounded-xl shadow-md border" data-id="${act.id}">
+                        ${cardContentHTML}
                         <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button class="text-gray-600 hover:text-yellow-500 p-1" title="Editar"><span class="material-icons">edit</span></button>
                             <button class="text-gray-600 hover:text-red-500 p-1" title="Eliminar"><span class="material-icons">delete</span></button>

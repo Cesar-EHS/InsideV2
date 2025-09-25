@@ -28,7 +28,6 @@ class Curso(db.Model):
     tipo_agente = db.relationship('TipoAgente', backref='cursos')
     categoria = db.relationship('CategoriaCurso', backref='cursos')
     creador = db.relationship('User', backref='cursos')
-    examenes = db.relationship('Examen', back_populates='curso', cascade='all, delete-orphan')
     inscripciones = db.relationship('Inscripcion', back_populates='curso', cascade='all, delete-orphan')
     archivos = db.relationship('Archivo', back_populates='curso', cascade='all, delete-orphan')
 
@@ -65,7 +64,6 @@ class Examen(db.Model):
     __tablename__ = 'examenes'
 
     id = db.Column(db.Integer, primary_key=True)
-    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
     tipo_examen_id = db.Column(db.Integer, db.ForeignKey('tipos_examen.id'), nullable=False)
     titulo = db.Column(db.String(150), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
@@ -75,11 +73,10 @@ class Examen(db.Model):
     duracion_minutos = db.Column(db.Integer, nullable=True)  # Duración en minutos
     intentos_permitidos = db.Column(db.Integer, default=3)  # Número de intentos permitidos
 
-    curso = db.relationship('Curso', back_populates='examenes')
     preguntas = db.relationship('Pregunta', back_populates='examen', cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Examen {self.titulo} curso {self.curso_id}>'
+        return f'<Examen {self.titulo}>'
     
 class TipoExamen(db.Model):
     __tablename__= 'tipos_examen'
@@ -104,6 +101,7 @@ class ExamenResultado(db.Model):
     calificacion = db.Column(db.Float, nullable=True)
     fecha_realizado = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
 
+    actividad_resultado = db.relationship('ActividadResultado', back_populates='examen_resultado', uselist=False, cascade='all, delete-orphan')
     inscripcion = db.relationship('Inscripcion', back_populates='examenes_realizados')
     examen = db.relationship('Examen')
 
@@ -134,7 +132,8 @@ class Pregunta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     examen_id = db.Column(db.Integer, db.ForeignKey('examenes.id'), nullable=False)
     texto = db.Column(db.Text, nullable=False)
-    tipo_pregunta = db.Column(db.Integer, db.ForeignKey('tipos_pregunta'), nullable=False)  # Ejemplo: 'opcion_multiple', 'verdadero_falso', 'abierta'
+    tipo_pregunta_id = db.Column(db.Integer, db.ForeignKey('tipos_pregunta.id'), nullable=False)  # Ejemplo: 'opcion_multiple', 'verdadero_falso', 'abierta'
+    respuesta_correcta_vf = db.Column(db.String(10), nullable=True)  # 'verdadero' o 'falso'
 
     #Relaciones bidireccionales entre modelos.
     examen = db.relationship('Examen', back_populates='preguntas')
@@ -259,7 +258,7 @@ class ActividadResultado(db.Model):
     fecha_entregado = db.Column(db.DateTime, nullable=True)
     calificacion = db.Column(db.Float, nullable=True)
     retroalimentacion = db.Column(db.Text, nullable=True)
-    examen_resultado_id = db.Column(db.Integer, db.ForeignKey('examenes_resultados.id'), nullable=True)  # <-- Nuevo campo
+    examen_resultado_id = db.Column(db.Integer, db.ForeignKey('examenes_resultados.id'), nullable=True)
 
     inscripcion = db.relationship('Inscripcion', back_populates='actividades_realizadas')
     actividad = db.relationship('Actividad')

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg max-w-4xl mx-auto">
+    
+    <div class="text-center mb-10">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Resultados de: {{ examen.titulo }}</h1>
+        
+        {% if resultado.status == 'pendiente_revision' %}
+            <p class="text-lg font-semibold text-amber-600 bg-amber-100 inline-block px-4 py-2 rounded-full">
+                Pendiente de Revisión
+            </p>
+            <p class="text-gray-500 mt-2">Tu calificación final se mostrará cuando el instructor revise tus respuestas abiertas.</p>
+        {% else %}
+            <p class="text-4xl font-bold text-yellow-500 my-4">{{ resultado.calificacion|round(1) }}%</p>
+            <p class="text-gray-600">Has completado el examen.</p>
+        {% endif %}
+    </div>
+
+    <div class="space-y-8">
+        {% for pregunta in examen.preguntas %}
+        {% set respuesta_usuario = respuestas_dict.get(pregunta.id) %}
+        
+        <div class="border-t pt-4">
+            <p class="font-bold text-base mb-4">{{ loop.index }}. {{ pregunta.texto }}</p>
+
+            {# --- PREGUNTAS DE OPCIÓN MÚLTIPLE --- #}
+            {% if pregunta.tipo_pregunta_id == 1 %}
+                <div class="flex flex-col gap-2">
+                    {% for opcion in pregunta.opciones %}
+                        {% set es_seleccionada = respuesta_usuario and respuesta_usuario.pregunta_opcion_id == opcion.id %}
+                        
+                        {% if es_seleccionada and opcion.es_correcta %}
+                            <div class="flex items-center gap-3 p-3 rounded-lg bg-green-100 border-2 border-green-500">
+                                <span class="material-icons text-green-600">check_circle</span>
+                                <span class="text-base text-green-800 font-semibold">{{ opcion.texto }} (Tu respuesta)</span>
+                            </div>
+                        {% elif es_seleccionada and not opcion.es_correcta %}
+                            <div class="flex items-center gap-3 p-3 rounded-lg bg-red-100 border-2 border-red-500">
+                                <span class="material-icons text-red-600">cancel</span>
+                                <span class="text-red-800 font-semibold">{{ opcion.texto }} (Tu respuesta)</span>
+                            </div>
+                        {% elif not es_seleccionada and opcion.es_correcta %}
+                                <div class="flex items-center gap-3 p-3 rounded-lg border-2 border-green-500">
+                                <span class="material-icons text-green-600">check_circle_outline</span>
+                                <span class="text-gray-700">{{ opcion.texto }} (Respuesta correcta)</span>
+                            </div>
+                        {% else %}
+                                <div class="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                                <span class="material-icons text-gray-400">radio_button_unchecked</span>
+                                <span class="text-gray-600">{{ opcion.texto }}</span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# --- PREGUNTAS DE VERDADERO/FALSO --- #}
+            {% if pregunta.tipo_pregunta_id == 2 %}
+                {% set respuesta_correcta = pregunta.respuesta_correcta_vf %}
+                {% set respuesta_alumno = respuesta_usuario.respuesta_texto if respuesta_usuario else '' %}
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3 p-3 rounded-lg 
+                        {% if respuesta_correcta == 'verdadero' and respuesta_alumno == 'verdadero' %} bg-green-100 border-2 border-green-500 {% endif %}
+                        {% if respuesta_correcta != 'verdadero' and respuesta_alumno == 'verdadero' %} bg-red-100 border-2 border-red-500 {% endif %}
+                        {% if respuesta_correcta == 'verdadero' and respuesta_alumno != 'verdadero' %} border-2 border-green-500 {% endif %}">
+                        
+                        {% if respuesta_correcta == 'verdadero' and respuesta_alumno == 'verdadero' %}
+                            <span class="material-icons text-green-600">check_circle</span>
+                        {% elif respuesta_correcta != 'verdadero' and respuesta_alumno == 'verdadero' %}
+                            <span class="material-icons text-red-600">cancel</span>
+                        {% elif respuesta_correcta == 'verdadero' and respuesta_alumno != 'verdadero' %}
+                            <span class="material-icons text-green-600">check_circle_outline</span>
+                        {% else %}
+                            <span class="material-icons text-gray-400">radio_button_unchecked</span>
+                        {% endif %}
+                        <span class="font-semibold">Verdadero {% if respuesta_alumno == 'verdadero' %} (Tu respuesta){% endif %}</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 rounded-lg
+                        {% if respuesta_correcta == 'falso' and respuesta_alumno == 'falso' %} bg-green-100 border-2 border-green-500 {% endif %}
+                        {% if respuesta_correcta != 'falso' and respuesta_alumno == 'falso' %} bg-red-100 border-2 border-red-500 {% endif %}
+                        {% if respuesta_correcta == 'falso' and respuesta_alumno != 'falso' %} border-2 border-green-500 {% endif %}">
+                        
+                        {% if respuesta_correcta == 'falso' and respuesta_alumno == 'falso' %}
+                            <span class="material-icons text-green-600">check_circle</span>
+                        {% elif respuesta_correcta != 'falso' and respuesta_alumno == 'falso' %}
+                            <span class="material-icons text-red-600">cancel</span>
+                        {% elif respuesta_correcta == 'falso' and respuesta_alumno != 'falso' %}
+                            <span class="material-icons text-green-600">check_circle_outline</span>
+                        {% else %}
+                            <span class="material-icons text-gray-400">radio_button_unchecked</span>
+                        {% endif %}
+                        <span class="font-semibold">Falso {% if respuesta_alumno == 'falso' %} (Tu respuesta){% endif %}</span>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# --- PREGUNTAS ABIERTAS --- #}
+            {% if pregunta.tipo_pregunta_id == 3 %}
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <p class="font-semibold text-gray-800 mb-2">Tu respuesta:</p>
+                    <p class="text-gray-700 whitespace-pre-wrap">{{ respuesta_usuario.respuesta_texto if respuesta_usuario else 'No respondida' }}</p>
+                    <p class="text-xs text-amber-600 mt-2 font-semibold">PENDIENTE DE CALIFICAR</p>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-10 text-center">
+        <a href="{{ url_for('cursos.curso_inscrito', curso_id=resultado.inscripcion.curso_id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-lg">
+            Volver al Curso
+        </a>
+    </div>
+</div>
+{% endblock %}
